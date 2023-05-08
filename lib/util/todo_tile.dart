@@ -55,7 +55,6 @@ class ToDoTile extends StatelessWidget {
                             : TextDecoration.none),
                     maxLines: 2,
                     minFontSize: 15,
-
                   ),
                 ),
               ],
