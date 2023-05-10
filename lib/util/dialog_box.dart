@@ -15,38 +15,34 @@ class DialogBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: Colors.green,
       content: SizedBox(
         width: 200,
         height: 120,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              //Get user input
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: "Add Task"),
-                  maxLines: 3,
-                ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            //Get user input
+            Expanded(
+              child: TextField(
+                autofocus: true,
+                controller: controller,
+                decoration: const InputDecoration(
+                    border: OutlineInputBorder(), hintText: "Add Task"),
+                maxLines: 3,
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // save button
-                  MyButton(text: "Save", onPressed: onSave),
-                  const SizedBox(
-                    width: 8,
-                  ),
-                  // cancel button
-                  MyButton(text: "Cancel", onPressed: onCancel),
-                ],
-              )
-              //button - save + cancel
-            ],
-          ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                // cancel button
+                MyButton(text: "Cancel", onPressed: onCancel),
+                // save button
+                MyButton(text: "Save", onPressed: onSave),
+              ],
+            )
+            //button - save + cancel
+          ],
+        ),
       ),
     );
   }
