@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -19,7 +21,7 @@ class ToDoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.only(left: 25, right: 25, top: 15),
+        padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
         child: Slidable(
           endActionPane: ActionPane(
             motion: DrawerMotion(),
@@ -28,7 +30,7 @@ class ToDoTile extends StatelessWidget {
                 onPressed: deleteFunction,
                 icon: Icons.delete,
                 backgroundColor: Colors.red,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(15),
               )
             ],
           ),
@@ -36,20 +38,29 @@ class ToDoTile extends StatelessWidget {
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
               color: Colors.green,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(15),
             ),
             child: Row(
               children: [
                 Checkbox(
                   value: taskCompleted,
                   onChanged: onChanged,
-                  activeColor: Colors.black,
+                  activeColor: Colors.black54,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(5),
+                      bottomRight: Radius.circular(5),
+                      topLeft: Radius.circular(5),
+                      topRight: Radius.circular(5),
+                    ),
+                  ),
                 ),
                 Expanded(
                   child: AutoSizeText(
                     taskName,
                     style: TextStyle(
                         fontSize: 22,
+                        color: Colors.white,
                         decoration: taskCompleted
                             ? TextDecoration.lineThrough
                             : TextDecoration.none),

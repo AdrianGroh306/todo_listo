@@ -17,18 +17,23 @@ class DialogBox extends StatelessWidget {
     return AlertDialog(
       backgroundColor: Colors.green,
       content: SizedBox(
-          height: 120,
+        width: 200,
+        height: 120,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               //Get user input
-              TextField(
-                controller: controller,
-                decoration: const InputDecoration(
-                    border: OutlineInputBorder(), hintText: "Add Task"),
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: "Add Task"),
+                  maxLines: 3,
+                ),
               ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // save button
                   MyButton(text: "Save", onPressed: onSave),
@@ -41,7 +46,8 @@ class DialogBox extends StatelessWidget {
               )
               //button - save + cancel
             ],
-          )),
+          ),
+      ),
     );
   }
 }

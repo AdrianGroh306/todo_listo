@@ -37,6 +37,11 @@ class _MyHomePageState extends State<MyHomePage> {
     Navigator.of(context).pop();
   }
 
+  void cancelNewTask() {
+    Navigator.of(context).pop();
+    _controller.clear();
+  }
+
   void createTask() {
     showDialog(
       context: context,
@@ -44,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
         return DialogBox(
           controller: _controller,
           onSave: saveNewTask,
-          onCancel: () => Navigator.of(context).pop(),
+          onCancel: cancelNewTask,
         );
       },
     );
@@ -67,6 +72,11 @@ class _MyHomePageState extends State<MyHomePage> {
           'TODO LISTO',
         ),
         elevation: 0,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+        )),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: createTask,
