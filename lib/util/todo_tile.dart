@@ -1,11 +1,9 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
-class ToDoTile extends StatelessWidget {
-  final String taskName;
+class ToDoTile extends StatefulWidget {
+  String taskName;
   final bool taskCompleted;
   Function(bool?)? onChanged;
   Function(BuildContext)? deleteFunction;
@@ -19,15 +17,20 @@ class ToDoTile extends StatelessWidget {
   });
 
   @override
+  State<ToDoTile> createState() => _ToDoTileState();
+}
+
+class _ToDoTileState extends State<ToDoTile> {
+  @override
   Widget build(BuildContext context) {
     return Padding(
         padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
         child: Slidable(
           endActionPane: ActionPane(
-            motion: DrawerMotion(),
+            motion: const DrawerMotion(),
             children: [
               SlidableAction(
-                onPressed: deleteFunction,
+                onPressed: widget.deleteFunction,
                 icon: Icons.delete,
                 backgroundColor: Colors.red,
                 borderRadius: BorderRadius.circular(15),
@@ -43,8 +46,8 @@ class ToDoTile extends StatelessWidget {
             child: Row(
               children: [
                 Checkbox(
-                  value: taskCompleted,
-                  onChanged: onChanged,
+                  value: widget.taskCompleted,
+                  onChanged: widget.onChanged,
                   activeColor: Colors.black54,
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.only(
@@ -55,19 +58,59 @@ class ToDoTile extends StatelessWidget {
                     ),
                   ),
                 ),
-                Expanded(
-                  child: AutoSizeText(
-                    taskName,
-                    style: TextStyle(
+                GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        String newTaskName = widget.taskName;
+                        return AlertDialog(
+                          title: const Text("Edit task name"),
+                          content: TextField(
+                            autofocus: true,
+                            decoration: InputDecoration(
+                              labelText: "Task name",
+                              hintText: newTaskName,
+                            ),
+                            onChanged: (value) {
+                              newTaskName = value;
+                            },
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                              child: const Text("CANCEL"),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            TextButton(
+                              child: const Text("SAVE"),
+                              onPressed: () {
+                                setState(() {
+                                  widget.taskName = newTaskName;
+                                });
+                                Navigator.of(context).pop();
+                              },
+
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: Flexible(
+                    child: AutoSizeText(
+                      widget.taskName,
+                      style: TextStyle(
                         fontSize: 22,
                         color: Colors.white,
-                        decoration: taskCompleted
-                            ? TextDecoration.lineThrough
-                            : TextDecoration.none),
-                    maxLines: 2,
-                    minFontSize: 15,
+                        decoration: widget.taskCompleted ? TextDecoration.lineThrough : TextDecoration.none,
+                      ),
+                      maxLines: 2,
+                      minFontSize: 15,
+                    ),
                   ),
-                ),
+                )
               ],
             ),
           ),
