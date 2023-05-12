@@ -15,6 +15,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   //text controller
   final _controller = TextEditingController();
+  final _themeColor = Colors.indigo[700];
 
   //list of todo tasks
   List toDoList = [
@@ -65,13 +66,14 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green[200],
+      backgroundColor: Colors.blueAccent,
       appBar: AppBar(
         centerTitle: true,
         title: const Text(
           'TODO LISTO',
         ),
         elevation: 0,
+        backgroundColor: _themeColor,
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(20),
@@ -80,18 +82,26 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: createTask,
+        backgroundColor: Colors.indigo[500],
         child: const Icon(Icons.add_circle_outline),
       ),
-      body: ListView.builder(
-        itemCount: toDoList.length,
-        itemBuilder: (context, index) {
-          return ToDoTile(
-            taskName: toDoList[index][0],
-            taskCompleted: toDoList[index][1],
-            onChanged: (value) => checkBoxChanged(value, index),
-            deleteFunction: (context) => deleteTask(index),
-          );
-        },
+      body: Container(
+        decoration: const BoxDecoration(
+            gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.blueAccent, Colors.tealAccent])),
+        child: ListView.builder(
+          itemCount: toDoList.length,
+          itemBuilder: (context, index) {
+            return ToDoTile(
+              taskName: toDoList[index][0],
+              taskCompleted: toDoList[index][1],
+              onChanged: (value) => checkBoxChanged(value, index),
+              deleteFunction: (context) => deleteTask(index),
+            );
+          },
+        ),
       ),
     );
   }

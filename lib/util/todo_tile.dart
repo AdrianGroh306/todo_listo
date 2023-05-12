@@ -40,7 +40,7 @@ class _ToDoTileState extends State<ToDoTile> {
           child: Container(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
-              color: Colors.green,
+              color: Colors.indigo[700],
               borderRadius: BorderRadius.circular(15),
             ),
             child: Row(
