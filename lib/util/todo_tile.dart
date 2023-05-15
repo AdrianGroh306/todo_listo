@@ -24,7 +24,7 @@ class _ToDoTileState extends State<ToDoTile> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
+        padding: const EdgeInsets.only(left: 15, right: 15, top: 10),
         child: Slidable(
           endActionPane: ActionPane(
             motion: const DrawerMotion(),
@@ -38,23 +38,27 @@ class _ToDoTileState extends State<ToDoTile> {
             ],
           ),
           child: Container(
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.all(5),
             decoration: BoxDecoration(
               color: Colors.indigo[700],
               borderRadius: BorderRadius.circular(15),
             ),
             child: Row(
               children: [
-                Checkbox(
-                  value: widget.taskCompleted,
-                  onChanged: widget.onChanged,
-                  activeColor: Colors.black54,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(5),
-                      bottomRight: Radius.circular(5),
-                      topLeft: Radius.circular(5),
-                      topRight: Radius.circular(5),
+                Transform.scale(
+                  scale: 1.2,
+                  child: Checkbox(
+                    value: widget.taskCompleted,
+                    onChanged: widget.onChanged,
+                    activeColor: Colors.black54,
+
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(5),
+                        bottomRight: Radius.circular(5),
+                        topLeft: Radius.circular(5),
+                        topRight: Radius.circular(5),
+                      ),
                     ),
                   ),
                 ),

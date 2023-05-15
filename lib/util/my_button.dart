@@ -4,7 +4,7 @@ class MyButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
 
-   MyButton({
+  MyButton({
     super.key,
     required this.text,
     required this.onPressed,
@@ -13,10 +13,9 @@ class MyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialButton(
-        onPressed: onPressed,
+      onPressed: onPressed,
       textColor: Theme.of(context).primaryColor,
-      
-    child: Text(text),
+      child: Text(text),
     );
   }
 }

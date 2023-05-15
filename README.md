@@ -1,4 +1,4 @@
-# todo
+# Todo Listo
 
 just a todo app
 
