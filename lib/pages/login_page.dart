@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:todo/util/my_button.dart';
+import 'package:todo/pages/homepage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -30,12 +30,12 @@ class _LoginPageState extends State<LoginPage> {
 
                 //logo
                 const Icon(
-                  Icons.edit_note,
+                  Icons.notes_rounded,
                   size: 150,
                 ),
 
                 const SizedBox(
-                  height: 20,
+                  height: 10,
                 ),
 
                 //welcome message
@@ -45,12 +45,58 @@ class _LoginPageState extends State<LoginPage> {
                     fontSize: 16,
                   ),
                 ),
+                const SizedBox(
+                  height: 80,
+                ),
+
+                //email textfield
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: "email",
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                    ),
+                  ),
+                ),
 
                 //password textfield
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: "password",
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(
+                  height: 10,
+                ),
 
                 // sign in button
-
-              //ElevatedButton(onPressed: onPressed, child: child)
+                SizedBox(
+                  height: 50,
+                  width: 200,
+                  child: ElevatedButton(
+                      style: ButtonStyle(
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          )),
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(Colors.black)),
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const MyHomePage()));
+                      },
+                      child: const Text("Sign In")),
+                )
+                //ElevatedButton(onPressed: onPressed, child: child)
 
                 //go to register page
               ],
