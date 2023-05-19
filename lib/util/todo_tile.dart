@@ -107,7 +107,7 @@ class _ToDoTileState extends State<ToDoTile> {
                       widget.taskName,
                       style: TextStyle(
                         fontSize: 22,
-                        color: Colors.white,
+                        color:  widget.taskCompleted ? Colors.grey : Colors.white,
                         decoration: widget.taskCompleted ? TextDecoration.lineThrough : TextDecoration.none,
                       ),
                       maxLines: 2,
