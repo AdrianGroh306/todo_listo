@@ -79,6 +79,17 @@ class _MyHomePageState extends State<MyHomePage> {
           bottomLeft: Radius.circular(20),
           bottomRight: Radius.circular(20),
         )),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: IconButton(
+              icon: const Icon(Icons.menu_outlined),
+              onPressed: () {
+                // Perform search action
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: createTask,

@@ -46,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(
-                  height: 80,
+                  height: 20,
                 ),
 
                 //email textfield
@@ -78,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
                 // sign in button
                 SizedBox(
                   height: 50,
-                  width: 200,
+                  width: 250,
                   child: ElevatedButton(
                       style: ButtonStyle(
                           shape:

@@ -24,7 +24,7 @@ class _ToDoTileState extends State<ToDoTile> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.only(left: 15, right: 15, top: 10),
+        padding: const EdgeInsets.only(left: 15, right: 15, top: 5),
         child: Slidable(
           endActionPane: ActionPane(
             motion: const DrawerMotion(),
@@ -38,7 +38,7 @@ class _ToDoTileState extends State<ToDoTile> {
             ],
           ),
           child: Container(
-            padding: const EdgeInsets.all(5),
+            padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               color: Colors.indigo[700],
               borderRadius: BorderRadius.circular(15),
@@ -106,7 +106,7 @@ class _ToDoTileState extends State<ToDoTile> {
                     child: AutoSizeText(
                       widget.taskName,
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 18,
                         color:  widget.taskCompleted ? Colors.grey : Colors.white,
                         decoration: widget.taskCompleted ? TextDecoration.lineThrough : TextDecoration.none,
                       ),
