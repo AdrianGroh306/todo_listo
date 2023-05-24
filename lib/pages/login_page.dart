@@ -32,6 +32,8 @@ class _LoginPageState extends State<LoginPage> {
                 //logo
                 const Icon(
                   Icons.notes_rounded,
+                  color: Colors.indigo,
+                  shadows: <Shadow>[Shadow(color: Colors.black45, blurRadius: 30.0)],
                   size: 150,
                 ),
 
@@ -121,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(15),
                           )),
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.black)),
+                              MaterialStateProperty.all<Color>(Colors.indigo)),
                       onPressed: () {
                         Navigator.push(
                             context,
