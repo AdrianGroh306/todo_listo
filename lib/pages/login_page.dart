@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:todo/pages/homepage.dart';
+import 'package:todo/util/square_tile.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -25,7 +26,7 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               children: [
                 const SizedBox(
-                  height: 120,
+                  height: 100,
                 ),
 
                 //logo
@@ -42,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
                 const Text(
                   "Welcome back, u have been missed <3",
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 16,color: Colors.white70
                   ),
                 ),
                 const SizedBox(
@@ -51,34 +52,67 @@ class _LoginPageState extends State<LoginPage> {
 
                 //email textfield
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: "email",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                      hintStyle: const TextStyle(color: Colors.white70),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: const BorderSide(color: Colors.white),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: const BorderSide(color: Colors.white),
+                      ),
                     ),
                   ),
                 ),
 
                 //password textfield
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: "password",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                      hintStyle: const TextStyle(color: Colors.white70),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: const BorderSide(color: Colors.white),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: const BorderSide(color: Colors.white),
+                      ),
                     ),
+                  ),
+
+
+                ),
+                //forget password text
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        "Forgot Password?",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ],
                   ),
                 ),
 
                 const SizedBox(
-                  height: 10,
+                  height: 25,
                 ),
 
                 // sign in button
                 SizedBox(
-                  height: 50,
-                  width: 250,
+                  height: 60,
+                  width: 360,
                   child: ElevatedButton(
                       style: ButtonStyle(
                           shape:
@@ -95,10 +129,46 @@ class _LoginPageState extends State<LoginPage> {
                                 builder: (context) => const MyHomePage()));
                       },
                       child: const Text("Sign In")),
-                )
-                //ElevatedButton(onPressed: onPressed, child: child)
+                ),
 
-                //go to register page
+                const SizedBox(
+                  height: 30,
+                ),
+
+                //divder or text
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 25),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          child: Divider(
+                        thickness: 0.8,
+                        color: Colors.white70,
+                      )),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: Text("Or continue with",style: TextStyle(color: Colors.white70),),
+                      ),
+                      Expanded(
+                          child: Divider(
+                        thickness: 0.8,
+                        color: Colors.white70,
+                      )),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 30,),
+
+                //google/apple tile
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SquareTile(imagePath: "images/google_logo.png"),
+                    SizedBox(width: 50,),
+                    SquareTile(imagePath: "images/apple_logo.png"),
+                  ],
+                )
               ],
             ),
           ),
