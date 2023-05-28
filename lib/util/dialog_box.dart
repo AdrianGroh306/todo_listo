@@ -15,6 +15,7 @@ class DialogBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+
       content: SizedBox(
         width: 200,
         height: 120,

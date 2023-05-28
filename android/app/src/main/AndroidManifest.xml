@@ -1,11 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="Adriano.example.todo">
    <application
-        android:label="Todo Listo"
-        android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+       android:label="Todo Listo"
+       android:icon="@mipmap/ic_launcher"
+       android:name="${applicationName}">
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="portrait"
             android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"

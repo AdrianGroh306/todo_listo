@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:todo/util/dialog_box.dart';
 import 'package:todo/util/todo_tile.dart';
@@ -47,11 +48,13 @@ class _MyHomePageState extends State<MyHomePage> {
     showDialog(
       context: context,
       builder: (context) {
+
         return DialogBox(
-          controller: _controller,
-          onSave: saveNewTask,
-          onCancel: cancelNewTask,
-        );
+            controller: _controller,
+            onSave: saveNewTask,
+            onCancel: cancelNewTask,
+          );
+
       },
     );
   }
@@ -63,11 +66,18 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  // sign User out
+  void signUserOut(){
+    FirebaseAuth.instance.signOut();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blueAccent,
       appBar: AppBar(
+
         centerTitle: true,
         title: const Text(
           'TODO LISTO',
@@ -83,10 +93,8 @@ class _MyHomePageState extends State<MyHomePage> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: IconButton(
-              icon: const Icon(Icons.menu_outlined),
-              onPressed: () {
-                // Perform search action
-              },
+              icon: const Icon(Icons.logout),
+              onPressed: signUserOut,
             ),
           ),
         ],

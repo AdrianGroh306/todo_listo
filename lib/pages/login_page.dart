@@ -1,15 +1,61 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:todo/pages/homepage.dart';
+import 'package:todo/components/MyTextField.dart';
 import 'package:todo/util/square_tile.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+final Function()? onTap;
+const LoginPage({super.key,required this.onTap});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
+  //text editing controllers
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+// sign in method
+  void signUserIn() async {
+    //show loading circle
+    showDialog(
+        context: (context),
+        builder: (context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        });
+    //try sign in
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+      //pop the loading circle
+      Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      //pop the loading circle
+      Navigator.pop(context);
+      showErrorMessage(e.code);
+    }
+  }
+
+  // error message to user
+  void showErrorMessage(String message) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Center(
+              child: Text(
+                message,
+              ),
+            ),
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,155 +69,178 @@ class _LoginPageState extends State<LoginPage> {
                 colors: [Colors.blueAccent, Colors.tealAccent])),
         child: SafeArea(
           child: Center(
-            child: Column(
-              children: [
-                const SizedBox(
-                  height: 100,
-                ),
-
-                //logo
-                const Icon(
-                  Icons.notes_rounded,
-                  color: Colors.indigo,
-                  shadows: <Shadow>[Shadow(color: Colors.black45, blurRadius: 30.0)],
-                  size: 150,
-                ),
-
-                const SizedBox(
-                  height: 10,
-                ),
-
-                //welcome message
-                const Text(
-                  "Welcome back, u have been missed <3",
-                  style: TextStyle(
-                    fontSize: 16,color: Colors.white70
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 50,
                   ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
 
-                //email textfield
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: "email",
-                      hintStyle: const TextStyle(color: Colors.white70),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: const BorderSide(color: Colors.white),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: const BorderSide(color: Colors.white),
-                      ),
+                  //logo
+                  const Icon(
+                    Icons.notes_rounded,
+                    color: Colors.indigo,
+                    shadows: <Shadow>[
+                      Shadow(color: Colors.black45, blurRadius: 30.0)
+                    ],
+                    size: 150,
+                  ),
+
+                  const SizedBox(
+                    height: 10,
+                  ),
+
+                  //welcome message
+                  const Text(
+                    "Welcome back, u have been missed <3",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
+                  const SizedBox(
+                    height: 20,
+                  ),
 
-                //password textfield
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: "password",
-                      hintStyle: const TextStyle(color: Colors.white70),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: const BorderSide(color: Colors.white),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: const BorderSide(color: Colors.white),
-                      ),
+                  //email textfield
+                  MyTextField(
+                    controller: emailController,
+                    hintText: "Email",
+                    obscureText: false,
+                  ),
+
+                  //password textfield
+                  MyTextField(
+                    controller: passwordController,
+                    hintText: "Password",
+                    obscureText: true,
+                  ),
+                  //forget password text
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: const [
+                        Text(
+                          "Forgot Password?",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
+                  const SizedBox(
+                    height: 25,
+                  ),
 
-                ),
-                //forget password text
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                  // sign in button
+                  SizedBox(
+                    height: 60,
+                    width: 375,
+                    child: ElevatedButton(
+                        style: ButtonStyle(
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            )),
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                Colors.indigo)),
+                        onPressed: () {
+                          signUserIn();
+                        },
+                        child: const Text(
+                          "Sign In",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )),
+                  ),
+
+                  const SizedBox(
+                    height: 35,
+                  ),
+
+                  //divder or text
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25),
+                    child: Row(
+                      children: const [
+                        Expanded(
+                            child: Divider(
+                          thickness: 0.8,
+                          color: Colors.white70,
+                        )),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                          child: Text(
+                            "Or continue with",
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        ),
+                        Expanded(
+                            child: Divider(
+                          thickness: 0.8,
+                          color: Colors.white70,
+                        )),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 35),
+
+                  //google/apple tile
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      SquareTile(imagePath: "images/google_logo.png"),
+                      SizedBox(
+                        width: 30,
+                      ),
+                      SquareTile(imagePath: "images/apple_logo.png"),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 45,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        "Forgot Password?",
-                        style: TextStyle(color: Colors.white),
+                      const Text(
+                        "Not a member?",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black,
+                              blurRadius: 60,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 5,
+                      ),
+                      GestureDetector(
+                        onTap: widget.onTap,
+                        child: const Text(
+                          "Register now",
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                ),
-
-                const SizedBox(
-                  height: 25,
-                ),
-
-                // sign in button
-                SizedBox(
-                  height: 60,
-                  width: 360,
-                  child: ElevatedButton(
-                      style: ButtonStyle(
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                                  RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          )),
-                          backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.indigo)),
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const MyHomePage()));
-                      },
-                      child: const Text("Sign In")),
-                ),
-
-                const SizedBox(
-                  height: 30,
-                ),
-
-                //divder or text
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 25),
-                  child: Row(
-                    children: [
-                      Expanded(
-                          child: Divider(
-                        thickness: 0.8,
-                        color: Colors.white70,
-                      )),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Text("Or continue with",style: TextStyle(color: Colors.white70),),
-                      ),
-                      Expanded(
-                          child: Divider(
-                        thickness: 0.8,
-                        color: Colors.white70,
-                      )),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 30,),
-
-                //google/apple tile
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SquareTile(imagePath: "images/google_logo.png"),
-                    SizedBox(width: 50,),
-                    SquareTile(imagePath: "images/apple_logo.png"),
-                  ],
-                )
-              ],
+                ],
+              ),
             ),
           ),
         ),
