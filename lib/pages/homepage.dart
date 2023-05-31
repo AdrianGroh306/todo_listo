@@ -5,8 +5,8 @@ import 'package:todo/util/todo_tile.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();

@@ -24,19 +24,21 @@ class _ToDoTileState extends State<ToDoTile> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.only(left: 15, right: 15, top: 5),
-        child: Slidable(
-          endActionPane: ActionPane(
-            motion: const DrawerMotion(),
-            children: [
-              SlidableAction(
-                onPressed: widget.deleteFunction,
-                icon: Icons.delete,
-                backgroundColor: Colors.red,
-                borderRadius: BorderRadius.circular(15),
-              )
-            ],
-          ),
+      padding: const EdgeInsets.only(left: 15, right: 15, top: 5),
+      child: Slidable(
+        endActionPane: ActionPane(
+          motion: const DrawerMotion(),
+          children: [
+            SlidableAction(
+              onPressed: widget.deleteFunction,
+              icon: Icons.delete,
+              backgroundColor: Colors.red,
+              borderRadius: BorderRadius.circular(15),
+            )
+          ],
+        ),
+        child: SizedBox(
+          height: 50,
           child: Container(
             padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
@@ -51,7 +53,6 @@ class _ToDoTileState extends State<ToDoTile> {
                     value: widget.taskCompleted,
                     onChanged: widget.onChanged,
                     activeColor: Colors.black54,
-
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.only(
                         bottomLeft: Radius.circular(5),
@@ -62,62 +63,65 @@ class _ToDoTileState extends State<ToDoTile> {
                     ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        String newTaskName = widget.taskName;
-                        return AlertDialog(
-                          title: const Text("Edit task name"),
-                          content: TextField(
-                            autofocus: true,
-                            decoration: InputDecoration(
-                              labelText: "Task name",
-                              hintText: newTaskName,
-                            ),
-                            onChanged: (value) {
-                              newTaskName = value;
-                            },
-                          ),
-                          actions: <Widget>[
-                            TextButton(
-                              child: const Text("CANCEL"),
-                              onPressed: () {
-                                Navigator.of(context).pop();
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          String newTaskName = widget.taskName;
+                          return AlertDialog(
+                            title: const Text("Edit task name"),
+                            content: TextField(
+                              autofocus: true,
+                              decoration: InputDecoration(
+                                labelText: "Task name",
+                                hintText: newTaskName,
+                              ),
+                              onChanged: (value) {
+                                newTaskName = value;
                               },
                             ),
-                            TextButton(
-                              child: const Text("SAVE"),
-                              onPressed: () {
-                                setState(() {
-                                  widget.taskName = newTaskName;
-                                });
-                                Navigator.of(context).pop();
-                              },
-
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  child: Flexible(
-                    child: AutoSizeText(
+                            actions: <Widget>[
+                              TextButton(
+                                child: const Text("CANCEL"),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                              TextButton(
+                                child: const Text("SAVE"),
+                                onPressed: () {
+                                  setState(() {
+                                    widget.taskName = newTaskName;
+                                  });
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    child: Text(
                       widget.taskName,
                       style: TextStyle(
                         fontSize: 18,
-                        color:  widget.taskCompleted ? Colors.grey : Colors.white,
-                        decoration: widget.taskCompleted ? TextDecoration.lineThrough : TextDecoration.none,
+                        color: widget.taskCompleted ? Colors.grey : Colors.white,
+                        decoration: widget.taskCompleted
+                            ? TextDecoration.lineThrough
+                            : TextDecoration.none,
                       ),
                       maxLines: 2,
-                      minFontSize: 15,
+                      // minFontSize: 15,
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }
