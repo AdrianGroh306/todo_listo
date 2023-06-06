@@ -75,7 +75,7 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(
-                    height: 50,
+                    height: 40,
                   ),
 
                   //logo
@@ -119,11 +119,11 @@ class _LoginPageState extends State<LoginPage> {
                     obscureText: true,
                   ),
                   //forget password text
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
-                      children: const [
+                      children: [
                         Text(
                           "Forgot Password?",
                           style: TextStyle(
@@ -164,14 +164,14 @@ class _LoginPageState extends State<LoginPage> {
                   ),
 
                   const SizedBox(
-                    height: 35,
+                    height: 30,
                   ),
 
                   //divder or text
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 25),
                     child: Row(
-                      children: const [
+                      children: [
                         Expanded(
                             child: Divider(
                           thickness: 0.8,
@@ -207,7 +207,7 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                   const SizedBox(
-                    height: 45,
+                    height: 30,
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -228,18 +228,25 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(
                         width: 5,
                       ),
-                      GestureDetector(
-                        onTap: widget.onTap,
-                        child: const Text(
-                          "Register now",
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: widget.onTap,
+                          child: const Text(
+                            "Register now",
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
+
                     ],
                   ),
+                  const SizedBox(
+                    height: 15,
+                  )
                 ],
               ),
             ),

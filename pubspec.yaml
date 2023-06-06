@@ -36,8 +36,10 @@ dependencies:
   auto_size_text: "^3.0.0"
   firebase_core: ^2.13.0
   firebase_auth: ^4.6.1
+  firebase_database: ^10.2.2
   google_sign_in: ^6.1.2
   cupertino_icons: ^1.0.2
+
 
 
 
