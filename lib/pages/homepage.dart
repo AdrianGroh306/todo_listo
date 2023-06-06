@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:todo/util/dialog_box.dart';
 import 'package:todo/util/todo_tile.dart';
@@ -18,13 +19,48 @@ class _MyHomePageState extends State<MyHomePage> {
   final _controller = TextEditingController();
   final _themeColor = Colors.indigo[700];
 
-  //list of todo tasks
-  List toDoList = [
-    ["make ta", false],
-    ["make ta", false],
-    ["make ala", false],
-  ];
+  // referenz auf Datenbank
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+
+
+
+
+
+  //list of todo tasks
+  List toDoList = [];
+
+  // get todo-data
+  void fetchToDoList() async {
+    try {
+      QuerySnapshot querySnapshot =
+      await _firestore.collection('todos').get();
+
+      setState(() {
+        toDoList = querySnapshot.docs.map((doc) => doc.data()).toList();
+      });
+    } catch (e) {
+      print('Fehler beim Abrufen der Todo-Liste: $e');
+    }
+  }
+  // speichere todos auf datenbank
+  void saveNewTask() async {
+    try {
+      await _firestore.collection('todos').add({
+        'taskName': _controller.text,
+        'taskCompleted': false,
+      });
+
+      setState(() {
+        toDoList.add([_controller.text, false]);
+        _controller.clear();
+      });
+
+      Navigator.of(context).pop();
+    } catch (e) {
+      print('Fehler beim Speichern der Aufgabe: $e');
+    }
+  }
   void checkBoxChanged(bool? value, index) {
     setState(() {
       toDoList[index][1] = !toDoList[index][1];
