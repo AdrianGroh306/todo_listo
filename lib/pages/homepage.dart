@@ -22,13 +22,10 @@ class _MyHomePageState extends State<MyHomePage> {
   // referenz auf Datenbank
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-
-
-
-
-
   //list of todo tasks
   List toDoList = [];
+
+
 
   // get todo-data
   void fetchToDoList() async {
@@ -61,19 +58,14 @@ class _MyHomePageState extends State<MyHomePage> {
       print('Fehler beim Speichern der Aufgabe: $e');
     }
   }
+
   void checkBoxChanged(bool? value, index) {
     setState(() {
       toDoList[index][1] = !toDoList[index][1];
     });
   }
 
-  void saveNewTask() {
-    setState(() {
-      toDoList.add([_controller.text, false]);
-      _controller.clear();
-    });
-    Navigator.of(context).pop();
-  }
+
 
   void cancelNewTask() {
     Navigator.of(context).pop();
