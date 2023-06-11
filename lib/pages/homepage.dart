@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -20,6 +22,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final _themeColor = Colors.indigo[700];
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List toDoList = [];
+  List<ValueNotifier<bool>> taskCompletionList = [];
   late StreamSubscription<QuerySnapshot> _todoListSubscription;
 
   @override
@@ -41,6 +44,15 @@ class _MyHomePageState extends State<MyHomePage> {
         .listen((QuerySnapshot snapshot) {
       setState(() {
         toDoList = snapshot.docs.map((doc) => doc.data()).toList();
+
+        // Clear the existing taskCompletionList
+        taskCompletionList.clear();
+
+        // Initialize the taskCompletionList with ValueNotifier for each task
+        for (int i = 0; i < toDoList.length; i++) {
+          taskCompletionList
+              .add(ValueNotifier<bool>(toDoList[i]['taskCompleted']));
+        }
       });
     });
   }
@@ -70,6 +82,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void checkBoxChanged(bool? value, int index) async {
+    if (index < 0 || index >= taskCompletionList.length) {
+      print('Fehler beim Aktualisieren der Aufgabe: Ungültiger Index.');
+      return;
+    }
+
     Map<String, dynamic> task = toDoList[index];
 
     if (!task.containsKey('documentId')) {
@@ -78,21 +95,28 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     String documentId = task['documentId'] as String;
-    DocumentReference docRef = _firestore.collection('todos').doc(documentId);
-    DocumentSnapshot snapshot = await docRef.get();
 
-    if (!snapshot.exists) {
-      print('Fehler beim Aktualisieren der Aufgabe: Document not found.');
-      return;
-    }
+    // Update the task completion status in Firestore
+    await _firestore
+        .collection('todos')
+        .doc(documentId)
+        .update({'taskCompleted': value ?? false});
 
-    bool currentValue = snapshot.get('taskCompleted');
-    await docRef.update({'taskCompleted': !currentValue});
+    // Update the task completion status locally
+    taskCompletionList[index].value = value ?? false;
 
+    // Update the task name in Firestore
+    await _firestore
+        .collection('todos')
+        .doc(documentId)
+        .update({'taskName': task['taskName']});
+
+    // Update the task name locally
     setState(() {
-      task['taskCompleted'] = !currentValue;
+      toDoList[index]['taskName'] = task['taskName'];
     });
   }
+
 
   void cancelNewTask() {
     Navigator.of(context).pop();
@@ -112,11 +136,24 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void deleteTask(int index) {
+  void deleteTask(int index) async {
+    Map<String, dynamic> task = toDoList[index];
+
+    if (!task.containsKey('documentId')) {
+      print('Fehler beim Löschen der Aufgabe: Document ID not found.');
+      return;
+    }
+
+    String documentId = task['documentId'] as String;
+
+    // Delete the task from Firestore
+    await _firestore.collection('todos').doc(documentId).delete();
+
     setState(() {
       toDoList.removeAt(index);
     });
   }
+
 
   void signUserOut() {
     FirebaseAuth.instance.signOut();
@@ -187,11 +224,19 @@ class _MyHomePageState extends State<MyHomePage> {
             return ListView.builder(
               itemCount: toDoList.length,
               itemBuilder: (context, index) {
-                return ToDoTile(
-                  taskName: toDoList[index]['taskName'],
-                  taskCompleted: toDoList[index]['taskCompleted'],
-                  onChanged: (value) => checkBoxChanged(value, index),
-                  deleteFunction: (context) => deleteTask(index),
+                final task = toDoList[index];
+
+                return ValueListenableBuilder<bool>(
+                  valueListenable: taskCompletionList[index],
+                  builder: (context, value, _) {
+                    return ToDoTile(
+                      key: ValueKey(task['documentId']),
+                      taskName: task['taskName'] as String,
+                      taskCompleted: value,
+                      onChanged: (newValue) => checkBoxChanged(newValue, index),
+                      deleteFunction: (context) => deleteTask(index),
+                    );
+                  },
                 );
               },
             );
