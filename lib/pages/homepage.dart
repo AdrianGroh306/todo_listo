@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -13,43 +15,51 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-//homepage class
 class _MyHomePageState extends State<MyHomePage> {
-  //text controller
   final _controller = TextEditingController();
   final _themeColor = Colors.indigo[700];
-
-  // referenz auf Datenbank
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  //list of todo tasks
   List toDoList = [];
+  late StreamSubscription<QuerySnapshot> _todoListSubscription;
 
-
-
-  // get todo-data
-  void fetchToDoList() async {
-    try {
-      QuerySnapshot querySnapshot =
-      await _firestore.collection('todos').get();
-
-      setState(() {
-        toDoList = querySnapshot.docs.map((doc) => doc.data()).toList();
-      });
-    } catch (e) {
-      print('Fehler beim Abrufen der Todo-Liste: $e');
-    }
+  @override
+  void initState() {
+    super.initState();
+    subscribeToTodoList();
   }
-  // speichere todos auf datenbank
+
+  @override
+  void dispose() {
+    _todoListSubscription.cancel();
+    super.dispose();
+  }
+
+  void subscribeToTodoList() {
+    _todoListSubscription = _firestore
+        .collection('todos')
+        .snapshots()
+        .listen((QuerySnapshot snapshot) {
+      setState(() {
+        toDoList = snapshot.docs.map((doc) => doc.data()).toList();
+      });
+    });
+  }
+
   void saveNewTask() async {
     try {
-      await _firestore.collection('todos').add({
+      DocumentReference docRef = await _firestore.collection('todos').add({
         'taskName': _controller.text,
         'taskCompleted': false,
       });
 
+      String documentId = docRef.id; // Generiere die Document ID
+
       setState(() {
-        toDoList.add([_controller.text, false]);
+        toDoList.add({
+          'documentId': documentId, // Speichere die Document ID
+          'taskName': _controller.text,
+          'taskCompleted': false,
+        });
         _controller.clear();
       });
 
@@ -59,13 +69,30 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void checkBoxChanged(bool? value, index) {
+  void checkBoxChanged(bool? value, int index) async {
+    Map<String, dynamic> task = toDoList[index];
+
+    if (!task.containsKey('documentId')) {
+      print('Fehler beim Aktualisieren der Aufgabe: Document ID not found.');
+      return;
+    }
+
+    String documentId = task['documentId'] as String;
+    DocumentReference docRef = _firestore.collection('todos').doc(documentId);
+    DocumentSnapshot snapshot = await docRef.get();
+
+    if (!snapshot.exists) {
+      print('Fehler beim Aktualisieren der Aufgabe: Document not found.');
+      return;
+    }
+
+    bool currentValue = snapshot.get('taskCompleted');
+    await docRef.update({'taskCompleted': !currentValue});
+
     setState(() {
-      toDoList[index][1] = !toDoList[index][1];
+      task['taskCompleted'] = !currentValue;
     });
   }
-
-
 
   void cancelNewTask() {
     Navigator.of(context).pop();
@@ -76,47 +103,40 @@ class _MyHomePageState extends State<MyHomePage> {
     showDialog(
       context: context,
       builder: (context) {
-
         return DialogBox(
-            controller: _controller,
-            onSave: saveNewTask,
-            onCancel: cancelNewTask,
-          );
-
+          controller: _controller,
+          onSave: saveNewTask,
+          onCancel: cancelNewTask,
+        );
       },
     );
   }
 
-  // delete task
   void deleteTask(int index) {
     setState(() {
       toDoList.removeAt(index);
     });
   }
 
-  // sign User out
-  void signUserOut(){
+  void signUserOut() {
     FirebaseAuth.instance.signOut();
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blueAccent,
       appBar: AppBar(
-
         centerTitle: true,
-        title: const Text(
-          'TODO LISTO',
-        ),
+        title: const Text('TODO LISTO'),
         elevation: 0,
         backgroundColor: _themeColor,
         shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(20),
-          bottomRight: Radius.circular(20),
-        )),
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(20),
+            bottomRight: Radius.circular(20),
+          ),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -134,18 +154,46 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Container(
         decoration: const BoxDecoration(
-            gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.blueAccent, Colors.tealAccent])),
-        child: ListView.builder(
-          itemCount: toDoList.length,
-          itemBuilder: (context, index) {
-            return ToDoTile(
-              taskName: toDoList[index][0],
-              taskCompleted: toDoList[index][1],
-              onChanged: (value) => checkBoxChanged(value, index),
-              deleteFunction: (context) => deleteTask(index),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.blueAccent, Colors.tealAccent],
+          ),
+        ),
+        child: StreamBuilder<QuerySnapshot>(
+          stream: _firestore.collection('todos').snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                    'Fehler beim Abrufen der Todo-Liste: ${snapshot.error}'),
+              );
+            }
+
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+
+            toDoList = snapshot.data!.docs.map((doc) {
+              Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+              data['documentId'] =
+                  doc.id; // Include the document ID in the task object
+              return data;
+            }).toList();
+
+            return ListView.builder(
+              itemCount: toDoList.length,
+              itemBuilder: (context, index) {
+                return ToDoTile(
+                  taskName: toDoList[index]['taskName'],
+                  taskCompleted: toDoList[index]['taskCompleted'],
+                  onChanged: (value) => checkBoxChanged(value, index),
+                  deleteFunction: (context) => deleteTask(index),
+                );
+              },
             );
           },
         ),
