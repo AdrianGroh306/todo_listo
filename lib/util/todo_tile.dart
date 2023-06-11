@@ -7,6 +7,7 @@ class ToDoTile extends StatefulWidget {
   final bool taskCompleted;
   Function(bool?)? onChanged;
   Function(BuildContext)? deleteFunction;
+  ValueChanged<String>? onTaskNameChanged;
 
   ToDoTile({
     super.key,
@@ -14,6 +15,7 @@ class ToDoTile extends StatefulWidget {
     required this.taskCompleted,
     required this.onChanged,
     required this.deleteFunction,
+    this.onTaskNameChanged,
   });
 
   @override
@@ -95,9 +97,15 @@ class _ToDoTileState extends State<ToDoTile> {
                                   setState(() {
                                     widget.taskName = newTaskName;
                                   });
+
+                                  if (widget.onTaskNameChanged != null) {
+                                    widget.onTaskNameChanged!(newTaskName);
+                                  }
+
                                   Navigator.of(context).pop();
                                 },
                               ),
+
                             ],
                           );
                         },

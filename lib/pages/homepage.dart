@@ -117,7 +117,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-
   void cancelNewTask() {
     Navigator.of(context).pop();
     _controller.clear();
@@ -136,6 +135,18 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  void updateTaskName(String documentId, String newTaskName) async {
+    try {
+      await _firestore
+          .collection('todos')
+          .doc(documentId)
+          .update({'taskName': newTaskName});
+    } catch (e) {
+      print('Fehler beim Aktualisieren des Task-Namens: $e');
+    }
+  }
+
+
   void deleteTask(int index) async {
     Map<String, dynamic> task = toDoList[index];
 
@@ -153,7 +164,6 @@ class _MyHomePageState extends State<MyHomePage> {
       toDoList.removeAt(index);
     });
   }
-
 
   void signUserOut() {
     FirebaseAuth.instance.signOut();
@@ -234,8 +244,11 @@ class _MyHomePageState extends State<MyHomePage> {
                       taskName: task['taskName'] as String,
                       taskCompleted: value,
                       onChanged: (newValue) => checkBoxChanged(newValue, index),
+                      onTaskNameChanged: (newTaskName) =>
+                          updateTaskName(task['documentId'] as String, newTaskName),
                       deleteFunction: (context) => deleteTask(index),
                     );
+
                   },
                 );
               },
