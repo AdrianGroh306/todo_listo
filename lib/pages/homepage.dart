@@ -18,7 +18,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final _controller = TextEditingController();
   final _themeColor = Colors.indigo[700];
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  List toDoList = [];
+  List<Map<String, dynamic>> toDoList = [];
   List<ValueNotifier<bool>> taskCompletionList = [];
 
   @override
@@ -34,17 +34,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void fetchToDoList() async {
     try {
-      QuerySnapshot snapshot = await _firestore.collection('todos').get();
+      String userId = FirebaseAuth.instance.currentUser!.uid; // Get the current user's UID
+
+      QuerySnapshot snapshot = await _firestore
+          .collection('todos')
+          .where('userId', isEqualTo: userId) // Fetch tasks associated with the user's UID
+          .get();
 
       setState(() {
         toDoList = snapshot.docs.map((doc) {
           Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-          data['documentId'] =
-              doc.id; // Include the document ID in the task object
+          data['documentId'] = doc.id;
           return data;
         }).toList();
 
-        // Initialize the taskCompletionList with ValueNotifier for each task
         taskCompletionList = toDoList.map((task) {
           return ValueNotifier<bool>(task['taskCompleted'] ?? false);
         }).toList();
@@ -56,21 +59,23 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void saveNewTask() async {
     try {
+      String userId = FirebaseAuth.instance.currentUser!.uid; // Get the current user's UID
+
       DocumentReference docRef = await _firestore.collection('todos').add({
+        'userId': userId, // Associate the task with the user's UID
         'taskName': _controller.text,
         'taskCompleted': false,
       });
 
-      String documentId = docRef.id; // Generate the document ID
+      String documentId = docRef.id;
 
       setState(() {
         toDoList.add({
-          'documentId': documentId, // Save the document ID
+          'documentId': documentId,
           'taskName': _controller.text,
           'taskCompleted': false,
         });
-        taskCompletionList.add(
-            ValueNotifier<bool>(false)); // Add a ValueNotifier for the new task
+        taskCompletionList.add(ValueNotifier<bool>(false));
         _controller.clear();
       });
 
