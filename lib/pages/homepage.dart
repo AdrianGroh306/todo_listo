@@ -34,11 +34,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void fetchToDoList() async {
     try {
-      String userId = FirebaseAuth.instance.currentUser!.uid; // Get the current user's UID
+      String userId =
+          FirebaseAuth.instance.currentUser!.uid; // Get the current user's UID
 
       QuerySnapshot snapshot = await _firestore
           .collection('todos')
-          .where('userId', isEqualTo: userId) // Fetch tasks associated with the user's UID
+          .where('userId',
+              isEqualTo: userId) // Fetch tasks associated with the user's UID
           .get();
 
       setState(() {
@@ -59,7 +61,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void saveNewTask() async {
     try {
-      String userId = FirebaseAuth.instance.currentUser!.uid; // Get the current user's UID
+      String userId =
+          FirebaseAuth.instance.currentUser!.uid; // Get the current user's UID
 
       DocumentReference docRef = await _firestore.collection('todos').add({
         'userId': userId, // Associate the task with the user's UID
@@ -188,32 +191,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       backgroundColor: Colors.blueAccent,
       appBar: AppBar(
-        title: Expanded(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    '${toDoList.where((task) => task['taskCompleted']).length}',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  Text(
-                    '/ ${toDoList.length}',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
-              const Text(
-                '     TODO LISTO',
-              ),
-              IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: signUserOut,
-              ),
-            ],
-          ),
-        ),
+        toolbarHeight: 60.0, // Adjust the height as needed
         elevation: 0,
         backgroundColor: _themeColor,
         shape: const RoundedRectangleBorder(
@@ -221,6 +199,30 @@ class _MyHomePageState extends State<MyHomePage> {
             bottomLeft: Radius.circular(20),
             bottomRight: Radius.circular(20),
           ),
+        ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Text(
+                  '${toDoList.where((task) => task['taskCompleted']).length}',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                Text(
+                  '/ ${toDoList.length}',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
+            const Text(
+              '     TODO LISTO',
+            ),
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: signUserOut,
+            ),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
