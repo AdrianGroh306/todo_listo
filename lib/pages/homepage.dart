@@ -1,7 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:async';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +39,8 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         toDoList = snapshot.docs.map((doc) {
           Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-          data['documentId'] = doc.id; // Include the document ID in the task object
+          data['documentId'] =
+              doc.id; // Include the document ID in the task object
           return data;
         }).toList();
 
@@ -71,8 +69,8 @@ class _MyHomePageState extends State<MyHomePage> {
           'taskName': _controller.text,
           'taskCompleted': false,
         });
-        taskCompletionList
-            .add(ValueNotifier<bool>(false)); // Add a ValueNotifier for the new task
+        taskCompletionList.add(
+            ValueNotifier<bool>(false)); // Add a ValueNotifier for the new task
         _controller.clear();
       });
 
@@ -111,17 +109,22 @@ class _MyHomePageState extends State<MyHomePage> {
     final documentId = task['documentId'] as String;
 
     try {
-      await updateTaskCompletionStatus(documentId, value ?? false);
-      setState(() {
-        task['taskCompleted'] = value ?? false;
-        taskCompletionList[index].value = value ?? false; // Update the ValueNotifier value
+      await _firestore.collection('todos').doc(documentId).update({
+        'taskCompleted': value ?? false,
+        'taskName': task['taskName'], // Retain the existing task name
       });
+
+      if (mounted) {
+        setState(() {
+          task['taskCompleted'] = value ?? false;
+          taskCompletionList[index].value = value ?? false;
+        });
+      }
     } catch (e) {
       print('Fehler beim Aktualisieren der Aufgabe: $e');
       // Handle the error here
     }
   }
-
 
   void cancelNewTask() {
     Navigator.of(context).pop();
@@ -180,9 +183,33 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       backgroundColor: Colors.blueAccent,
       appBar: AppBar(
-        centerTitle: true,
-        title: const Text('TODO LISTO'),
-        // elevation: 0,
+        title: Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    '${toDoList.where((task) => task['taskCompleted']).length}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  Text(
+                    '/ ${toDoList.length}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ],
+              ),
+              const Text(
+                '     TODO LISTO',
+              ),
+              IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: signUserOut,
+              ),
+            ],
+          ),
+        ),
+        elevation: 0,
         backgroundColor: _themeColor,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
@@ -190,15 +217,6 @@ class _MyHomePageState extends State<MyHomePage> {
             bottomRight: Radius.circular(20),
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: signUserOut,
-            ),
-          ),
-        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: createTask,
@@ -226,8 +244,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   taskName: task['taskName'] as String,
                   taskCompleted: value,
                   onChanged: (newValue) => checkBoxChanged(newValue, index),
-                  onTaskNameChanged: (newTaskName) =>
-                      updateTaskName(task['documentId'] as String, newTaskName),
                   deleteFunction: (context) => deleteTask(index),
                 );
               },
