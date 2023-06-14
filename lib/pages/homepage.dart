@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:circle_progress_bar/circle_progress_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -203,20 +204,35 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
+            Stack(
+              alignment: Alignment.center,
               children: [
-                Text(
-                  '${toDoList.where((task) => task['taskCompleted']).length}',
-                  style: const TextStyle(fontSize: 16),
+                SizedBox(
+                  width: 45,
+                  child: CircleProgressBar(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.black12,
+                    value: toDoList.isEmpty
+                        ? 0.0
+                        : toDoList
+                        .where((task) => task['taskCompleted'])
+                        .length /
+                        toDoList.length,
+                    animationDuration: const Duration(seconds: 1),
+                   ),
                 ),
                 Text(
-                  '/ ${toDoList.length}',
-                  style: const TextStyle(fontSize: 16),
+                  '${toDoList.where((task) => task['taskCompleted']).length}',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ],
             ),
             const Text(
-              '     TODO LISTO',
+              'TODO LISTO',
             ),
             IconButton(
               icon: const Icon(Icons.logout),
@@ -225,6 +241,8 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
+
+
       floatingActionButton: FloatingActionButton(
         onPressed: createTask,
         backgroundColor: Colors.indigo[500],
