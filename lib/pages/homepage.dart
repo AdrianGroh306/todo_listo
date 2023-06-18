@@ -257,7 +257,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: createTask,
-        backgroundColor: Colors.indigo[500],
+        backgroundColor: Colors.indigo[700],
         child: const Icon(Icons.add_circle_outline),
       ),
       body: Container(
