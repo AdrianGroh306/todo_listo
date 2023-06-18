@@ -192,8 +192,8 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       backgroundColor: Colors.blueAccent,
       appBar: AppBar(
-        toolbarHeight: 60.0, // Adjust the height as needed
-        elevation: 0,
+        toolbarHeight: 60.0,
+        elevation: 5,
         backgroundColor: _themeColor,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
@@ -204,35 +204,41 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Stack(
-              alignment: Alignment.center,
+            Row(
               children: [
-                SizedBox(
-                  width: 45,
-                  child: CircleProgressBar(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.black12,
-                    value: toDoList.isEmpty
-                        ? 0.0
-                        : toDoList
-                        .where((task) => task['taskCompleted'])
-                        .length /
-                        toDoList.length,
-                    animationDuration: const Duration(seconds: 1),
-                   ),
+                const SizedBox(width: 105),
+                const Text('TODO'),
+                const SizedBox(width: 10),
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 40,
+                      child: CircleProgressBar(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.black12,
+                        value: toDoList.isEmpty
+                            ? 0.0
+                            : toDoList
+                            .where((task) => task['taskCompleted'])
+                            .length /
+                            toDoList.length,
+                        animationDuration: const Duration(seconds: 1),
+                      ),
+                    ),
+                    Text(
+                      '${toDoList.where((task) => task['taskCompleted']).length}',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  '${toDoList.where((task) => task['taskCompleted']).length}',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+                const SizedBox(width: 10),
+                const Text('LISTO'),
               ],
-            ),
-            const Text(
-              'TODO LISTO',
             ),
             IconButton(
               icon: const Icon(Icons.logout),
@@ -241,6 +247,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
+
 
 
       floatingActionButton: FloatingActionButton(

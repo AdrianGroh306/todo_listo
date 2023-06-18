@@ -140,28 +140,33 @@ class _LoginPageState extends State<LoginPage> {
                   ),
 
                   // sign in button
-                  SizedBox(
-                    height: 60,
-                    width: 375,
-                    child: ElevatedButton(
-                        style: ButtonStyle(
-                            shape: MaterialStateProperty.all<
-                                RoundedRectangleBorder>(RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      child: Container(
+                        height: 60,
+                        width: double.infinity,
+                        child: ElevatedButton(
+                            style: ButtonStyle(
+                                shape: MaterialStateProperty.all<
+                                    RoundedRectangleBorder>(RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                )),
+                                backgroundColor: MaterialStateProperty.all<Color>(
+                                    Colors.indigo)),
+                            onPressed: () {
+                              signUserIn();
+                            },
+                            child: const Text(
+                              "Sign In",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             )),
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                Colors.indigo)),
-                        onPressed: () {
-                          signUserIn();
-                        },
-                        child: const Text(
-                          "Sign In",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )),
-                  ),
+                      ),
+                    ),
+
 
                   const SizedBox(
                     height: 30,

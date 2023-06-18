@@ -138,28 +138,32 @@ class _RegisterPageState extends State<RegisterPage> {
                     height: 25,
                   ),
 
-                  // sign in button
-                  SizedBox(
-                    height: 60,
-                    width: 375,
-                    child: ElevatedButton(
-                        style: ButtonStyle(
-                            shape: MaterialStateProperty.all<
-                                RoundedRectangleBorder>(RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            )),
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                Colors.indigo)),
-                        onPressed: () {
-                          signUserUp();
-                        },
-                        child: const Text(
-                          "Sign Up",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )),
+                  // sign up button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    child: Container(
+                      height: 60,
+                      width: double.infinity,
+                      child: ElevatedButton(
+                          style: ButtonStyle(
+                              shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              )),
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  Colors.indigo)),
+                          onPressed: () {
+                            signUserUp();
+                          },
+                          child: const Text(
+                            "Sign Up",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )),
+                    ),
                   ),
 
                   const SizedBox(
@@ -167,10 +171,10 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
 
                   //divder or text
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 25),
                     child: Row(
-                      children: const [
+                      children: [
                         Expanded(
                             child: Divider(
                           thickness: 0.8,
@@ -198,11 +202,17 @@ class _RegisterPageState extends State<RegisterPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SquareTile(imagePath: "images/google_logo.png",onTap: () => AuthService().signInWithGoogle(),),
+                      SquareTile(
+                        imagePath: "images/google_logo.png",
+                        onTap: () => AuthService().signInWithGoogle(),
+                      ),
                       SizedBox(
                         width: 30,
                       ),
-                      SquareTile(imagePath: "images/apple_logo.png", onTap: (){},),
+                      SquareTile(
+                        imagePath: "images/apple_logo.png",
+                        onTap: () {},
+                      ),
                     ],
                   ),
                   const SizedBox(
