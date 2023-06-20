@@ -60,14 +60,14 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void saveNewTask() async {
+  void saveNewTask(String? taskName) async {
     try {
       String userId =
           FirebaseAuth.instance.currentUser!.uid; // Get the current user's UID
 
       DocumentReference docRef = await _firestore.collection('todos').add({
         'userId': userId, // Associate the task with the user's UID
-        'taskName': _controller.text,
+        'taskName': taskName,
         'taskCompleted': false,
       });
 
@@ -76,7 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         toDoList.add({
           'documentId': documentId,
-          'taskName': _controller.text,
+          'taskName': taskName,
           'taskCompleted': false,
         });
         taskCompletionList.add(ValueNotifier<bool>(false));
@@ -88,6 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
       print('Fehler beim Speichern der Aufgabe: $e');
     }
   }
+
 
   Future<void> updateTaskCompletionStatus(
       String documentId, bool newCompletionStatus) async {
@@ -148,6 +149,7 @@ class _MyHomePageState extends State<MyHomePage> {
           controller: _controller,
           onSave: saveNewTask,
           onCancel: cancelNewTask,
+          onSubmitted: saveNewTask,
         );
       },
     );

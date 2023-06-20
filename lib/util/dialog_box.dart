@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:todo/util/my_button.dart';
 
 class DialogBox extends StatelessWidget {
-  final controller;
-  VoidCallback onSave;
-  VoidCallback onCancel;
+  final TextEditingController controller;
+  final void Function(String?) onSave;
+  final VoidCallback onCancel;
+  final void Function(String?) onSubmitted;
+
   DialogBox({
-    super.key,
     required this.controller,
     required this.onSave,
     required this.onCancel,
+    required this.onSubmitted,
   });
 
   @override
@@ -24,7 +26,6 @@ class DialogBox extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            // Get user input
             Expanded(
               child: TextField(
                 autofocus: true,
@@ -32,23 +33,24 @@ class DialogBox extends StatelessWidget {
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: Colors.indigo[700]!,width: 2),
+                    borderSide: BorderSide(color: Colors.indigo[700]!, width: 2),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: Colors.indigo[700]!,width: 2),
+                    borderSide: BorderSide(color: Colors.indigo[700]!, width: 2),
                   ),
                   hintText: "Add Task",
                 ),
+                onSubmitted: onSubmitted,
                 cursorColor: Colors.indigo[700],
                 maxLines: 3,
+                textInputAction: TextInputAction.done, // Set TextInputAction to done
               ),
             ),
-            const SizedBox(height: 10,),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Back button
                 MyButton(
                   text: "Back",
                   onPressed: onCancel,
@@ -56,22 +58,19 @@ class DialogBox extends StatelessWidget {
                   textColor: Colors.indigo[700],
                   borderRadius: 15,
                 ),
-                const SizedBox(width: 70,),
-                // Save button
+                const SizedBox(width: 70),
                 MyButton(
                   text: "Add",
-                  onPressed: onSave,
+                  onPressed: () => onSave(controller.text),
                   color: Colors.indigo[700],
                   textColor: Colors.white,
                   borderRadius: 15,
                 ),
               ],
             ),
-
           ],
         ),
       ),
     );
-
   }
 }

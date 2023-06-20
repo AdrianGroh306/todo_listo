@@ -25,15 +25,22 @@ class MyButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius),
           color: color,
         ),
-        child: MaterialButton(
-          elevation: 0,
-          onPressed: onPressed,
-          textColor: textColor,
-          child: Text(text),
-          color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          child: Container(
+            alignment: Alignment.center,
+            padding: const EdgeInsets.only(left: 25,right: 25,top: 12,bottom: 12),
+            child: Text(
+              text,
+              style: TextStyle(
+                color: textColor,fontWeight: FontWeight.bold,fontSize: 15
+              ),
+            ),
+          ),
         ),
       ),
     );
+
 
 
 
