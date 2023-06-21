@@ -89,7 +89,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-
   Future<void> updateTaskCompletionStatus(
       String documentId, bool newCompletionStatus) async {
     try {
@@ -225,9 +224,9 @@ class _MyHomePageState extends State<MyHomePage> {
                           value: toDoList.isEmpty
                               ? 0.0
                               : toDoList
-                              .where((task) => task['taskCompleted'])
-                              .length /
-                              toDoList.length,
+                                      .where((task) => task['taskCompleted'])
+                                      .length /
+                                  toDoList.length,
                           animationDuration: const Duration(seconds: 1),
                         ),
                       ),
@@ -253,10 +252,6 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-
-
-
-
       floatingActionButton: FloatingActionButton(
         onPressed: createTask,
         backgroundColor: Colors.indigo[700],

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
+import 'my_button.dart';
+
 class ToDoTile extends StatefulWidget {
   String taskName;
   final bool taskCompleted;
@@ -73,39 +75,59 @@ class _ToDoTileState extends State<ToDoTile> {
                         builder: (BuildContext context) {
                           String newTaskName = widget.taskName;
                           return AlertDialog(
-                            title: const Text("Edit task name"),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            title: const Text("EDIT TASK",
+                                style: TextStyle(color: Color(0xFF3F51B5))),
                             content: TextField(
                               autofocus: true,
+                              cursorColor: Colors.indigo,
                               decoration: InputDecoration(
-                                labelText: "Task name",
                                 hintText: newTaskName,
+                                focusedBorder: const UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.indigo),
+                                ),
+                                enabledBorder: const UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.indigo),
+                                ),
                               ),
                               onChanged: (value) {
                                 newTaskName = value;
                               },
                             ),
                             actions: <Widget>[
-                              TextButton(
-                                child: const Text("CANCEL"),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
+                              Row(
+                                children: [
+                                  MyButton(
+                                    text: "Back",
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    color: Colors.white,
+                                    textColor: Colors.indigo[700],
+                                    borderRadius: 15,
+                                  ),
+                                  const SizedBox(width: 75),
+                                  MyButton(
+                                    text: "Save",
+                                    onPressed: () {
+                                      setState(() {
+                                        widget.taskName = newTaskName;
+                                      });
+
+                                      if (widget.onTaskNameChanged != null) {
+                                        widget.onTaskNameChanged!(newTaskName);
+                                      }
+
+                                      Navigator.of(context).pop();
+                                    },
+                                    color: Colors.indigo[700],
+                                    textColor: Colors.white,
+                                    borderRadius: 15,
+                                  ),
+                                ],
                               ),
-                              TextButton(
-                                child: const Text("SAVE"),
-                                onPressed: () {
-                                  setState(() {
-                                    widget.taskName = newTaskName;
-                                  });
-
-                                  if (widget.onTaskNameChanged != null) {
-                                    widget.onTaskNameChanged!(newTaskName);
-                                  }
-
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-
                             ],
                           );
                         },
@@ -115,7 +137,8 @@ class _ToDoTileState extends State<ToDoTile> {
                       widget.taskName,
                       style: TextStyle(
                         fontSize: 18,
-                        color: widget.taskCompleted ? Colors.grey : Colors.white,
+                        color:
+                            widget.taskCompleted ? Colors.grey : Colors.white,
                         decoration: widget.taskCompleted
                             ? TextDecoration.lineThrough
                             : TextDecoration.none,
