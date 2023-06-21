@@ -205,45 +205,47 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Flexible(
-              flex: 1,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(width: 50),
-                  const Text('TODO'),
-                  const SizedBox(width: 10),
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      SizedBox(
-                        width: 40,
-                        child: CircleProgressBar(
-                          foregroundColor: Colors.white,
-                          backgroundColor: Colors.black12,
-                          value: toDoList.isEmpty
-                              ? 0.0
-                              : toDoList
-                                      .where((task) => task['taskCompleted'])
-                                      .length /
-                                  toDoList.length,
-                          animationDuration: const Duration(seconds: 1),
-                        ),
+            IconButton(
+              icon: const Icon(Icons.menu_outlined),
+              onPressed: () {
+                // Handle menu button pressed
+              },
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Todo'),
+                const SizedBox(width: 10),
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 40,
+                      child: CircleProgressBar(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.black12,
+                        value: toDoList.isEmpty
+                            ? 0.0
+                            : toDoList
+                                    .where((task) => task['taskCompleted'])
+                                    .length /
+                                toDoList.length,
+                        animationDuration: const Duration(seconds: 1),
                       ),
-                      Text(
-                        '${toDoList.where((task) => task['taskCompleted']).length}',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                    ),
+                    Text(
+                      '${toDoList.where((task) => task['taskCompleted']).length}',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
-                    ],
-                  ),
-                  const SizedBox(width: 10),
-                  const Text('LISTO'),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 10),
+                const Text('Listo'),
+              ],
             ),
             IconButton(
               icon: const Icon(Icons.logout),
