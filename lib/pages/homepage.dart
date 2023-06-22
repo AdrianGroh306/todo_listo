@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:todo/util/dialog_box.dart';
 import 'package:todo/util/todo_tile.dart';
+import '../util/menu_bar.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -22,7 +23,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Map<String, dynamic>> toDoList = [];
   List<ValueNotifier<bool>> taskCompletionList = [];
 
-  @override
+  @override // wird bei start einmal ausgeführt
   void initState() {
     super.initState();
     fetchToDoList();
@@ -33,6 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
+  // zieht sich die Liste von der Datenbank
   void fetchToDoList() async {
     try {
       String userId =
@@ -60,6 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  //speichert die den neuen Task auf der Datenbank
   void saveNewTask(String? taskName) async {
     try {
       String userId =
@@ -89,6 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+
   Future<void> updateTaskCompletionStatus(
       String documentId, bool newCompletionStatus) async {
     try {
@@ -102,6 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  // für schickt checkbox tru/false an datenbank
   void checkBoxChanged(bool? value, int index) async {
     if (index < 0 || index >= toDoList.length) {
       print('Fehler beim Aktualisieren der Aufgabe: Ungültiger Index.');
@@ -135,11 +140,13 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  //zurück auf Mainscreen
   void cancelNewTask() {
     Navigator.of(context).pop();
     _controller.clear();
   }
 
+  // Der Task wird erstellt
   void createTask() {
     showDialog(
       context: context,
@@ -154,6 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  // Bestehender taskName wird auf Datenbank aktualisiert
   void updateTaskName(String documentId, String newTaskName) async {
     try {
       await _firestore
@@ -165,6 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  // Bestehender task wird von Datenbank
   void deleteTask(int index) async {
     Map<String, dynamic> task = toDoList[index];
 
@@ -183,7 +192,7 @@ class _MyHomePageState extends State<MyHomePage> {
       taskCompletionList.removeAt(index);
     });
   }
-
+  // User wird ausgeloggt
   void signUserOut() {
     FirebaseAuth.instance.signOut();
   }
@@ -191,7 +200,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: SideMenu(),
       backgroundColor: Colors.blueAccent,
+
       appBar: AppBar(
         toolbarHeight: 60.0,
         elevation: 5,
