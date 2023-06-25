@@ -9,7 +9,7 @@ class ToDoTile extends StatefulWidget {
   final bool taskCompleted;
   Function(bool?)? onChanged;
   Function(BuildContext)? deleteFunction;
-  ValueChanged<String>? onTaskNameChanged;
+  final ValueChanged<String>? onTaskNameChanged;
 
   ToDoTile({
     super.key,
@@ -20,6 +20,12 @@ class ToDoTile extends StatefulWidget {
     this.onTaskNameChanged,
   });
 
+  void updateTaskName(String newTaskName) {
+    if (onTaskNameChanged != null) {
+      onTaskNameChanged!(newTaskName);
+    }
+  }
+
   @override
   State<ToDoTile> createState() => _ToDoTileState();
 }
@@ -28,7 +34,7 @@ class _ToDoTileState extends State<ToDoTile> {
   late TextEditingController _controller;
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.taskName);
   }
@@ -131,9 +137,7 @@ class _ToDoTileState extends State<ToDoTile> {
                                         widget.taskName = newTaskName;
                                       });
 
-                                      if (widget.onTaskNameChanged != null) {
-                                        widget.onTaskNameChanged!(newTaskName);
-                                      }
+                                      widget.updateTaskName(newTaskName);
 
                                       Navigator.of(context).pop();
                                     },
@@ -163,7 +167,10 @@ class _ToDoTileState extends State<ToDoTile> {
                     ),
                   ),
                 ),
-                const Icon(Icons.linear_scale_sharp,color: Colors.white,),
+                const Icon(
+                  Icons.linear_scale_sharp,
+                  color: Colors.white,
+                ),
                 const SizedBox(
                   width: 10,
                 ),

@@ -168,10 +168,19 @@ class _MyHomePageState extends State<MyHomePage> {
           .collection('todos')
           .doc(documentId)
           .update({'taskName': newTaskName});
+
+      // Aktualisiere den Task-Namen in der lokalen Liste
+      setState(() {
+        final index = toDoList.indexWhere((task) => task['documentId'] == documentId);
+        if (index != -1) {
+          toDoList[index]['taskName'] = newTaskName;
+        }
+      });
     } catch (e) {
       print('Fehler beim Aktualisieren des Task-Namens: $e');
     }
   }
+
 
   // Bestehender task wird von Datenbank
   void deleteTask(int index) async {
@@ -364,6 +373,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   taskCompleted: value,
                   onChanged: (newValue) => checkBoxChanged(newValue, index),
                   deleteFunction: (context) => deleteTask(index),
+                  onTaskNameChanged: (newTaskName)=> updateTaskName(task['documentId'], newTaskName),
                 );
               },
             );
