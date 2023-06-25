@@ -171,7 +171,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
       // Aktualisiere den Task-Namen in der lokalen Liste
       setState(() {
-        final index = toDoList.indexWhere((task) => task['documentId'] == documentId);
+        final index =
+            toDoList.indexWhere((task) => task['documentId'] == documentId);
         if (index != -1) {
           toDoList[index]['taskName'] = newTaskName;
         }
@@ -180,7 +181,6 @@ class _MyHomePageState extends State<MyHomePage> {
       print('Fehler beim Aktualisieren des Task-Namens: $e');
     }
   }
-
 
   // Bestehender task wird von Datenbank
   void deleteTask(int index) async {
@@ -349,7 +349,10 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: createTask,
         backgroundColor: Colors.indigo[700],
-        child: const Icon(Icons.add_circle_outline),
+        child: const IconTheme(
+          data: IconThemeData(size: 30, color: Colors.white),
+          child: Icon(Icons.add_circle_outline),
+        ),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -373,7 +376,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   taskCompleted: value,
                   onChanged: (newValue) => checkBoxChanged(newValue, index),
                   deleteFunction: (context) => deleteTask(index),
-                  onTaskNameChanged: (newTaskName)=> updateTaskName(task['documentId'], newTaskName),
+                  onTaskNameChanged: (newTaskName) =>
+                      updateTaskName(task['documentId'], newTaskName),
                 );
               },
             );

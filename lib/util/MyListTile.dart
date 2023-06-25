@@ -11,13 +11,12 @@ class MyListTile extends StatefulWidget {
 
 class _MyListTileState extends State<MyListTile> {
   late TextEditingController _textEditingController;
-  late String _updatedListName;
+  bool isEditing = false;
 
   @override
   void initState() {
     super.initState();
     _textEditingController = TextEditingController(text: widget.listName);
-    _updatedListName = widget.listName;
   }
 
   @override
@@ -26,41 +25,11 @@ class _MyListTileState extends State<MyListTile> {
     super.dispose();
   }
 
-  void _handleEditTap() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-
-          content: TextField(
-            controller: _textEditingController,
-            onChanged: (value) {
-              setState(() {
-                _updatedListName = value;
-              });
-            },
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context, _updatedListName);
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
-    ).then((value) {
-      if (value != null) {
-        setState(() {
-          widget.listName = value;
-        });
+  void _toggleEditing() {
+    setState(() {
+      isEditing = !isEditing;
+      if (!isEditing) {
+        widget.listName = _textEditingController.text;
       }
     });
   }
@@ -70,9 +39,9 @@ class _MyListTileState extends State<MyListTile> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.indigo[700],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(15),
       ),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       child: Row(
         children: <Widget>[
           IconButton(
@@ -84,7 +53,24 @@ class _MyListTileState extends State<MyListTile> {
           ),
           Expanded(
             child: ListTile(
-              title: Text(
+              title: isEditing
+                  ? TextSelectionTheme(
+                data: const TextSelectionThemeData(
+                  cursorColor: Colors.white,
+                ),
+                child: TextField(
+                  controller: _textEditingController,
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  cursorColor: Colors.white,
+                  autofocus: true,
+                  onEditingComplete: _toggleEditing,
+                ),
+              )
+                  : Text(
                 widget.listName,
                 style: const TextStyle(color: Colors.white, fontSize: 18),
               ),
@@ -96,7 +82,7 @@ class _MyListTileState extends State<MyListTile> {
           IconButton(
             icon: const Icon(Icons.edit_note),
             color: Colors.white,
-            onPressed: _handleEditTap,
+            onPressed: _toggleEditing,
           ),
         ],
       ),
