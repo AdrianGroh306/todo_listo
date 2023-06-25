@@ -25,6 +25,20 @@ class ToDoTile extends StatefulWidget {
 }
 
 class _ToDoTileState extends State<ToDoTile> {
+  late TextEditingController _controller;
+
+  @override
+  void initState(){
+    super.initState();
+    _controller = TextEditingController(text: widget.taskName);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -81,6 +95,7 @@ class _ToDoTileState extends State<ToDoTile> {
                             title: const Text("EDIT TASK",
                                 style: TextStyle(color: Color(0xFF3F51B5))),
                             content: TextField(
+                              controller: _controller,
                               autofocus: true,
                               cursorColor: Colors.indigo,
                               decoration: InputDecoration(
