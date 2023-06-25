@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:todo/util/dialog_box.dart';
 import 'package:todo/util/todo_tile.dart';
+import '../util/MenuItem.dart';
 import '../util/menu_bar.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -91,7 +92,6 @@ class _MyHomePageState extends State<MyHomePage> {
       print('Fehler beim Speichern der Aufgabe: $e');
     }
   }
-
 
   Future<void> updateTaskCompletionStatus(
       String documentId, bool newCompletionStatus) async {
@@ -192,6 +192,31 @@ class _MyHomePageState extends State<MyHomePage> {
       taskCompletionList.removeAt(index);
     });
   }
+
+  void deleteAllTask() async {
+    try {
+      String userId = FirebaseAuth.instance.currentUser!.uid;
+
+      // Fetch all tasks associated with the user's UID
+      QuerySnapshot snapshot = await _firestore
+          .collection('todos')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      // Delete each task in a loop
+      for (QueryDocumentSnapshot doc in snapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      setState(() {
+        toDoList.clear();
+        taskCompletionList.clear();
+      });
+    } catch (e) {
+      print('Fehler beim Löschen aller Aufgaben: $e');
+    }
+  }
+
   // User wird ausgeloggt
   void signUserOut() {
     FirebaseAuth.instance.signOut();
@@ -202,7 +227,6 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       drawer: SideMenu(),
       backgroundColor: Colors.blueAccent,
-
       appBar: AppBar(
         toolbarHeight: 60.0,
         elevation: 5,
@@ -216,12 +240,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            IconButton(
-              icon: const Icon(Icons.menu_outlined),
-              onPressed: () {
-                // Handle menu button pressed
-              },
-            ),
+            const SizedBox(),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -258,9 +277,62 @@ class _MyHomePageState extends State<MyHomePage> {
                 const Text('Listo'),
               ],
             ),
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: signUserOut,
+            PopupMenuButton<MenuItem>(
+              onSelected: (value) {
+                if (value == MenuItem.item1) {
+                  deleteAllTask();
+                }
+
+                if (value == MenuItem.item2) {
+                  signUserOut();
+                }
+              },
+              color: Colors.indigo[700],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: MenuItem.item1,
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Text("Delete all",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: MenuItem.item2,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Icon(Icons.logout),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Text("Logout",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ],
+              child: const Padding(
+                padding: EdgeInsets.all(10),
+                child: Icon(
+                  Icons.more_vert,
+                  color: Colors.white, // Farbe des Icons im Button anpassen
+                ),
+              ),
             ),
           ],
         ),
