@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 
 class MyListTile extends StatefulWidget {
-  String listName;
+  final String listName;
+  final bool isSelected;
+  final VoidCallback onTap;
 
-  MyListTile({Key? key, required this.listName}) : super(key: key);
+  MyListTile({
+    Key? key,
+    required this.listName,
+    required this.isSelected,
+    required this.onTap,
+  }) : super(key: key);
 
   @override
   _MyListTileState createState() => _MyListTileState();
@@ -29,7 +36,8 @@ class _MyListTileState extends State<MyListTile> {
     setState(() {
       isEditing = !isEditing;
       if (!isEditing) {
-        widget.listName = _textEditingController.text;
+        // Update the text value instead of the listName
+        _textEditingController.text = widget.listName;
       }
     });
   }
@@ -47,36 +55,27 @@ class _MyListTileState extends State<MyListTile> {
           IconButton(
             icon: const Icon(Icons.shopping_bag_outlined),
             color: Colors.white,
-            onPressed: () {
-              // Handle IconButton 1 tap
-            },
+            onPressed: widget.onTap,
           ),
           Expanded(
             child: ListTile(
               title: isEditing
-                  ? TextSelectionTheme(
-                data: const TextSelectionThemeData(
-                  cursorColor: Colors.white,
+                  ? TextField(
+                controller: _textEditingController,
+                style: const TextStyle(color: Colors.white, fontSize: 18),
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
                 ),
-                child: TextField(
-                  controller: _textEditingController,
-                  style: const TextStyle(color: Colors.white, fontSize: 18),
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  cursorColor: Colors.white,
-                  autofocus: true,
-                  onEditingComplete: _toggleEditing,
-                ),
+                cursorColor: Colors.white,
+                autofocus: true,
+                onEditingComplete: _toggleEditing,
               )
                   : Text(
-                widget.listName,
+                _textEditingController.text,
                 style: const TextStyle(color: Colors.white, fontSize: 18),
               ),
-              onTap: () {
-                // Handle list item tap
-              },
+              onTap: widget.onTap,
             ),
           ),
           IconButton(

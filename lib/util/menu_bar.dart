@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:todo/util/MyListTile.dart';
@@ -10,20 +11,61 @@ class SideMenu extends StatefulWidget {
 }
 
 class _SideMenuState extends State<SideMenu> {
-  List<String> listNames = ['Liste 1'];
-
   late TextEditingController _textEditingController;
+  late FirebaseFirestore _firestore;
+  late List<String> listNames;
+  String? selectedList;
 
   @override
   void initState() {
     super.initState();
     _textEditingController = TextEditingController();
+    _firestore = FirebaseFirestore.instance;
+    listNames = [];
+    selectedList = null;
+    fetchListNames();
   }
 
   @override
   void dispose() {
     _textEditingController.dispose();
     super.dispose();
+  }
+
+  void fetchListNames() async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null) {
+        final querySnapshot = await _firestore
+            .collection('lists')
+            .where('userId', isEqualTo: userId)
+            .get();
+
+        setState(() {
+          listNames = querySnapshot.docs.map((doc) => doc['listName'] as String).toList();
+        });
+      }
+    } catch (e) {
+      print('Fehler beim Abrufen der Listennamen: $e');
+    }
+  }
+
+  Future<void> saveListName(String listName) async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null) {
+        await _firestore.collection('lists').add({
+          'userId': userId,
+          'listName': listName,
+        });
+
+        setState(() {
+          listNames.add(listName);
+        });
+      }
+    } catch (e) {
+      print('Fehler beim Speichern des Listennamens: $e');
+    }
   }
 
   @override
@@ -59,7 +101,15 @@ class _SideMenuState extends State<SideMenu> {
                 itemCount: listNames.length,
                 itemBuilder: (context, index) {
                   final listName = listNames[index];
-                  return MyListTile(listName: listName);
+                  return MyListTile(
+                    listName: listName,
+                    isSelected: listName == selectedList,
+                    onTap: () {
+                      setState(() {
+                        selectedList = listName;
+                      });
+                    },
+                  );
                 },
               ),
               Padding(
@@ -81,9 +131,7 @@ class _SideMenuState extends State<SideMenu> {
                     onPressed: () {
                       final newListName = _textEditingController.text;
                       if (newListName.isNotEmpty) {
-                        setState(() {
-                          listNames.add(newListName);
-                        });
+                        saveListName(newListName);
                         _textEditingController.clear();
                       }
                     },
@@ -98,4 +146,3 @@ class _SideMenuState extends State<SideMenu> {
     );
   }
 }
-
