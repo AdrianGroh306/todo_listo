@@ -75,7 +75,10 @@ class _SideMenuState extends State<SideMenu> {
       child: Container(
         decoration: const BoxDecoration(
           borderRadius: BorderRadius.only(
-              topRight: Radius.circular(20), bottomRight: Radius.circular(20)),
+            topRight: Radius.circular(20),
+            bottomRight: Radius.circular(20),
+            bottomLeft: Radius.circular(20), // Add this line for rounded bottom-left corner
+          ),
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -85,19 +88,53 @@ class _SideMenuState extends State<SideMenu> {
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
-              UserAccountsDrawerHeader(
-                accountName: Text(FirebaseAuth.instance.currentUser?.email ?? ''),
-                accountEmail: null,
-                currentAccountPicture: const CircleAvatar(
-                  backgroundImage: AssetImage('assets/profile_image.jpg'),
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.indigo[700],
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.17, // Adjust the height as desired
+                child: Container(
+                  alignment: Alignment.center,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+
+                        ),
+                      ],
+                    ),
+                    child: DrawerHeader(
+                      decoration: BoxDecoration(
+                        color: Colors.indigo[700],
+                        borderRadius: const BorderRadius.only(
+                          topRight: Radius.circular(20),
+                          bottomRight: Radius.circular(20),
+                          bottomLeft: Radius.circular(20), // Add this line for rounded bottom-left corner
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          const SizedBox(width: 10),
+                          const CircleAvatar(
+                            backgroundImage: AssetImage('assets/profile_image.jpg'),
+                            radius: 30, // Adjust the size of the CircleAvatar as desired
+                          ),
+                          const SizedBox(width: 25),
+                          Text(
+                            FirebaseAuth.instance.currentUser?.email ?? '',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
               ListView.builder(
                 shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: listNames.length,
                 itemBuilder: (context, index) {
                   final listName = listNames[index];

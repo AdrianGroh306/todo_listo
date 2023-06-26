@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MyListTile extends StatefulWidget {
   final String listName;
@@ -38,8 +39,29 @@ class _MyListTileState extends State<MyListTile> {
       if (!isEditing) {
         // Update the text value instead of the listName
         _textEditingController.text = widget.listName;
+        updateListName(_textEditingController.text);
       }
     });
+  }
+
+  void updateListName(String listName) async {
+    try {
+      // Access the Firestore instance
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+      // Path to the desired collection and document
+      String collectionPath = 'lists'; // Path to the collection
+      String documentId = 'your_document_id'; // Document ID
+
+      // Update the list name in the document
+      await firestore.collection(collectionPath).doc(documentId).update({
+        'listName': listName,
+      });
+
+      print('List name updated successfully!');
+    } catch (e) {
+      print('Error updating list name: $e');
+    }
   }
 
   @override
