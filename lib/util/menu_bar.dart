@@ -13,7 +13,8 @@ class SideMenu extends StatefulWidget {
 class _SideMenuState extends State<SideMenu> {
   late TextEditingController _textEditingController;
   late FirebaseFirestore _firestore;
-  late List<String> listNames;
+  late List<Map<String, dynamic>> listNames = [];
+
   String? selectedList;
 
   @override
@@ -21,8 +22,6 @@ class _SideMenuState extends State<SideMenu> {
     super.initState();
     _textEditingController = TextEditingController();
     _firestore = FirebaseFirestore.instance;
-    listNames = [];
-    selectedList = null;
     fetchListNames();
   }
 
@@ -42,7 +41,11 @@ class _SideMenuState extends State<SideMenu> {
             .get();
 
         setState(() {
-          listNames = querySnapshot.docs.map((doc) => doc['listName'] as String).toList();
+          listNames = querySnapshot.docs.map((doc) {
+            final documentId = doc.id; // Store the document ID
+            final listName = doc['listName'] as String;
+            return {'documentId': documentId, 'listName': listName};
+          }).toList();
         });
       }
     } catch (e) {
@@ -54,17 +57,38 @@ class _SideMenuState extends State<SideMenu> {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
-        await _firestore.collection('lists').add({
+        final documentRef = await _firestore.collection('lists').add({
           'userId': userId,
           'listName': listName,
         });
 
+        final newList = {
+          'documentId': documentRef.id,
+          'listName': listName,
+        };
+
         setState(() {
-          listNames.add(listName);
+          listNames.add(newList);
+          selectedList = documentRef.id; // Select the newly added list
         });
       }
     } catch (e) {
       print('Fehler beim Speichern des Listennamens: $e');
+    }
+  }
+
+  void deleteList(String documentId) async {
+    try {
+      await _firestore.collection('lists').doc(documentId).delete();
+
+      setState(() {
+        listNames.removeWhere((item) => item['documentId'] == documentId);
+        if (selectedList == documentId) {
+          selectedList = null;
+        }
+      });
+    } catch (e) {
+      print('Fehler beim Löschen der Liste: $e');
     }
   }
 
@@ -77,7 +101,6 @@ class _SideMenuState extends State<SideMenu> {
           borderRadius: BorderRadius.only(
             topRight: Radius.circular(20),
             bottomRight: Radius.circular(20),
-            bottomLeft: Radius.circular(20), // Add this line for rounded bottom-left corner
           ),
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -89,7 +112,7 @@ class _SideMenuState extends State<SideMenu> {
           child: Column(
             children: <Widget>[
               SizedBox(
-                height: MediaQuery.of(context).size.height * 0.17, // Adjust the height as desired
+                height: MediaQuery.of(context).size.height * 0.17,
                 child: Container(
                   alignment: Alignment.center,
                   child: Container(
@@ -100,7 +123,6 @@ class _SideMenuState extends State<SideMenu> {
                           color: Colors.black.withOpacity(0.2),
                           spreadRadius: 1,
                           blurRadius: 5,
-
                         ),
                       ],
                     ),
@@ -110,7 +132,7 @@ class _SideMenuState extends State<SideMenu> {
                         borderRadius: const BorderRadius.only(
                           topRight: Radius.circular(20),
                           bottomRight: Radius.circular(20),
-                          bottomLeft: Radius.circular(20), // Add this line for rounded bottom-left corner
+                          bottomLeft: Radius.circular(20),
                         ),
                       ),
                       child: Row(
@@ -118,8 +140,10 @@ class _SideMenuState extends State<SideMenu> {
                         children: [
                           const SizedBox(width: 10),
                           const CircleAvatar(
-                            backgroundImage: AssetImage('assets/profile_image.jpg'),
-                            radius: 30, // Adjust the size of the CircleAvatar as desired
+                            backgroundImage:
+                            AssetImage('assets/profile_image.jpg'),
+                            radius:
+                            30, // Adjust the size of the CircleAvatar as desired
                           ),
                           const SizedBox(width: 25),
                           Text(
@@ -133,18 +157,24 @@ class _SideMenuState extends State<SideMenu> {
                 ),
               ),
               ListView.builder(
+                padding: EdgeInsets.zero,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: listNames.length,
                 itemBuilder: (context, index) {
-                  final listName = listNames[index];
+                  final item = listNames[index];
+                  final documentId = item['documentId'];
+                  final listName = item['listName'];
                   return MyListTile(
                     listName: listName,
                     isSelected: listName == selectedList,
                     onTap: () {
                       setState(() {
-                        selectedList = listName;
+                        selectedList = listName; // Update selectedList with the tapped listName
                       });
+                    },
+                    onDelete: () {
+                      deleteList(documentId);
                     },
                   );
                 },
@@ -156,10 +186,18 @@ class _SideMenuState extends State<SideMenu> {
                     controller: _textEditingController,
                     decoration: const InputDecoration(
                       labelStyle: TextStyle(
+                        fontWeight: FontWeight.bold,
                         color: Color.fromRGBO(63, 81, 181, 1.0),
                       ),
                       labelText: 'Add List',
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          width: 2,
+                          color: Color.fromRGBO(63, 81, 181, 1.0),
+                        ),
+                      ),
                     ),
+                    cursorColor: Colors.indigo[700],
                     onChanged: (value) {},
                   ),
                   trailing: FloatingActionButton(
