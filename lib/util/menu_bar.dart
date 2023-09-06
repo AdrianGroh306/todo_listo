@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -14,8 +16,16 @@ class _SideMenuState extends State<SideMenu> {
   late TextEditingController _textEditingController;
   late FirebaseFirestore _firestore;
   late List<Map<String, dynamic>> listNames = [];
+  final List<String> profilPics = [
+    'images/profil_pics/yellow_form.png',
+    'images/profil_pics/darkblue_form.png',
+    'images/profil_pics/pink_form.png',
+    'images/profil_pics/pinkwhite_form.png',
+    "images/profil_pics/redlong_form.png"
+  ];
 
   String? selectedList;
+  String? profilList;
 
   @override
   void initState() {
@@ -23,6 +33,11 @@ class _SideMenuState extends State<SideMenu> {
     _textEditingController = TextEditingController();
     _firestore = FirebaseFirestore.instance;
     fetchListNames();
+
+    // Generate a random index to select a profile picture
+    final random = Random();
+    final randomIndex = random.nextInt(profilPics.length);
+    profilList = profilPics[randomIndex];
   }
 
   @override
@@ -139,11 +154,18 @@ class _SideMenuState extends State<SideMenu> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           const SizedBox(width: 10),
-                          const CircleAvatar(
-                            backgroundImage:
-                            AssetImage('assets/profile_image.jpg'),
-                            radius:
-                            30, // Adjust the size of the CircleAvatar as desired
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.blueAccent,
+                                width: 3, // Adjust the width of the outline as desired
+                              ),
+                            ),
+                            child: CircleAvatar(
+                              backgroundImage: AssetImage(profilList ?? ''),
+                              radius: 30, // Adjust the size of the CircleAvatar as desired
+                            ),
                           ),
                           const SizedBox(width: 25),
                           Text(
@@ -170,7 +192,8 @@ class _SideMenuState extends State<SideMenu> {
                     isSelected: listName == selectedList,
                     onTap: () {
                       setState(() {
-                        selectedList = listName; // Update selectedList with the tapped listName
+                        selectedList =
+                            listName; // Update selectedList with the tapped listName
                       });
                     },
                     onDelete: () {
@@ -184,9 +207,10 @@ class _SideMenuState extends State<SideMenu> {
                 child: ListTile(
                   title: TextField(
                     controller: _textEditingController,
+                    style: const TextStyle(color: Color.fromRGBO(63, 81, 181, 1.0),),
                     decoration: const InputDecoration(
                       labelStyle: TextStyle(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.bold,fontSize: 22,
                         color: Color.fromRGBO(63, 81, 181, 1.0),
                       ),
                       labelText: 'Add List',
