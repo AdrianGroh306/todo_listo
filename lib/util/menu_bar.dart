@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -158,8 +157,8 @@ class _SideMenuState extends State<SideMenu> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: Colors.blueAccent,
-                                width: 3, // Adjust the width of the outline as desired
+                                width: 2,
+                                color: Colors.white, // Adjust the width of the outline as desired
                               ),
                             ),
                             child: CircleAvatar(
