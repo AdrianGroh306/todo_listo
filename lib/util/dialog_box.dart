@@ -33,16 +33,16 @@ class DialogBox extends StatelessWidget {
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: Colors.indigo[700]!, width: 2),
+                    borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: Colors.indigo[700]!, width: 2),
+                    borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
                   ),
                   hintText: "Add Task",
                 ),
                 onSubmitted: onSubmitted,
-                cursorColor: Colors.indigo[700],
+                cursorColor: Theme.of(context).colorScheme.primary,
                 maxLines: 3,
                 textInputAction: TextInputAction.done, // Set TextInputAction to done
               ),
@@ -54,16 +54,16 @@ class DialogBox extends StatelessWidget {
                 MyButton(
                   text: "Back",
                   onPressed: onCancel,
-                  color: Colors.white,
-                  textColor: Colors.indigo[700],
+                  color: Theme.of(context).colorScheme.secondary,
+                  textColor: Theme.of(context).colorScheme.primary,
                   borderRadius: 15,
                 ),
                 const SizedBox(width: 70),
                 MyButton(
                   text: "Add",
                   onPressed: () => onSave(controller.text),
-                  color: Colors.indigo[700],
-                  textColor: Colors.white,
+                  color: Theme.of(context).colorScheme.primary,
+                  textColor: Theme.of(context).colorScheme.secondary,
                   borderRadius: 15,
                 ),
               ],

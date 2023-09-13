@@ -111,16 +111,12 @@ class _SideMenuState extends State<SideMenu> {
     return Drawer(
       backgroundColor: Colors.transparent,
       child: Container(
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.only(
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.only(
             topRight: Radius.circular(20),
             bottomRight: Radius.circular(20),
           ),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.blueAccent, Colors.tealAccent],
-          ),
+          color: Theme.of(context).colorScheme.background,
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -134,7 +130,7 @@ class _SideMenuState extends State<SideMenu> {
                       color: Colors.transparent,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Theme.of(context).colorScheme.shadow,
                           spreadRadius: 1,
                           blurRadius: 5,
                         ),
@@ -142,7 +138,7 @@ class _SideMenuState extends State<SideMenu> {
                     ),
                     child: DrawerHeader(
                       decoration: BoxDecoration(
-                        color: Colors.indigo[700],
+                        color: Theme.of(context).colorScheme.primary,
                         borderRadius: const BorderRadius.only(
                           topRight: Radius.circular(20),
                           bottomRight: Radius.circular(20),
@@ -158,7 +154,7 @@ class _SideMenuState extends State<SideMenu> {
                               shape: BoxShape.circle,
                               border: Border.all(
                                 width: 2,
-                                color: Colors.white, // Adjust the width of the outline as desired
+                                color: Theme.of(context).colorScheme.secondary, // Adjust the width of the outline as desired
                               ),
                             ),
                             child: CircleAvatar(
@@ -169,7 +165,7 @@ class _SideMenuState extends State<SideMenu> {
                           const SizedBox(width: 25),
                           Text(
                             FirebaseAuth.instance.currentUser?.email ?? '',
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(color: Theme.of(context).colorScheme.secondary),
                           ),
                         ],
                       ),
@@ -206,26 +202,26 @@ class _SideMenuState extends State<SideMenu> {
                 child: ListTile(
                   title: TextField(
                     controller: _textEditingController,
-                    style: const TextStyle(color: Color.fromRGBO(63, 81, 181, 1.0),),
-                    decoration: const InputDecoration(
+                    style: TextStyle(color: Theme.of(context).colorScheme.primary,),
+                    decoration: InputDecoration(
                       labelStyle: TextStyle(
                         fontWeight: FontWeight.bold,fontSize: 22,
-                        color: Color.fromRGBO(63, 81, 181, 1.0),
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                       labelText: 'Add List',
                       focusedBorder: UnderlineInputBorder(
                         borderSide: BorderSide(
                           width: 2,
-                          color: Color.fromRGBO(63, 81, 181, 1.0),
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                     ),
-                    cursorColor: Colors.indigo[700],
+                    cursorColor: Theme.of(context).colorScheme.primary,
                     onChanged: (value) {},
                   ),
                   trailing: FloatingActionButton(
                     mini: true, // Make the FloatingActionButton smaller
-                    backgroundColor: Colors.indigo[700],
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                     onPressed: () {
                       final newListName = _textEditingController.text;
                       if (newListName.isNotEmpty) {
@@ -233,7 +229,7 @@ class _SideMenuState extends State<SideMenu> {
                         _textEditingController.clear();
                       }
                     },
-                    child: const Icon(Icons.add_circle_outline),
+                    child: Icon(Icons.add_circle_outline,color: Theme.of(context).colorScheme.secondary,),
                   ),
                 ),
               ),

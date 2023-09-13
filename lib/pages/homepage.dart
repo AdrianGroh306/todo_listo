@@ -19,7 +19,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final _controller = TextEditingController();
-  final _themeColor = Colors.indigo[700];
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<Map<String, dynamic>> toDoList = [];
   List<ValueNotifier<bool>> taskCompletionList = [];
@@ -235,11 +234,11 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: SideMenu(),
-      backgroundColor: Colors.blueAccent,
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         toolbarHeight: 60.0,
         elevation: 5,
-        backgroundColor: _themeColor,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
             bottomLeft: Radius.circular(20),
@@ -261,8 +260,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     SizedBox(
                       width: 40,
                       child: CircleProgressBar(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.black12,
+                        foregroundColor: Theme.of(context).colorScheme.secondary,
+                        backgroundColor: Theme.of(context).colorScheme.tertiary,
                         value: toDoList.isEmpty
                             ? 0.0
                             : toDoList
@@ -274,10 +273,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     Text(
                       '${toDoList.where((task) => task['taskCompleted']).length}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.secondary,
                       ),
                     ),
                   ],
@@ -296,27 +295,27 @@ class _MyHomePageState extends State<MyHomePage> {
                   signUserOut();
                 }
               },
-              color: Colors.indigo[700],
+              color: Theme.of(context).colorScheme.primary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
               itemBuilder: (context) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: MenuItem.item1,
                   child: Row(
                     children: [
-                      Icon(Icons.delete),
-                      SizedBox(
+                      const Icon(Icons.delete),
+                      const SizedBox(
                         width: 10,
                       ),
                       Text("Delete all",
                           style: TextStyle(
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.secondary,
                               fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: MenuItem.item2,
                   child: Row(
                     children: [
@@ -329,17 +328,17 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       Text("Logout",
                           style: TextStyle(
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.secondary,
                               fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
               ],
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
                   Icons.more_vert,
-                  color: Colors.white, // Farbe des Icons im Button anpassen
+                  color: Theme.of(context).colorScheme.secondary, // Farbe des Icons im Button anpassen
                 ),
               ),
             ),
@@ -348,20 +347,14 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: createTask,
-        backgroundColor: Colors.indigo[700],
-        child: const IconTheme(
-          data: IconThemeData(size: 30, color: Colors.white),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        child: IconTheme(
+          data: IconThemeData(size: 30, color: Theme.of(context).colorScheme.secondary),
           child: Icon(Icons.add_circle_outline),
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.blueAccent, Colors.tealAccent],
-          ),
-        ),
+      body: Container(color: Theme.of(context).colorScheme.background,
+
         child: ListView.builder(
           itemCount: toDoList.length,
           itemBuilder: (context, index) {

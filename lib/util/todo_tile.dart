@@ -56,7 +56,7 @@ class _ToDoTileState extends State<ToDoTile> {
             SlidableAction(
               onPressed: widget.deleteFunction,
               icon: Icons.delete,
-              backgroundColor: Colors.red,
+              backgroundColor: Theme.of(context).colorScheme.error,
               borderRadius: BorderRadius.circular(15),
             )
           ],
@@ -66,7 +66,7 @@ class _ToDoTileState extends State<ToDoTile> {
           child: Container(
             padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
-              color: Colors.indigo[700],
+              color: Theme.of(context).colorScheme.primary,
               borderRadius: BorderRadius.circular(15),
             ),
             child: Row(
@@ -76,7 +76,7 @@ class _ToDoTileState extends State<ToDoTile> {
                   child: Checkbox(
                     value: widget.taskCompleted,
                     onChanged: widget.onChanged,
-                    activeColor: Colors.black54,
+                    activeColor: Theme.of(context).colorScheme.tertiary,
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.only(
                         bottomLeft: Radius.circular(5),
@@ -98,19 +98,19 @@ class _ToDoTileState extends State<ToDoTile> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            title: const Text("EDIT TASK",
-                                style: TextStyle(color: Color(0xFF3F51B5))),
+                            title: Text("EDIT TASK",
+                                style: TextStyle(color: Theme.of(context).colorScheme.primary)),
                             content: TextField(
                               controller: _controller,
                               autofocus: true,
-                              cursorColor: Colors.indigo,
+                              cursorColor: Theme.of(context).colorScheme.primary,
                               decoration: InputDecoration(
                                 hintText: newTaskName,
-                                focusedBorder: const UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.indigo),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
                                 ),
-                                enabledBorder: const UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.indigo),
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
                                 ),
                               ),
                               onChanged: (value) {
@@ -125,8 +125,8 @@ class _ToDoTileState extends State<ToDoTile> {
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                     },
-                                    color: Colors.white,
-                                    textColor: Colors.indigo[700],
+                                    color: Theme.of(context).colorScheme.secondary,
+                                    textColor: Theme.of(context).colorScheme.primary,
                                     borderRadius: 15,
                                   ),
                                   const SizedBox(width: 75),
@@ -141,8 +141,8 @@ class _ToDoTileState extends State<ToDoTile> {
 
                                       Navigator.of(context).pop();
                                     },
-                                    color: Colors.indigo[700],
-                                    textColor: Colors.white,
+                                    color: Theme.of(context).colorScheme.primary,
+                                    textColor: Theme.of(context).colorScheme.secondary,
                                     borderRadius: 15,
                                   ),
                                 ],
@@ -157,7 +157,7 @@ class _ToDoTileState extends State<ToDoTile> {
                       style: TextStyle(
                         fontSize: 18,
                         color:
-                            widget.taskCompleted ? Colors.grey : Colors.white,
+                            widget.taskCompleted ? Theme.of(context).colorScheme.tertiary : Theme.of(context).colorScheme.secondary,
                         decoration: widget.taskCompleted
                             ? TextDecoration.lineThrough
                             : TextDecoration.none,
@@ -167,9 +167,10 @@ class _ToDoTileState extends State<ToDoTile> {
                     ),
                   ),
                 ),
-                const Icon(
+                 Icon(
                   Icons.linear_scale_sharp,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.secondary,
+
                 ),
                 const SizedBox(
                   width: 10,
