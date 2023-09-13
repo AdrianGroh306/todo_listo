@@ -290,10 +290,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 if (value == MenuItem.item1) {
                   deleteAllTask();
                 }
-
                 if (value == MenuItem.item2) {
                   signUserOut();
                 }
+                if(value == MenuItem.item3){
+
+                }
+
               },
               color: Theme.of(context).colorScheme.primary,
               shape: RoundedRectangleBorder(
@@ -319,11 +322,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   value: MenuItem.item2,
                   child: Row(
                     children: [
-                      SizedBox(
+                      const SizedBox(
                         width: 5,
                       ),
-                      Icon(Icons.logout),
-                      SizedBox(
+                      const Icon(Icons.logout),
+                      const SizedBox(
                         width: 5,
                       ),
                       Text("Logout",
@@ -333,9 +336,27 @@ class _MyHomePageState extends State<MyHomePage> {
                     ],
                   ),
                 ),
+                PopupMenuItem(
+                  value: MenuItem.item3,
+                  child: Row(
+                    children: [
+                      const SizedBox(
+                        width: 5,
+                      ),
+                      const Icon(Icons.settings_system_daydream_outlined),
+                      const SizedBox(
+                        width: 5,
+                      ),
+                      Text("Theme",
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.secondary,
+                              fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
               ],
               child: Padding(
-                padding: EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
                 child: Icon(
                   Icons.more_vert,
                   color: Theme.of(context).colorScheme.secondary, // Farbe des Icons im Button anpassen
@@ -350,7 +371,7 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         child: IconTheme(
           data: IconThemeData(size: 30, color: Theme.of(context).colorScheme.secondary),
-          child: Icon(Icons.add_circle_outline),
+          child: const Icon(Icons.add_circle_outline),
         ),
       ),
       body: Container(color: Theme.of(context).colorScheme.background,
