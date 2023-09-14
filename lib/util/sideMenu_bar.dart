@@ -109,132 +109,93 @@ class _SideMenuState extends State<SideMenu> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.only(
-            topRight: Radius.circular(20),
-            bottomRight: Radius.circular(20),
-          ),
-          color: Theme.of(context).colorScheme.background,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            children: <Widget>[
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.17,
-                child: Container(
-                  alignment: Alignment.center,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.transparent,
-                    /*  boxShadow: [
-                     //   BoxShadow(
-                       //   color: Theme.of(context).colorScheme.shadow,
-                         // spreadRadius: 1,
-                          //blurRadius: 5,
-                        //),
-                      ],*/
-                    ),
-                    child: DrawerHeader(
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: const BorderRadius.only(
-                          topRight: Radius.circular(20),
-                          bottomRight: Radius.circular(20),
-                          bottomLeft: Radius.circular(20),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          const SizedBox(width: 10),
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                width: 2,
-                                color: Theme.of(context).colorScheme.secondary, // Adjust the width of the outline as desired
-                              ),
-                            ),
-                            child: CircleAvatar(
-                              backgroundImage: AssetImage(profilList ?? ''),
-                              radius: 30, // Adjust the size of the CircleAvatar as desired
-                            ),
-                          ),
-                          const SizedBox(width: 25),
-                          Text(
-                            FirebaseAuth.instance.currentUser?.email ?? '',
-                            style: TextStyle(color: Theme.of(context).colorScheme.secondary),
-                          ),
-                        ],
-                      ),
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.background, // Hintergrundfarbe des DrawerHeaders anpassen
+            ),
+            child: Column(
+              children: <Widget>[
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      width: 2,
+                      color: Theme.of(context).colorScheme.secondary,
                     ),
                   ),
+                  child: CircleAvatar(
+                    backgroundImage: AssetImage(profilList ?? ''),
+                    radius: 30,
+                  ),
                 ),
-              ),
-              ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: listNames.length,
-                itemBuilder: (context, index) {
-                  final item = listNames[index];
-                  final documentId = item['documentId'];
-                  final listName = item['listName'];
-                  return MyListTile(
-                    listName: listName,
-                    isSelected: listName == selectedList,
-                    onTap: () {
-                      setState(() {
-                        selectedList =
-                            listName; // Update selectedList with the tapped listName
-                      });
-                    },
-                    onDelete: () {
-                      deleteList(documentId);
-                    },
-                  );
+                const SizedBox(width: 25),
+                Text(
+                  FirebaseAuth.instance.currentUser?.email ?? '',
+                  style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            children: listNames.map((item) {
+              final documentId = item['documentId'];
+              final listName = item['listName'];
+              return MyListTile(
+                listName: listName,
+                isSelected: listName == selectedList,
+                onTap: () {
+                  setState(() {
+                    selectedList = listName;
+                  });
                 },
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: ListTile(
-                  title: TextField(
-                    controller: _textEditingController,
-                    style: TextStyle(color: Theme.of(context).colorScheme.primary,),
-                    decoration: InputDecoration(
-                      labelStyle: TextStyle(
-                        fontWeight: FontWeight.bold,fontSize: 22,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      labelText: 'Add List',
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          width: 2,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                    cursorColor: Theme.of(context).colorScheme.primary,
-                    onChanged: (value) {},
+                onDelete: () {
+                  deleteList(documentId);
+                },
+              );
+            }).toList(),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: ListTile(
+              title: TextField(
+                controller: _textEditingController,
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                decoration: InputDecoration(
+                  labelStyle: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
-                  trailing: FloatingActionButton(
-                    mini: true, // Make the FloatingActionButton smaller
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    onPressed: () {
-                      final newListName = _textEditingController.text;
-                      if (newListName.isNotEmpty) {
-                        saveListName(newListName);
-                        _textEditingController.clear();
-                      }
-                    },
-                    child: Icon(Icons.add_circle_outline,color: Theme.of(context).colorScheme.secondary,),
+                  labelText: 'Add List',
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      width: 2,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
+                cursorColor: Theme.of(context).colorScheme.primary,
+                onChanged: (value) {},
               ),
-            ],
+              trailing: FloatingActionButton(
+                mini: true,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                onPressed: () {
+                  final newListName = _textEditingController.text;
+                  if (newListName.isNotEmpty) {
+                    saveListName(newListName);
+                    _textEditingController.clear();
+                  }
+                },
+                child: Icon(Icons.add_circle_outline,
+                    color: Theme.of(context).colorScheme.secondary),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
