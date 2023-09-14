@@ -109,7 +109,6 @@ class _SideMenuState extends State<SideMenu> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: Colors.transparent,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.only(
@@ -128,17 +127,17 @@ class _SideMenuState extends State<SideMenu> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.transparent,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Theme.of(context).colorScheme.shadow,
-                          spreadRadius: 1,
-                          blurRadius: 5,
-                        ),
-                      ],
+                    /*  boxShadow: [
+                     //   BoxShadow(
+                       //   color: Theme.of(context).colorScheme.shadow,
+                         // spreadRadius: 1,
+                          //blurRadius: 5,
+                        //),
+                      ],*/
                     ),
                     child: DrawerHeader(
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
+                        color: Colors.transparent,
                         borderRadius: const BorderRadius.only(
                           topRight: Radius.circular(20),
                           bottomRight: Radius.circular(20),
