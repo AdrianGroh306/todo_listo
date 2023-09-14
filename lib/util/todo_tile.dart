@@ -157,7 +157,7 @@ class _ToDoTileState extends State<ToDoTile> {
                       style: TextStyle(
                         fontSize: 18,
                         color:
-                            widget.taskCompleted ? Theme.of(context).colorScheme.tertiary : Theme.of(context).colorScheme.secondary,
+                            widget.taskCompleted ? Theme.of(context).colorScheme.background : Theme.of(context).colorScheme.secondary,
                         decoration: widget.taskCompleted
                             ? TextDecoration.lineThrough
                             : TextDecoration.none,

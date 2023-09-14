@@ -8,8 +8,6 @@ import 'package:todo/util/sideMenu_bar.dart';
 import 'package:todo/util/todo_tile.dart';
 import '../util/MenuItem.dart';
 
-
-
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
     Key? key,
@@ -236,16 +234,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      drawer: Theme(
-        data: Theme.of(context).copyWith(
-          // Hier kannst du die Farben des Drawers aus dem aktuellen Theme kopieren
-          primaryColor: Theme.of(context).colorScheme.background, // Hintergrundfarbe des Drawers
-          iconTheme: Theme.of(context).iconTheme.copyWith(color: Theme.of(context).colorScheme.secondary),
-        ),
-        child: SideMenu(),
-      ),
-           appBar: AppBar(
-             backgroundColor: Theme.of(context).colorScheme.background,
+      drawer: SideMenu(),
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.background,
         toolbarHeight: 60.0,
         elevation: 0,
         shape: const RoundedRectangleBorder(
@@ -257,12 +248,13 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-
             const SizedBox(),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Todo',style: TextStyle(color: Theme.of(context).colorScheme.secondary)),
+                Text('Todo',
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary)),
                 const SizedBox(width: 10),
                 Stack(
                   alignment: Alignment.center,
@@ -270,7 +262,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     SizedBox(
                       width: 40,
                       child: CircleProgressBar(
-                        foregroundColor: Theme.of(context).colorScheme.secondary,
+                        foregroundColor:
+                            Theme.of(context).colorScheme.secondary,
                         backgroundColor: Theme.of(context).colorScheme.tertiary,
                         value: toDoList.isEmpty
                             ? 0.0
@@ -281,18 +274,13 @@ class _MyHomePageState extends State<MyHomePage> {
                         animationDuration: const Duration(seconds: 1),
                       ),
                     ),
-                    Text(
-                      '${toDoList.where((task) => task['taskCompleted']).length}',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
-                    ),
+                   Icon( Icons.view_list_rounded,size: 18,),
                   ],
                 ),
                 const SizedBox(width: 10),
-                Text('Listo',style: TextStyle(color: Theme.of(context).colorScheme.secondary)),
+                Text('Listo',
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary)),
               ],
             ),
             PopupMenuButton<MenuItem>(
@@ -303,10 +291,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 if (value == MenuItem.item2) {
                   signUserOut();
                 }
-                if(value == MenuItem.item3){
-
-                }
-
+                if (value == MenuItem.item3) {}
               },
               color: Theme.of(context).colorScheme.primary,
               shape: RoundedRectangleBorder(
@@ -369,7 +354,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 padding: const EdgeInsets.all(10),
                 child: Icon(
                   Icons.more_vert,
-                  color: Theme.of(context).colorScheme.secondary, // Farbe des Icons im Button anpassen
+                  color: Theme.of(context)
+                      .colorScheme
+                      .secondary, // Farbe des Icons im Button anpassen
                 ),
               ),
             ),
@@ -381,12 +368,13 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: createTask,
         backgroundColor: Theme.of(context).colorScheme.primary,
         child: IconTheme(
-          data: IconThemeData(size: 30, color: Theme.of(context).colorScheme.secondary),
+          data: IconThemeData(
+              size: 30, color: Theme.of(context).colorScheme.secondary),
           child: const Icon(Icons.add_circle_outline),
         ),
       ),
-      body: Container(color: Theme.of(context).colorScheme.background,
-
+      body: Container(
+        color: Theme.of(context).colorScheme.background,
         child: ListView.builder(
           itemCount: toDoList.length,
           itemBuilder: (context, index) {

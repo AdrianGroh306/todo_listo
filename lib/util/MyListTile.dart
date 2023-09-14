@@ -115,7 +115,7 @@ class _MyListTileState extends State<MyListTile> {
           child: Row(
             children: <Widget>[
               IconButton(
-                icon: const Icon(Icons.shopping_bag_outlined),
+                icon: const Icon(Icons.view_list_rounded),
                 color: Theme.of(context).colorScheme.secondary,
                 onPressed: widget.onTap,
               ),

@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
     ThemeData lightTheme = ThemeData(
         brightness: Brightness.light,
         iconTheme: const IconThemeData(
-          color: Colors.grey,
+          color: Colors.white,
         ),
         colorScheme: ColorScheme.light(
-            background: Colors.blue,
-            primary: Colors.indigo[700]!,
-            secondary: Colors.grey,
+            background: Colors.indigo[500]!,
+            primary: Colors.indigo[800]!,
+            secondary: Colors.white,
             tertiary: Colors.black12,
             error: Colors.red,
             shadow: Colors.black.withOpacity(0.2),

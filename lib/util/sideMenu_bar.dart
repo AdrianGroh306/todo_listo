@@ -1,4 +1,3 @@
-
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -110,6 +109,7 @@ class _SideMenuState extends State<SideMenu> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      backgroundColor: Colors.transparent,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.only(
@@ -126,20 +126,13 @@ class _SideMenuState extends State<SideMenu> {
                 child: Container(
                   alignment: Alignment.center,
                   child: Container(
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: Colors.transparent,
-                      /*  boxShadow: [
-                     //   BoxShadow(
-                       //   color: Theme.of(context).colorScheme.shadow,
-                         // spreadRadius: 1,
-                          //blurRadius: 5,
-                        //),
-                      ],*/
                     ),
                     child: DrawerHeader(
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.transparent,
-                        borderRadius: const BorderRadius.only(
+                        borderRadius: BorderRadius.only(
                           topRight: Radius.circular(20),
                           bottomRight: Radius.circular(20),
                           bottomLeft: Radius.circular(20),
@@ -154,18 +147,22 @@ class _SideMenuState extends State<SideMenu> {
                               shape: BoxShape.circle,
                               border: Border.all(
                                 width: 2,
-                                color: Theme.of(context).colorScheme.secondary, // Adjust the width of the outline as desired
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .secondary, // Adjust the width of the outline as desired
                               ),
                             ),
                             child: CircleAvatar(
                               backgroundImage: AssetImage(profilList ?? ''),
-                              radius: 30, // Adjust the size of the CircleAvatar as desired
+                              radius:
+                                  30, // Adjust the size of the CircleAvatar as desired
                             ),
                           ),
                           const SizedBox(width: 25),
                           Text(
                             FirebaseAuth.instance.currentUser?.email ?? '',
-                            style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary),
                           ),
                         ],
                       ),
@@ -202,10 +199,13 @@ class _SideMenuState extends State<SideMenu> {
                 child: ListTile(
                   title: TextField(
                     controller: _textEditingController,
-                    style: TextStyle(color: Theme.of(context).colorScheme.primary,),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     decoration: InputDecoration(
                       labelStyle: TextStyle(
-                        fontWeight: FontWeight.bold,fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
                         color: Theme.of(context).colorScheme.primary,
                       ),
                       labelText: 'Add List',
@@ -220,6 +220,7 @@ class _SideMenuState extends State<SideMenu> {
                     onChanged: (value) {},
                   ),
                   trailing: FloatingActionButton(
+                    elevation: 0,
                     mini: true, // Make the FloatingActionButton smaller
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     onPressed: () {
@@ -229,7 +230,10 @@ class _SideMenuState extends State<SideMenu> {
                         _textEditingController.clear();
                       }
                     },
-                    child: Icon(Icons.add_circle_outline,color: Theme.of(context).colorScheme.secondary,),
+                    child: Icon(
+                      Icons.add_circle_outline,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
                   ),
                 ),
               ),
