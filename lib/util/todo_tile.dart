@@ -98,8 +98,8 @@ class _ToDoTileState extends State<ToDoTile> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            title: Text("EDIT TASK",
-                                style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                            title: const Text("EDIT TASK",
+                                style: TextStyle(color: Color(0xFF3F51B5))),
                             content: TextField(
                               controller: _controller,
                               autofocus: true,
@@ -125,8 +125,8 @@ class _ToDoTileState extends State<ToDoTile> {
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                     },
-                                    color: Theme.of(context).colorScheme.secondary,
-                                    textColor: Theme.of(context).colorScheme.primary,
+                                    color: Colors.white,
+                                    textColor: Colors.indigo[700],
                                     borderRadius: 15,
                                   ),
                                   const SizedBox(width: 75),
@@ -141,8 +141,8 @@ class _ToDoTileState extends State<ToDoTile> {
 
                                       Navigator.of(context).pop();
                                     },
-                                    color: Theme.of(context).colorScheme.primary,
-                                    textColor: Theme.of(context).colorScheme.secondary,
+                                    color: Colors.indigo[700],
+                                    textColor: Colors.white,
                                     borderRadius: 15,
                                   ),
                                 ],
@@ -157,7 +157,7 @@ class _ToDoTileState extends State<ToDoTile> {
                       style: TextStyle(
                         fontSize: 18,
                         color:
-                            widget.taskCompleted ? Theme.of(context).colorScheme.background : Theme.of(context).colorScheme.secondary,
+                            widget.taskCompleted ? Colors.grey : Colors.white,
                         decoration: widget.taskCompleted
                             ? TextDecoration.lineThrough
                             : TextDecoration.none,
@@ -167,10 +167,9 @@ class _ToDoTileState extends State<ToDoTile> {
                     ),
                   ),
                 ),
-                 Icon(
+                const Icon(
                   Icons.linear_scale_sharp,
-                  color: Theme.of(context).colorScheme.secondary,
-
+                  color: Colors.white,
                 ),
                 const SizedBox(
                   width: 10,

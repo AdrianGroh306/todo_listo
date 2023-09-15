@@ -20,7 +20,7 @@ class _SideMenuState extends State<SideMenu> {
     'images/profil_pics/darkblue_form.png',
     'images/profil_pics/pink_form.png',
     'images/profil_pics/pinkwhite_form.png',
-    "images/profil_pics/redlong_form.png"
+    'images/profil_pics/redlong_form.png'
   ];
 
   String? selectedList;
@@ -57,8 +57,9 @@ class _SideMenuState extends State<SideMenu> {
         setState(() {
           listNames = querySnapshot.docs.map((doc) {
             final documentId = doc.id; // Store the document ID
+            final listId = doc['listId'] as String; // Get the listId from the document
             final listName = doc['listName'] as String;
-            return {'documentId': documentId, 'listName': listName};
+            return {'documentId': documentId, 'listId': listId, 'listName': listName};
           }).toList();
         });
       }
@@ -71,24 +72,36 @@ class _SideMenuState extends State<SideMenu> {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
+        // Generiere eine eindeutige listId
+        final listId = _generateUniqueListId();
+
         final documentRef = await _firestore.collection('lists').add({
           'userId': userId,
+          'listId': listId, // Speichern Sie die listId in der Datenbank
           'listName': listName,
         });
 
         final newList = {
           'documentId': documentRef.id,
+          'listId': listId, // Fügen Sie die listId dem newList hinzu
           'listName': listName,
         };
 
         setState(() {
           listNames.add(newList);
-          selectedList = documentRef.id; // Select the newly added list
+          selectedList = documentRef.id; // Wählen Sie die neu hinzugefügte Liste aus
         });
       }
     } catch (e) {
       print('Fehler beim Speichern des Listennamens: $e');
     }
+  }
+
+  String _generateUniqueListId() {
+    // Hier können Sie Ihre eigene Logik zur Generierung einer eindeutigen listId implementieren.
+    // Zum Beispiel können Sie eine zufällige Zeichenfolge generieren oder eine eindeutige ID-Funktion verwenden.
+    // Stellen Sie sicher, dass die generierte listId eindeutig ist, um Konflikte zu vermeiden.
+    return 'your_unique_list_id'; // Hier wird eine statische Zeichenfolge verwendet, bitte anpassen.
   }
 
   void deleteList(String documentId) async {
@@ -155,7 +168,7 @@ class _SideMenuState extends State<SideMenu> {
                             child: CircleAvatar(
                               backgroundImage: AssetImage(profilList ?? ''),
                               radius:
-                                  30, // Adjust the size of the CircleAvatar as desired
+                              30, // Adjust the size of the CircleAvatar as desired
                             ),
                           ),
                           const SizedBox(width: 25),
@@ -200,13 +213,13 @@ class _SideMenuState extends State<SideMenu> {
                   title: TextField(
                     controller: _textEditingController,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
+                      color: Theme.of(context).colorScheme.secondary,
                     ),
                     decoration: InputDecoration(
                       labelStyle: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 22,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: Theme.of(context).colorScheme.secondary,
                       ),
                       labelText: 'Add List',
                       focusedBorder: UnderlineInputBorder(

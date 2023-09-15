@@ -63,11 +63,7 @@ class _LoginPageState extends State<LoginPage> {
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
-        decoration: const BoxDecoration(
-            gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.blueAccent, Colors.tealAccent])),
+        color: Theme.of(context).colorScheme.background,
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -75,13 +71,13 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(
-                    height: 40,
+                    height: 30,
                   ),
 
                   //logo
-                  const Icon(
+                  Icon(
                     Icons.notes_rounded,
-                    color: Colors.indigo,
+                    color: Theme.of(context).colorScheme.secondary,
                     shadows: <Shadow>[
                       Shadow(color: Colors.black45, blurRadius: 30.0)
                     ],
@@ -153,7 +149,7 @@ class _LoginPageState extends State<LoginPage> {
                                   borderRadius: BorderRadius.circular(15),
                                 )),
                                 backgroundColor: MaterialStateProperty.all<Color>(
-                                    Colors.indigo)),
+                                    Theme.of(context).colorScheme.primary)),
                             onPressed: () {
                               signUserIn();
                             },
@@ -212,7 +208,7 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                   const SizedBox(
-                    height: 30,
+                    height: 25,
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -222,12 +218,6 @@ class _LoginPageState extends State<LoginPage> {
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black,
-                              blurRadius: 60,
-                            ),
-                          ],
                         ),
                       ),
                       const SizedBox(
