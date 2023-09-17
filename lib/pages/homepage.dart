@@ -274,7 +274,10 @@ class _MyHomePageState extends State<MyHomePage> {
                         animationDuration: const Duration(seconds: 1),
                       ),
                     ),
-                   Icon( Icons.view_list_rounded,size: 18,),
+                    const Icon(
+                      Icons.view_list_rounded,
+                      size: 18,
+                    ),
                   ],
                 ),
                 const SizedBox(width: 10),
@@ -363,16 +366,18 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         elevation: 0,
         onPressed: createTask,
         backgroundColor: Theme.of(context).colorScheme.primary,
-        child: IconTheme(
-          data: IconThemeData(
-              size: 30, color: Theme.of(context).colorScheme.secondary),
-          child: const Icon(Icons.add_circle_outline),
-        ),
+        shape: StadiumBorder(
+            side: BorderSide(
+                color: Theme.of(context).iconTheme.color!, width: 2)),
+        label: Text("Add Todo",style: TextStyle(color: Theme.of(context).iconTheme.color,fontWeight: FontWeight.bold,fontSize: 16),),
+        icon:
+            Icon(Icons.add, color: Theme.of(context).iconTheme.color, size: 30),
       ),
+
       body: Container(
         color: Theme.of(context).colorScheme.background,
         child: ListView.builder(

@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:todo/util/MyTextField.dart';
+import 'package:todo/util/myTextField.dart';
 import 'package:todo/services/auth_service.dart';
 import 'package:todo/util/square_tile.dart';
 
