@@ -27,11 +27,11 @@ class MyTextField extends StatelessWidget {
           hintStyle: const TextStyle(fontSize: 14,fontWeight: FontWeight.bold ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.secondary),
+            borderSide: const BorderSide(color: Colors.white10),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.secondary),
+            borderSide: const BorderSide(color: Colors.white10),
           ),
         ),
       ),

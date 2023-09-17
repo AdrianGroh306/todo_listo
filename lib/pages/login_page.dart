@@ -5,8 +5,8 @@ import 'package:todo/services/auth_service.dart';
 import 'package:todo/util/square_tile.dart';
 
 class LoginPage extends StatefulWidget {
-final Function()? onTap;
-const LoginPage({super.key,required this.onTap});
+  final Function()? onTap;
+  const LoginPage({super.key, required this.onTap});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -78,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
                   Icon(
                     Icons.notes_rounded,
                     color: Theme.of(context).colorScheme.secondary,
-                    shadows: <Shadow>[
+                    shadows: const <Shadow>[
                       Shadow(color: Colors.black45, blurRadius: 30.0)
                     ],
                     size: 150,
@@ -137,32 +137,32 @@ class _LoginPageState extends State<LoginPage> {
 
                   // sign in button
 
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: Container(
-                        height: 60,
-                        width: double.infinity,
-                        child: ElevatedButton(
-                            style: ButtonStyle(
-                                shape: MaterialStateProperty.all<
-                                    RoundedRectangleBorder>(RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                )),
-                                backgroundColor: MaterialStateProperty.all<Color>(
-                                    Theme.of(context).colorScheme.primary)),
-                            onPressed: () {
-                              signUserIn();
-                            },
-                            child: const Text(
-                              "Sign In",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )),
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    child: Container(
+                      height: 60,
+                      width: double.infinity,
+                      child: ElevatedButton(
+                          style: ButtonStyle(
+                              shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              )),
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  Theme.of(context).colorScheme.primary)),
+                          onPressed: () {
+                            signUserIn();
+                          },
+                          child: const Text(
+                            "Sign In",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )),
                     ),
-
+                  ),
 
                   const SizedBox(
                     height: 30,
@@ -200,11 +200,17 @@ class _LoginPageState extends State<LoginPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SquareTile(imagePath: "images/google_logo.png",onTap: () => AuthService().signInWithGoogle() ,),
+                      SquareTile(
+                        imagePath: "images/google_logo.png",
+                        onTap: () => AuthService().signInWithGoogle(),
+                      ),
                       const SizedBox(
                         width: 30,
                       ),
-                      SquareTile(imagePath: "images/apple_logo.png",onTap: (){} ,),
+                      SquareTile(
+                        imagePath: "images/apple_logo.png",
+                        onTap: () {},
+                      ),
                     ],
                   ),
                   const SizedBox(
@@ -236,7 +242,6 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-
                     ],
                   ),
                   const SizedBox(
