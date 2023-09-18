@@ -59,7 +59,8 @@ class _SideMenuState extends State<SideMenu> {
 
         final fetchedListNames = querySnapshot.docs.map((doc) {
           final documentId = doc.id; // Store the document ID
-          final listId = doc['listId'] as String; // Get the listId from the document
+          final listId =
+              doc['listId'] as String; // Get the listId from the document
           final listName = doc['listName'] as String;
           return {
             'documentId': documentId,
@@ -78,7 +79,7 @@ class _SideMenuState extends State<SideMenu> {
             saveListName(homeListName);
           }
 
-          // Wenn die Liste nicht leer ist, wählen Sie die erste Liste aus.
+          // Falls keine Liste ausgewählt wurde, wählen Sie die oberste Liste aus
           if (selectedList == null && listNames.isNotEmpty) {
             selectedList = listNames.first['listName'];
           }
@@ -218,7 +219,8 @@ class _SideMenuState extends State<SideMenu> {
                     isSelected: isSelected,
                     onTap: () {
                       setState(() {
-                        selectedList = listName; // Update selectedList with the tapped listName
+                        selectedList =
+                            listName; // Update selectedList with the tapped listName
                       });
                     },
                     onDelete: () {
@@ -234,7 +236,8 @@ class _SideMenuState extends State<SideMenu> {
                   title: TextField(
                     maxLength: 15,
                     controller: _textEditingController,
-                    style: TextStyle(fontSize: 18,
+                    style: TextStyle(
+                      fontSize: 18,
                       color: Theme.of(context).colorScheme.secondary,
                     ),
                     decoration: InputDecoration(
