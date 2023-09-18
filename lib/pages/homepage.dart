@@ -366,18 +366,29 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        elevation: 0,
-        onPressed: createTask,
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        shape: StadiumBorder(
-            side: BorderSide(
-                color: Theme.of(context).iconTheme.color!, width: 2)),
-        label: Text("Add Todo",style: TextStyle(color: Theme.of(context).iconTheme.color,fontWeight: FontWeight.bold,fontSize: 16),),
-        icon:
-            Icon(Icons.add, color: Theme.of(context).iconTheme.color, size: 30),
-      ),
+      floatingActionButton: SizedBox(
+        height: 60,
+        width: 140,
+        child: FloatingActionButton.extended(
 
+          elevation: 0,
+          onPressed: createTask,
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          shape: StadiumBorder(
+              side: BorderSide(
+                  color: Theme.of(context).iconTheme.color!, width: 2)),
+
+          label: Text(
+            "Add Todo",
+            style: TextStyle(
+                color: Theme.of(context).iconTheme.color,
+                fontWeight: FontWeight.bold,
+                fontSize: 16),
+          ),
+          icon: Icon(Icons.add,
+              color: Theme.of(context).iconTheme.color, size: 30),
+        ),
+      ),
       body: Container(
         color: Theme.of(context).colorScheme.background,
         child: ListView.builder(

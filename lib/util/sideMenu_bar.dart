@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:todo/util/myListTile.dart';
+import 'package:uuid/uuid.dart';
 
 class SideMenu extends StatefulWidget {
   SideMenu({Key? key}) : super(key: key);
@@ -14,7 +15,9 @@ class SideMenu extends StatefulWidget {
 class _SideMenuState extends State<SideMenu> {
   late TextEditingController _textEditingController;
   late FirebaseFirestore _firestore;
+
   late List<Map<String, dynamic>> listNames = [];
+
   final List<String> profilPics = [
     'images/profil_pics/yellow_form.png',
     'images/profil_pics/darkblue_form.png',
@@ -54,13 +57,31 @@ class _SideMenuState extends State<SideMenu> {
             .where('userId', isEqualTo: userId)
             .get();
 
+        final fetchedListNames = querySnapshot.docs.map((doc) {
+          final documentId = doc.id; // Store the document ID
+          final listId = doc['listId'] as String; // Get the listId from the document
+          final listName = doc['listName'] as String;
+          return {
+            'documentId': documentId,
+            'listId': listId,
+            'listName': listName
+          };
+        }).toList();
+
         setState(() {
-          listNames = querySnapshot.docs.map((doc) {
-            final documentId = doc.id; // Store the document ID
-            final listId = doc['listId'] as String; // Get the listId from the document
-            final listName = doc['listName'] as String;
-            return {'documentId': documentId, 'listId': listId, 'listName': listName};
-          }).toList();
+          listNames = fetchedListNames;
+
+          // Überprüfen Sie, ob mindestens eine Liste vorhanden ist.
+          if (listNames.isEmpty) {
+            // Wenn keine Listen vorhanden sind, erstellen Sie eine "Home"-Liste.
+            final homeListName = 'Home';
+            saveListName(homeListName);
+          }
+
+          // Wenn die Liste nicht leer ist, wählen Sie die erste Liste aus.
+          if (selectedList == null && listNames.isNotEmpty) {
+            selectedList = listNames.first['listName'];
+          }
         });
       }
     } catch (e) {
@@ -89,7 +110,8 @@ class _SideMenuState extends State<SideMenu> {
 
         setState(() {
           listNames.add(newList);
-          selectedList = documentRef.id; // Wählen Sie die neu hinzugefügte Liste aus
+          selectedList =
+              documentRef.id; // Wählen Sie die neu hinzugefügte Liste aus
         });
       }
     } catch (e) {
@@ -98,10 +120,8 @@ class _SideMenuState extends State<SideMenu> {
   }
 
   String _generateUniqueListId() {
-    // Hier können Sie Ihre eigene Logik zur Generierung einer eindeutigen listId implementieren.
-    // Zum Beispiel können Sie eine zufällige Zeichenfolge generieren oder eine eindeutige ID-Funktion verwenden.
-    // Stellen Sie sicher, dass die generierte listId eindeutig ist, um Konflikte zu vermeiden.
-    return 'your_unique_list_id'; // Hier wird eine statische Zeichenfolge verwendet, bitte anpassen.
+    final uuid = Uuid();
+    return uuid.v4(); // Generiert eine Version 4 UUID (eine zufällige UUID).
   }
 
   void deleteList(String documentId) async {
@@ -168,7 +188,7 @@ class _SideMenuState extends State<SideMenu> {
                             child: CircleAvatar(
                               backgroundImage: AssetImage(profilList ?? ''),
                               radius:
-                              30, // Adjust the size of the CircleAvatar as desired
+                                  30, // Adjust the size of the CircleAvatar as desired
                             ),
                           ),
                           const SizedBox(width: 25),
@@ -192,13 +212,13 @@ class _SideMenuState extends State<SideMenu> {
                   final item = listNames[index];
                   final documentId = item['documentId'];
                   final listName = item['listName'];
+                  final isSelected = listName == selectedList;
                   return MyListTile(
                     listName: listName,
-                    isSelected: listName == selectedList,
+                    isSelected: isSelected,
                     onTap: () {
                       setState(() {
-                        selectedList =
-                            listName; // Update selectedList with the tapped listName
+                        selectedList = listName; // Update selectedList with the tapped listName
                       });
                     },
                     onDelete: () {
@@ -207,12 +227,14 @@ class _SideMenuState extends State<SideMenu> {
                   );
                 },
               ),
+              //Add List Zeile
               Padding(
                 padding: const EdgeInsets.only(left: 16.0),
                 child: ListTile(
                   title: TextField(
+                    maxLength: 15,
                     controller: _textEditingController,
-                    style: TextStyle(
+                    style: TextStyle(fontSize: 18,
                       color: Theme.of(context).colorScheme.secondary,
                     ),
                     decoration: InputDecoration(

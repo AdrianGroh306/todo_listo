@@ -24,6 +24,7 @@ class _MyListTileState extends State<MyListTile> {
   late TextEditingController _textEditingController;
   bool isEditing = false;
 
+
   @override
   void initState() {
     super.initState();
@@ -108,11 +109,12 @@ class _MyListTileState extends State<MyListTile> {
           ],
         ),
         child: Container(
-          decoration: BoxDecoration(
+          decoration: BoxDecoration(border: Border.all(color: widget.isSelected ? Theme.of(context).colorScheme.secondary : Colors.transparent,width: 2),
             color: Theme.of(context).colorScheme.primary,
             borderRadius: BorderRadius.circular(15),
           ),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               IconButton(
                 icon: const Icon(Icons.view_list_rounded),
@@ -123,6 +125,7 @@ class _MyListTileState extends State<MyListTile> {
                 child: ListTile(
                   title: isEditing
                       ? TextField(
+                    maxLength: 15,
                     controller: _textEditingController,
                     style: TextStyle(
                         color: Theme.of(context).colorScheme.secondary, fontSize: 18),
