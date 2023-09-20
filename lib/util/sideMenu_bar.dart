@@ -8,7 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 class SideMenu extends StatefulWidget {
-  final String? selectedListId;
+  String? selectedListId;
   final Function(String?) onSelectedListChanged;
 
   SideMenu({
@@ -25,12 +25,25 @@ class _SideMenuState extends State<SideMenu> {
   late TextEditingController _textEditingController;
   late FirebaseFirestore _firestore;
   FocusNode _focusNode = FocusNode();
+  List<Map<String, dynamic>> listNames = [];
+  final List<String> profilPics = [
+    'images/profil_pics/yellow_form.png',
+    'images/profil_pics/darkblue_form.png',
+    'images/profil_pics/pink_form.png',
+    'images/profil_pics/pinkwhite_form.png',
+    'images/profil_pics/redlong_form.png'
+  ];
+
+  String? profilList;
+
+  IconData? selectedIcon; // Hinzugefügtes Feld für das ausgewählte Icon
 
   @override
   void initState() {
     super.initState();
     _textEditingController = TextEditingController();
     _firestore = FirebaseFirestore.instance;
+    fetchListNames();
 
     _focusNode.addListener(() {
       if (!_focusNode.hasFocus) {
@@ -39,6 +52,10 @@ class _SideMenuState extends State<SideMenu> {
         });
       }
     });
+
+    final random = Random();
+    final randomIndex = random.nextInt(profilPics.length);
+    profilList = profilPics[randomIndex];
   }
 
   @override
@@ -47,16 +64,66 @@ class _SideMenuState extends State<SideMenu> {
     super.dispose();
   }
 
+  void fetchListNames() async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null) {
+        final querySnapshot = await _firestore
+            .collection('lists')
+            .where('userId', isEqualTo: userId)
+            .get();
+
+        final fetchedListNames = querySnapshot.docs.map((doc) {
+          final documentId = doc.id;
+          final listId = doc['listId'] as String;
+          final listName = doc['listName'] as String;
+          return {
+            'documentId': documentId,
+            'listId': listId,
+            'listName': listName
+          };
+        }).toList();
+
+        setState(() {
+          listNames = fetchedListNames;
+
+          if (listNames.isEmpty) {
+            final homeListName = 'Home';
+            saveListInfo(homeListName, Icons.list);
+          }
+
+          if (widget.selectedListId == null && listNames.isNotEmpty) {
+            widget.selectedListId = listNames.first['listId'];
+          }
+        });
+      }
+    } catch (e) {
+      print('Error fetching list names: $e');
+    }
+  }
+
   void saveListInfo(String listName, IconData iconData) async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
         final listId = _generateUniqueListId();
-        await _firestore.collection('lists').add({
+        final documentRef = await _firestore.collection('lists').add({
           'userId': userId,
           'listId': listId,
           'listName': listName,
           'listIcon': iconData.codePoint,
+        });
+
+        final newList = {
+          'documentId': documentRef.id,
+          'listId': listId,
+          'listName': listName,
+          'listIcon': iconData.codePoint,
+        };
+
+        setState(() {
+          listNames.add(newList);
+          widget.selectedListId = documentRef.id;
         });
       }
     } catch (e) {
@@ -72,6 +139,13 @@ class _SideMenuState extends State<SideMenu> {
   void deleteList(String documentId) async {
     try {
       await _firestore.collection('lists').doc(documentId).delete();
+
+      setState(() {
+        listNames.removeWhere((item) => item['documentId'] == documentId);
+        if (widget.selectedListId == documentId) {
+          widget.selectedListId = null;
+        }
+      });
     } catch (e) {
       print('Error deleting list: $e');
     }
@@ -115,17 +189,26 @@ class _SideMenuState extends State<SideMenu> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               const SizedBox(width: 10),
-                              CircleAvatar(
-                                backgroundImage:
-                                AssetImage('images/profil_pics/yellow_form.png'), // Hier kannst du das Standard-Profilbild festlegen
-                                radius: 30,
+                              Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    width: 2,
+                                    color:
+                                    Theme.of(context).colorScheme.secondary,
+                                  ),
+                                ),
+                                child: CircleAvatar(
+                                  backgroundImage: AssetImage(profilList ?? ''),
+                                  radius: 30,
+                                ),
                               ),
                               const SizedBox(width: 25),
                               Text(
                                 FirebaseAuth.instance.currentUser?.email ?? '',
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.secondary,
-                                ),
+                                    color:
+                                    Theme.of(context).colorScheme.secondary),
                               ),
                             ],
                           ),
@@ -133,47 +216,37 @@ class _SideMenuState extends State<SideMenu> {
                       ),
                     ),
                   ),
-                  StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('lists')
-                        .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      }
+                  ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: listNames.length,
+                    itemBuilder: (context, index) {
+                      final item = listNames[index];
+                      final documentId = item['documentId'];
+                      final listId = item['listId'];
+                      final listName = item['listName'];
+                      final isSelected = listId == widget.selectedListId;
+                      // Use ?? to provide a default IconData if item['listIcon'] is null
+                      final iconData = item['listIcon'] != null
+                          ? IconData(
+                        item['listIcon'],
+                        fontFamily: 'MaterialIcons',
+                      )
+                          : Icons.list; // Replace 'defaultIcon' with your desired default icon
 
-                      if (!snapshot.hasData) {
-                        return CircularProgressIndicator(); // Ladeanzeige, während Daten geladen werden
-                      }
-
-                      final listDocs = snapshot.data!.docs;
-
-                      return Column(
-                        children: listDocs.map((doc) {
-                          final documentId = doc.id;
-                          final listId = doc['listId'] as String;
-                          final listName = doc['listName'] as String;
-                          final isSelected = listId == widget.selectedListId;
-                          final iconData = doc['listIcon'] != null
-                              ? IconData(
-                            doc['listIcon'],
-                            fontFamily: 'MaterialIcons',
-                          )
-                              : Icons.list; // Standard-Icon
-
-                          return MyListTile(
-                            listName: listName,
-                            isSelected: isSelected,
-                            iconData: iconData,
-                            onTap: () {
-                              widget.onSelectedListChanged(listId);
-                            },
-                            onDelete: () {
-                              deleteList(documentId);
-                            },
-                          );
-                        }).toList(),
+                      return MyListTile(
+                        listName: listName,
+                        isSelected: isSelected,
+                        iconData: iconData,
+                        onTap: () {
+                          setState(() {
+                            widget.onSelectedListChanged(listId);
+                          });
+                        },
+                        onDelete: () {
+                          deleteList(documentId);
+                        },
                       );
                     },
                   ),
@@ -187,15 +260,23 @@ class _SideMenuState extends State<SideMenu> {
                 onPressed: () {
                   final newListName = _textEditingController.text;
                   if (newListName.isNotEmpty) {
-                    saveListInfo(newListName, Icons.list); // Standard-Icon für neue Listen
+                    // Hier kannst du das Standard-Icon für neue Listen anpassen
+                    saveListInfo(newListName, Icons.list);
                     _textEditingController.clear();
                   }
                   showDialog(
                     context: context,
                     builder: (context) {
                       return CreateListBox(
+                        // Callback-Funktion übergeben
                         onListInfoSaved: (listName, iconData) {
+                          // Hier kannst du die Daten speichern und fetchen
+                          // Speichere in der Datenbank und aktualisiere die Liste
                           saveListInfo(listName, iconData);
+                          // Aktualisiere das ausgewählte Icon im State
+                          setState(() {
+                            selectedIcon = iconData;
+                          });
                         },
                       );
                     },
@@ -206,16 +287,18 @@ class _SideMenuState extends State<SideMenu> {
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
+                    borderRadius: BorderRadius.circular(
+                        20), // Hier kannst du die gewünschte Form anpassen
                   ),
                 ),
                 child: const Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Text(
                     "Create List",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize: 18, // Hier kannst du die Schriftgröße anpassen
                     ),
                   ),
                 ),
