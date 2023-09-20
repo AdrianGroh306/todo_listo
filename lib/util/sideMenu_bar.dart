@@ -1,16 +1,21 @@
 import 'dart:math';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:flutter/material.dart';
+import 'package:todo/util/creatList_box.dart';
 import 'package:todo/util/myListTile.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 class SideMenu extends StatefulWidget {
-  String? selectedListId;
+  final String? selectedListId;
   final Function(String?) onSelectedListChanged;
 
-  SideMenu({Key? key, required this.selectedListId, required this.onSelectedListChanged})
-      : super(key: key);
+  SideMenu({
+    Key? key,
+    required this.selectedListId,
+    required this.onSelectedListChanged,
+  }) : super(key: key);
 
   @override
   _SideMenuState createState() => _SideMenuState();
@@ -21,23 +26,11 @@ class _SideMenuState extends State<SideMenu> {
   late FirebaseFirestore _firestore;
   FocusNode _focusNode = FocusNode();
 
-  late List<Map<String, dynamic>> listNames = [];
-
-  final List<String> profilPics = [
-    'images/profil_pics/yellow_form.png',
-    'images/profil_pics/darkblue_form.png',
-    'images/profil_pics/pink_form.png',
-    'images/profil_pics/pinkwhite_form.png',
-    'images/profil_pics/redlong_form.png'
-  ];
-
-  String? profilList;
   @override
   void initState() {
     super.initState();
     _textEditingController = TextEditingController();
     _firestore = FirebaseFirestore.instance;
-    fetchListNames();
 
     _focusNode.addListener(() {
       if (!_focusNode.hasFocus) {
@@ -46,10 +39,6 @@ class _SideMenuState extends State<SideMenu> {
         });
       }
     });
-
-    final random = Random();
-    final randomIndex = random.nextInt(profilPics.length);
-    profilList = profilPics[randomIndex];
   }
 
   @override
@@ -58,69 +47,20 @@ class _SideMenuState extends State<SideMenu> {
     super.dispose();
   }
 
-  void fetchListNames() async {
-    try {
-      final userId = FirebaseAuth.instance.currentUser?.uid;
-      if (userId != null) {
-        final querySnapshot = await _firestore
-            .collection('lists')
-            .where('userId', isEqualTo: userId)
-            .get();
-
-        final fetchedListNames = querySnapshot.docs.map((doc) {
-          final documentId = doc.id;
-          final listId = doc['listId'] as String;
-          final listName = doc['listName'] as String;
-          return {
-            'documentId': documentId,
-            'listId': listId,
-            'listName': listName
-          };
-        }).toList();
-
-        setState(() {
-          listNames = fetchedListNames;
-
-          if (listNames.isEmpty) {
-            final homeListName = 'Home';
-            saveListName(homeListName);
-          }
-
-          if (widget.selectedListId == null && listNames.isNotEmpty) {
-            widget.selectedListId = listNames.first['listName'];
-          }
-        });
-      }
-    } catch (e) {
-      print('Error fetching list names: $e');
-    }
-  }
-
-  Future<void> saveListName(String listName) async {
+  void saveListInfo(String listName, IconData iconData) async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
         final listId = _generateUniqueListId();
-
-        final documentRef = await _firestore.collection('lists').add({
+        await _firestore.collection('lists').add({
           'userId': userId,
           'listId': listId,
           'listName': listName,
-        });
-
-        final newList = {
-          'documentId': documentRef.id,
-          'listId': listId,
-          'listName': listName,
-        };
-
-        setState(() {
-          listNames.add(newList);
-          widget.selectedListId = documentRef.id;
+          'listIcon': iconData.codePoint,
         });
       }
     } catch (e) {
-      print('Error saving list name: $e');
+      print('Error saving list info: $e');
     }
   }
 
@@ -132,13 +72,6 @@ class _SideMenuState extends State<SideMenu> {
   void deleteList(String documentId) async {
     try {
       await _firestore.collection('lists').doc(documentId).delete();
-
-      setState(() {
-        listNames.removeWhere((item) => item['documentId'] == documentId);
-        if (widget.selectedListId == documentId) {
-          widget.selectedListId = null;
-        }
-      });
     } catch (e) {
       print('Error deleting list: $e');
     }
@@ -156,134 +89,139 @@ class _SideMenuState extends State<SideMenu> {
           ),
           color: Theme.of(context).colorScheme.background,
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            children: <Widget>[
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.17,
-                child: Container(
-                  alignment: Alignment.center,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.transparent,
-                    ),
-                    child: DrawerHeader(
-                      decoration: const BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(20),
-                          bottomRight: Radius.circular(20),
-                          bottomLeft: Radius.circular(20),
+        child: Stack(
+          children: <Widget>[
+            SingleChildScrollView(
+              child: Column(
+                children: <Widget>[
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.17,
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          color: Colors.transparent,
                         ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          const SizedBox(width: 10),
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                width: 2,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .secondary,
+                        child: DrawerHeader(
+                          decoration: const BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.only(
+                              topRight: Radius.circular(20),
+                              bottomRight: Radius.circular(20),
+                              bottomLeft: Radius.circular(20),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              const SizedBox(width: 10),
+                              CircleAvatar(
+                                backgroundImage:
+                                AssetImage('images/profil_pics/yellow_form.png'), // Hier kannst du das Standard-Profilbild festlegen
+                                radius: 30,
                               ),
-                            ),
-                            child: CircleAvatar(
-                              backgroundImage: AssetImage(profilList ?? ''),
-                              radius: 30,
-                            ),
+                              const SizedBox(width: 25),
+                              Text(
+                                FirebaseAuth.instance.currentUser?.email ?? '',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.secondary,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 25),
-                          Text(
-                            FirebaseAuth.instance.currentUser?.email ?? '',
-                            style: TextStyle(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .secondary),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: listNames.length,
-                itemBuilder: (context, index) {
-                  final item = listNames[index];
-                  final documentId = item['documentId'];
-                  final listId = item['listId'];
-                  final listName = item['listName'];
-                  final isSelected = listId ==
-                      widget.selectedListId;
+                  StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('lists')
+                        .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      }
 
-                  return MyListTile(
-                    listName: listName,
-                    isSelected: isSelected,
-                    onTap: () {
-                      setState(() {
-                       widget.onSelectedListChanged(listId);
-                      });
+                      if (!snapshot.hasData) {
+                        return CircularProgressIndicator(); // Ladeanzeige, während Daten geladen werden
+                      }
+
+                      final listDocs = snapshot.data!.docs;
+
+                      return Column(
+                        children: listDocs.map((doc) {
+                          final documentId = doc.id;
+                          final listId = doc['listId'] as String;
+                          final listName = doc['listName'] as String;
+                          final isSelected = listId == widget.selectedListId;
+                          final iconData = doc['listIcon'] != null
+                              ? IconData(
+                            doc['listIcon'],
+                            fontFamily: 'MaterialIcons',
+                          )
+                              : Icons.list; // Standard-Icon
+
+                          return MyListTile(
+                            listName: listName,
+                            isSelected: isSelected,
+                            iconData: iconData,
+                            onTap: () {
+                              widget.onSelectedListChanged(listId);
+                            },
+                            onDelete: () {
+                              deleteList(documentId);
+                            },
+                          );
+                        }).toList(),
+                      );
                     },
-                    onDelete: () {
-                      deleteList(documentId);
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              bottom: 20,
+              right: 20,
+              child: ElevatedButton(
+                onPressed: () {
+                  final newListName = _textEditingController.text;
+                  if (newListName.isNotEmpty) {
+                    saveListInfo(newListName, Icons.list); // Standard-Icon für neue Listen
+                    _textEditingController.clear();
+                  }
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return CreateListBox(
+                        onListInfoSaved: (listName, iconData) {
+                          saveListInfo(listName, iconData);
+                        },
+                      );
                     },
                   );
                 },
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: ListTile(
-                  title: TextField(
-                    maxLength: 15,
-                    focusNode: _focusNode,
-                    controller: _textEditingController,
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Theme.of(context).colorScheme.secondary,
-                    ),
-                    decoration: InputDecoration(
-                      labelStyle: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 22,
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
-                      labelText: 'Add List',
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          width: 2,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                    cursorColor: Theme.of(context).colorScheme.primary,
-                    onChanged: (value) {},
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.secondary,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
                   ),
-                  trailing: FloatingActionButton(
-                    elevation: 0,
-                    mini: true,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    onPressed: () {
-                      final newListName = _textEditingController.text;
-                      if (newListName.isNotEmpty) {
-                        saveListName(newListName);
-                        _textEditingController.clear();
-                      }
-                    },
-                    child: Icon(
-                      Icons.add_circle_outline,
-                      color: Theme.of(context).colorScheme.secondary,
+                ),
+                child: const Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Text(
+                    "Create List",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -3,7 +3,7 @@ import 'package:circle_progress_bar/circle_progress_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:todo/util/dialog_box.dart';
+import 'package:todo/util/addTodo_box.dart';
 import 'package:todo/util/sideMenu_bar.dart';
 import 'package:todo/util/todo_tile.dart';
 import '../util/MenuItem.dart';
@@ -166,7 +166,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
       setState(() {
         final index =
-        toDoList.indexWhere((task) => task['documentId'] == documentId);
+            toDoList.indexWhere((task) => task['documentId'] == documentId);
         if (index != -1) {
           toDoList[index]['taskName'] = newTaskName;
         }
@@ -258,23 +258,23 @@ class _MyHomePageState extends State<MyHomePage> {
                   alignment: Alignment.center,
                   children: [
                     SizedBox(
-                      width: 40,
+                      width: 45,
                       child: CircleProgressBar(
                         foregroundColor:
-                        Theme.of(context).colorScheme.secondary,
+                            Theme.of(context).colorScheme.secondary,
                         backgroundColor: Theme.of(context).colorScheme.tertiary,
                         value: toDoList.isEmpty
                             ? 0.0
                             : toDoList
-                            .where((task) => task['taskCompleted'])
-                            .length /
-                            toDoList.length,
+                                    .where((task) => task['taskCompleted'])
+                                    .length /
+                                toDoList.length,
                         animationDuration: const Duration(seconds: 1),
                       ),
                     ),
                     const Icon(
                       Icons.view_list_rounded,
-                      size: 18,
+                      size: 20,
                     ),
                   ],
                 ),

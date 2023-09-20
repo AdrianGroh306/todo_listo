@@ -5,6 +5,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 class MyListTile extends StatefulWidget {
   final String listName;
   final bool isSelected;
+  final IconData iconData; // Das hinzugefügte Icon-Datum
   final VoidCallback onTap;
   final Function onDelete;
 
@@ -12,6 +13,7 @@ class MyListTile extends StatefulWidget {
     Key? key,
     required this.listName,
     required this.isSelected,
+    required this.iconData, // Hinzugefügtes Icon-Datum
     required this.onTap,
     required this.onDelete,
   }) : super(key: key);
@@ -23,7 +25,6 @@ class MyListTile extends StatefulWidget {
 class _MyListTileState extends State<MyListTile> {
   late TextEditingController _textEditingController;
   bool isEditing = false;
-
 
   @override
   void initState() {
@@ -41,7 +42,7 @@ class _MyListTileState extends State<MyListTile> {
     setState(() {
       isEditing = !isEditing;
       if (!isEditing) {
-        // Update the text value instead of the listName
+        // Aktualisieren Sie den Textwert anstelle von listName
         _textEditingController.text = widget.listName;
         updateListName(_textEditingController.text);
       }
@@ -50,42 +51,42 @@ class _MyListTileState extends State<MyListTile> {
 
   void updateListName(String listName) async {
     try {
-      // Access the Firestore instance
+      // Greifen Sie auf die Firestore-Instanz zu
       FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-      // Path to the desired collection and document
-      String collectionPath = 'lists'; // Path to the collection
-      String documentId = 'your_document_id'; // Document ID
+      // Pfad zur gewünschten Sammlung und zum Dokument
+      String collectionPath = 'lists'; // Pfad zur Sammlung
+      String documentId = 'your_document_id'; // Dokument-ID
 
-      // Update the list name in the document
+      // Aktualisieren Sie den Listenname im Dokument
       await firestore.collection(collectionPath).doc(documentId).update({
         'listName': listName,
       });
 
-      print('List name updated successfully!');
+      print('Listenname erfolgreich aktualisiert!');
     } catch (e) {
-      print('Error updating list name: $e');
+      print('Fehler beim Aktualisieren des Listen namens: $e');
     }
   }
 
   void deleteList() async {
     try {
-      // Access the Firestore instance
+      // Greifen Sie auf die Firestore-Instanz zu
       FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-      // Path to the desired collection and document
-      String collectionPath = 'lists'; // Path to the collection
-      String documentId = 'your_document_id'; // Document ID
+      // Pfad zur gewünschten Sammlung und zum Dokument
+      String collectionPath = 'lists'; // Pfad zur Sammlung
+      String documentId = 'your_document_id'; // Dokument-ID
 
-      // Delete the document
+      // Löschen Sie das Dokument
       await firestore.collection(collectionPath).doc(documentId).delete();
 
-      // Notify the parent widget about the deletion
+      // Benachrichtigen Sie das übergeordnete Widget über die Löschung
       widget.onDelete();
 
-      print('List deleted successfully!');
+      print('Liste erfolgreich gelöscht!');
     } catch (e) {
-      print('Error deleting list: $e');
+      print('Fehler beim Löschen der Liste: $e');
     }
   }
 
@@ -99,7 +100,7 @@ class _MyListTileState extends State<MyListTile> {
           children: [
             SlidableAction(
               onPressed: (context) {
-                // Delete the list
+                // Löschen Sie die Liste
                 deleteList();
               },
               icon: Icons.delete,
@@ -109,17 +110,22 @@ class _MyListTileState extends State<MyListTile> {
           ],
         ),
         child: Container(
-          decoration: BoxDecoration(border: Border.all(color: widget.isSelected ? Theme.of(context).colorScheme.secondary : Colors.transparent,width: 2),
+          decoration: BoxDecoration(
+            border: Border.all(
+                color: widget.isSelected
+                    ? Theme.of(context).colorScheme.secondary
+                    : Colors.transparent,
+                width: 2),
             color: Theme.of(context).colorScheme.primary,
             borderRadius: BorderRadius.circular(15),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              IconButton(
-                icon: const Icon(Icons.view_list_rounded),
+            children: <Widget>[SizedBox(width: 10,),
+              Icon(
+                widget.iconData, // Verwenden Sie das übergebene Icon-Datum
+                size: 25,
                 color: Theme.of(context).colorScheme.secondary,
-                onPressed: widget.onTap,
               ),
               Expanded(
                 child: ListTile(
@@ -128,7 +134,8 @@ class _MyListTileState extends State<MyListTile> {
                     maxLength: 15,
                     controller: _textEditingController,
                     style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary, fontSize: 18),
+                        color: Theme.of(context).colorScheme.secondary,
+                        fontSize: 18),
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.zero,
@@ -140,7 +147,8 @@ class _MyListTileState extends State<MyListTile> {
                       : Text(
                     _textEditingController.text,
                     style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary, fontSize: 18),
+                        color: Theme.of(context).colorScheme.secondary,
+                        fontSize: 18),
                   ),
                   onTap: widget.onTap,
                 ),
