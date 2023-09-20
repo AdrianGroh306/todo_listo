@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:todo/util/myButton.dart';
 
 class CreateListBox extends StatefulWidget {
-  final Function(String, IconData)
-      onListInfoSaved; // Callback-Funktion hinzufügen
+  final Function(String, IconData) onListInfoSaved;
+  final Function(IconData) onIconSelected; // Callback for icon selection
 
-  CreateListBox({Key? key, required this.onListInfoSaved}) : super(key: key);
+  CreateListBox({Key? key, required this.onListInfoSaved, required this.onIconSelected})
+      : super(key: key);
 
   @override
   _CreateListBoxState createState() => _CreateListBoxState();
@@ -13,8 +14,7 @@ class CreateListBox extends StatefulWidget {
 
 class _CreateListBoxState extends State<CreateListBox> {
   IconData selectedIcon = Icons.list;
-  late TextEditingController
-      _textEditingController; // Hier deklariere die TextEditingController-Variable
+  late TextEditingController _textEditingController;
 
   final List<IconData> iconList = [
     Icons.list,
@@ -72,9 +72,7 @@ class _CreateListBoxState extends State<CreateListBox> {
   @override
   void initState() {
     super.initState();
-    _textEditingController =
-        TextEditingController(); // Initialisiere die TextEditingController-Variable
-    selectedIcon = Icons.list;
+    _textEditingController = TextEditingController();
   }
 
   @override
@@ -119,8 +117,7 @@ class _CreateListBoxState extends State<CreateListBox> {
               height: 5,
             ),
             TextField(
-              controller:
-                  _textEditingController, // Verwende den Controller für das Textfeld
+              controller: _textEditingController,
               autofocus: true,
               decoration: InputDecoration(
                 border: OutlineInputBorder(
@@ -158,30 +155,31 @@ class _CreateListBoxState extends State<CreateListBox> {
                     return GestureDetector(
                       onTap: () {
                         setState(() {
-                          selectedIcon =
-                              iconData; // Speichere das ausgewählte Icon
+                          selectedIcon = iconData;
                         });
+                        widget.onIconSelected(selectedIcon); // Pass the selected icon to the callback
                       },
                       child: Icon(
                         iconData,
                         size: 30,
                         color: selectedIcon == iconData
                             ? Theme.of(context).colorScheme.primary
-                            : Colors.blue, // Aktives Icon markieren
+                            : Colors.blue,
                       ),
                     );
                   },
                 ),
               ),
             ),
-            const SizedBox(height: 5,),
+            const SizedBox(
+              height: 5,
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 MyButton(
                   text: "Back",
-                  onPressed:
-                      handleBackButtonPressed, // Methode zum Schließen des Fensters
+                  onPressed: handleBackButtonPressed,
                   color: Theme.of(context).colorScheme.secondary,
                   textColor: Theme.of(context).colorScheme.primary,
                   borderRadius: 15,
@@ -192,8 +190,10 @@ class _CreateListBoxState extends State<CreateListBox> {
                   onPressed: () {
                     final listName = _textEditingController.text;
                     final iconData = selectedIcon;
-                    if (listName.isNotEmpty) {
+
+                    if (listName.isNotEmpty && iconData != null) {
                       widget.onListInfoSaved(listName, iconData);
+                      print(iconData);
                     }
                     Navigator.of(context).pop();
                   },

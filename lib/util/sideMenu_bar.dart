@@ -77,10 +77,21 @@ class _SideMenuState extends State<SideMenu> {
           final documentId = doc.id;
           final listId = doc['listId'] as String;
           final listName = doc['listName'] as String;
+          final listIcon = doc['listIcon'];
+
+          IconData iconData = Icons.list;
+          if (listIcon != null) {
+            iconData = IconData(
+              listIcon,
+              fontFamily: 'MaterialIcons',
+            );
+          }
+
           return {
             'documentId': documentId,
             'listId': listId,
-            'listName': listName
+            'listName': listName,
+            'listIcon': iconData,
           };
         }).toList();
 
@@ -89,7 +100,7 @@ class _SideMenuState extends State<SideMenu> {
 
           if (listNames.isEmpty) {
             final homeListName = 'Home';
-            saveListInfo(homeListName, Icons.list);
+            saveListInfo(homeListName, Icons.house_rounded);
           }
 
           if (widget.selectedListId == null && listNames.isNotEmpty) {
@@ -118,7 +129,7 @@ class _SideMenuState extends State<SideMenu> {
           'documentId': documentRef.id,
           'listId': listId,
           'listName': listName,
-          'listIcon': iconData.codePoint,
+          'listIcon': iconData,
         };
 
         setState(() {
@@ -227,13 +238,7 @@ class _SideMenuState extends State<SideMenu> {
                       final listId = item['listId'];
                       final listName = item['listName'];
                       final isSelected = listId == widget.selectedListId;
-                      // Use ?? to provide a default IconData if item['listIcon'] is null
-                      final iconData = item['listIcon'] != null
-                          ? IconData(
-                        item['listIcon'],
-                        fontFamily: 'MaterialIcons',
-                      )
-                          : Icons.list; // Replace 'defaultIcon' with your desired default icon
+                      final iconData = item['listIcon'];
 
                       return MyListTile(
                         listName: listName,
@@ -259,28 +264,25 @@ class _SideMenuState extends State<SideMenu> {
               child: ElevatedButton(
                 onPressed: () {
                   final newListName = _textEditingController.text;
-                  if (newListName.isNotEmpty) {
-                    // Hier kannst du das Standard-Icon für neue Listen anpassen
-                    saveListInfo(newListName, Icons.list);
-                    _textEditingController.clear();
-                  }
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return CreateListBox(
-                        // Callback-Funktion übergeben
-                        onListInfoSaved: (listName, iconData) {
-                          // Hier kannst du die Daten speichern und fetchen
-                          // Speichere in der Datenbank und aktualisiere die Liste
-                          saveListInfo(listName, iconData);
-                          // Aktualisiere das ausgewählte Icon im State
-                          setState(() {
-                            selectedIcon = iconData;
-                          });
-                        },
-                      );
-                    },
-                  );
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return CreateListBox(
+                          onListInfoSaved: (listName, iconData) {
+                            saveListInfo(listName, iconData);
+                            setState(() {
+                              selectedIcon = iconData;
+                            });
+                          },
+                          onIconSelected: (iconData) {
+                            setState(() {
+                              selectedIcon = iconData;
+                            });
+                          },
+                        );
+                      },
+                    );
+
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Theme.of(context).colorScheme.secondary,
@@ -288,17 +290,20 @@ class _SideMenuState extends State<SideMenu> {
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
-                        20), // Hier kannst du die gewünschte Form anpassen
+                      20,
+                    ),
                   ),
                 ),
-                child: const Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Text(
                     "Create List",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18, // Hier kannst du die Schriftgröße anpassen
+                      fontSize: 18,
                     ),
                   ),
                 ),
