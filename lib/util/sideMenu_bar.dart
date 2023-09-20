@@ -6,7 +6,11 @@ import 'package:todo/util/myListTile.dart';
 import 'package:uuid/uuid.dart';
 
 class SideMenu extends StatefulWidget {
-  SideMenu({Key? key}) : super(key: key);
+  String? selectedListId;
+  final Function(String?) onSelectedListChanged;
+
+  SideMenu({Key? key, required this.selectedListId, required this.onSelectedListChanged})
+      : super(key: key);
 
   @override
   _SideMenuState createState() => _SideMenuState();
@@ -15,6 +19,7 @@ class SideMenu extends StatefulWidget {
 class _SideMenuState extends State<SideMenu> {
   late TextEditingController _textEditingController;
   late FirebaseFirestore _firestore;
+  FocusNode _focusNode = FocusNode();
 
   late List<Map<String, dynamic>> listNames = [];
 
@@ -26,9 +31,7 @@ class _SideMenuState extends State<SideMenu> {
     'images/profil_pics/redlong_form.png'
   ];
 
-  String? selectedList;
   String? profilList;
-
   @override
   void initState() {
     super.initState();
@@ -36,7 +39,14 @@ class _SideMenuState extends State<SideMenu> {
     _firestore = FirebaseFirestore.instance;
     fetchListNames();
 
-    // Generate a random index to select a profile picture
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        setState(() {
+          _textEditingController.clear();
+        });
+      }
+    });
+
     final random = Random();
     final randomIndex = random.nextInt(profilPics.length);
     profilList = profilPics[randomIndex];
@@ -58,9 +68,8 @@ class _SideMenuState extends State<SideMenu> {
             .get();
 
         final fetchedListNames = querySnapshot.docs.map((doc) {
-          final documentId = doc.id; // Store the document ID
-          final listId =
-              doc['listId'] as String; // Get the listId from the document
+          final documentId = doc.id;
+          final listId = doc['listId'] as String;
           final listName = doc['listName'] as String;
           return {
             'documentId': documentId,
@@ -72,21 +81,18 @@ class _SideMenuState extends State<SideMenu> {
         setState(() {
           listNames = fetchedListNames;
 
-          // Überprüfen Sie, ob mindestens eine Liste vorhanden ist.
           if (listNames.isEmpty) {
-            // Wenn keine Listen vorhanden sind, erstellen Sie eine "Home"-Liste.
             final homeListName = 'Home';
             saveListName(homeListName);
           }
 
-          // Falls keine Liste ausgewählt wurde, wählen Sie die oberste Liste aus
-          if (selectedList == null && listNames.isNotEmpty) {
-            selectedList = listNames.first['listName'];
+          if (widget.selectedListId == null && listNames.isNotEmpty) {
+            widget.selectedListId = listNames.first['listName'];
           }
         });
       }
     } catch (e) {
-      print('Fehler beim Abrufen der Listennamen: $e');
+      print('Error fetching list names: $e');
     }
   }
 
@@ -94,35 +100,33 @@ class _SideMenuState extends State<SideMenu> {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
-        // Generiere eine eindeutige listId
         final listId = _generateUniqueListId();
 
         final documentRef = await _firestore.collection('lists').add({
           'userId': userId,
-          'listId': listId, // Speichern Sie die listId in der Datenbank
+          'listId': listId,
           'listName': listName,
         });
 
         final newList = {
           'documentId': documentRef.id,
-          'listId': listId, // Fügen Sie die listId dem newList hinzu
+          'listId': listId,
           'listName': listName,
         };
 
         setState(() {
           listNames.add(newList);
-          selectedList =
-              documentRef.id; // Wählen Sie die neu hinzugefügte Liste aus
+          widget.selectedListId = documentRef.id;
         });
       }
     } catch (e) {
-      print('Fehler beim Speichern des Listennamens: $e');
+      print('Error saving list name: $e');
     }
   }
 
   String _generateUniqueListId() {
     final uuid = Uuid();
-    return uuid.v4(); // Generiert eine Version 4 UUID (eine zufällige UUID).
+    return uuid.v4();
   }
 
   void deleteList(String documentId) async {
@@ -131,12 +135,12 @@ class _SideMenuState extends State<SideMenu> {
 
       setState(() {
         listNames.removeWhere((item) => item['documentId'] == documentId);
-        if (selectedList == documentId) {
-          selectedList = null;
+        if (widget.selectedListId == documentId) {
+          widget.selectedListId = null;
         }
       });
     } catch (e) {
-      print('Fehler beim Löschen der Liste: $e');
+      print('Error deleting list: $e');
     }
   }
 
@@ -183,20 +187,21 @@ class _SideMenuState extends State<SideMenu> {
                                 width: 2,
                                 color: Theme.of(context)
                                     .colorScheme
-                                    .secondary, // Adjust the width of the outline as desired
+                                    .secondary,
                               ),
                             ),
                             child: CircleAvatar(
                               backgroundImage: AssetImage(profilList ?? ''),
-                              radius:
-                                  30, // Adjust the size of the CircleAvatar as desired
+                              radius: 30,
                             ),
                           ),
                           const SizedBox(width: 25),
                           Text(
                             FirebaseAuth.instance.currentUser?.email ?? '',
                             style: TextStyle(
-                                color: Theme.of(context).colorScheme.secondary),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .secondary),
                           ),
                         ],
                       ),
@@ -212,15 +217,17 @@ class _SideMenuState extends State<SideMenu> {
                 itemBuilder: (context, index) {
                   final item = listNames[index];
                   final documentId = item['documentId'];
+                  final listId = item['listId'];
                   final listName = item['listName'];
-                  final isSelected = listName == selectedList;
+                  final isSelected = listId ==
+                      widget.selectedListId;
+
                   return MyListTile(
                     listName: listName,
                     isSelected: isSelected,
                     onTap: () {
                       setState(() {
-                        selectedList =
-                            listName; // Update selectedList with the tapped listName
+                       widget.onSelectedListChanged(listId);
                       });
                     },
                     onDelete: () {
@@ -229,12 +236,12 @@ class _SideMenuState extends State<SideMenu> {
                   );
                 },
               ),
-              //Add List Zeile
               Padding(
                 padding: const EdgeInsets.only(left: 16.0),
                 child: ListTile(
                   title: TextField(
                     maxLength: 15,
+                    focusNode: _focusNode,
                     controller: _textEditingController,
                     style: TextStyle(
                       fontSize: 18,
@@ -259,7 +266,7 @@ class _SideMenuState extends State<SideMenu> {
                   ),
                   trailing: FloatingActionButton(
                     elevation: 0,
-                    mini: true, // Make the FloatingActionButton smaller
+                    mini: true,
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     onPressed: () {
                       final newListName = _textEditingController.text;

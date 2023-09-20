@@ -22,11 +22,12 @@ class _MyHomePageState extends State<MyHomePage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<Map<String, dynamic>> toDoList = [];
   List<ValueNotifier<bool>> taskCompletionList = [];
+  String? selectedList;
 
-  @override // wird bei start einmal ausgeführt
+  @override
   void initState() {
     super.initState();
-    fetchToDoList();
+    fetchTodosForSelectedList();
   }
 
   @override
@@ -34,61 +35,61 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  // zieht sich die Liste von der Datenbank
-  void fetchToDoList() async {
+  void fetchTodosForSelectedList() async {
     try {
-      String userId =
-          FirebaseAuth.instance.currentUser!.uid; // Get the current user's UID
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null) {
+        final querySnapshot = await _firestore
+            .collection('todos')
+            .where('userId', isEqualTo: userId)
+            .where('listId', isEqualTo: selectedList)
+            .get();
 
-      QuerySnapshot snapshot = await _firestore
-          .collection('todos')
-          .where('userId',
-              isEqualTo: userId) // Fetch tasks associated with the user's UID
-          .get();
+        setState(() {
+          toDoList = querySnapshot.docs.map((doc) {
+            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+            data['documentId'] = doc.id;
+            return data;
+          }).toList();
 
-      setState(() {
-        toDoList = snapshot.docs.map((doc) {
-          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-          data['documentId'] = doc.id;
-          return data;
-        }).toList();
-
-        taskCompletionList = toDoList.map((task) {
-          return ValueNotifier<bool>(task['taskCompleted'] ?? false);
-        }).toList();
-      });
+          taskCompletionList = toDoList.map((task) {
+            return ValueNotifier<bool>(task['taskCompleted'] ?? false);
+          }).toList();
+        });
+      }
     } catch (e) {
-      print('Fehler beim Abrufen der Todo-Liste: $e');
+      print('Error fetching Todos for the selected list: $e');
     }
   }
 
-  //speichert die den neuen Task auf der Datenbank
   void saveNewTask(String? taskName) async {
     try {
-      String userId =
-          FirebaseAuth.instance.currentUser!.uid; // Get the current user's UID
+      String userId = FirebaseAuth.instance.currentUser!.uid;
 
-      DocumentReference docRef = await _firestore.collection('todos').add({
-        'userId': userId, // Associate the task with the user's UID
-        'taskName': taskName,
-        'taskCompleted': false,
-      });
-
-      String documentId = docRef.id;
-
-      setState(() {
-        toDoList.add({
-          'documentId': documentId,
+      if (selectedList != null) {
+        DocumentReference docRef = await _firestore.collection('todos').add({
+          'userId': userId,
+          'listId': selectedList,
           'taskName': taskName,
           'taskCompleted': false,
         });
-        taskCompletionList.add(ValueNotifier<bool>(false));
-        _controller.clear();
-      });
 
-      Navigator.of(context).pop();
+        String documentId = docRef.id;
+
+        setState(() {
+          toDoList.add({
+            'documentId': documentId,
+            'taskName': taskName,
+            'taskCompleted': false,
+          });
+          taskCompletionList.add(ValueNotifier<bool>(false));
+          _controller.clear();
+        });
+
+        Navigator.of(context).pop();
+      }
     } catch (e) {
-      print('Fehler beim Speichern der Aufgabe: $e');
+      print('Error saving task: $e');
     }
   }
 
@@ -100,22 +101,21 @@ class _MyHomePageState extends State<MyHomePage> {
           .doc(documentId)
           .update({'taskCompleted': newCompletionStatus});
     } catch (e) {
-      print('Fehler beim Aktualisieren des Aufgabenstatus: $e');
-      rethrow; // Throw the exception to indicate the error
+      print('Error updating task completion status: $e');
+      rethrow;
     }
   }
 
-  // für schickt checkbox tru/false an datenbank
   void checkBoxChanged(bool? value, int index) async {
     if (index < 0 || index >= toDoList.length) {
-      print('Fehler beim Aktualisieren der Aufgabe: Ungültiger Index.');
+      print('Error updating task: Invalid index.');
       return;
     }
 
     final task = toDoList[index];
 
     if (!task.containsKey('documentId')) {
-      print('Fehler beim Aktualisieren der Aufgabe: Document ID not found.');
+      print('Error updating task: Document ID not found.');
       return;
     }
 
@@ -124,7 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       await _firestore.collection('todos').doc(documentId).update({
         'taskCompleted': value ?? false,
-        'taskName': task['taskName'], // Retain the existing task name
+        'taskName': task['taskName'],
       });
 
       if (mounted) {
@@ -134,18 +134,15 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
     } catch (e) {
-      print('Fehler beim Aktualisieren der Aufgabe: $e');
-      // Handle the error here
+      print('Error updating task: $e');
     }
   }
 
-  //zurück auf Mainscreen
   void cancelNewTask() {
     Navigator.of(context).pop();
     _controller.clear();
   }
 
-  // Der Task wird erstellt
   void createTask() {
     showDialog(
       context: context,
@@ -160,7 +157,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // Bestehender taskName wird auf Datenbank aktualisiert
   void updateTaskName(String documentId, String newTaskName) async {
     try {
       await _firestore
@@ -168,31 +164,28 @@ class _MyHomePageState extends State<MyHomePage> {
           .doc(documentId)
           .update({'taskName': newTaskName});
 
-      // Aktualisiere den Task-Namen in der lokalen Liste
       setState(() {
         final index =
-            toDoList.indexWhere((task) => task['documentId'] == documentId);
+        toDoList.indexWhere((task) => task['documentId'] == documentId);
         if (index != -1) {
           toDoList[index]['taskName'] = newTaskName;
         }
       });
     } catch (e) {
-      print('Fehler beim Aktualisieren des Task-Namens: $e');
+      print('Error updating task name: $e');
     }
   }
 
-  // Bestehender task wird von Datenbank
   void deleteTask(int index) async {
     Map<String, dynamic> task = toDoList[index];
 
     if (!task.containsKey('documentId')) {
-      print('Fehler beim Löschen der Aufgabe: Document ID not found.');
+      print('Error deleting task: Document ID not found.');
       return;
     }
 
     String documentId = task['documentId'] as String;
 
-    // Delete the task from Firestore
     await _firestore.collection('todos').doc(documentId).delete();
 
     setState(() {
@@ -205,13 +198,11 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       String userId = FirebaseAuth.instance.currentUser!.uid;
 
-      // Fetch all tasks associated with the user's UID
       QuerySnapshot snapshot = await _firestore
           .collection('todos')
           .where('userId', isEqualTo: userId)
           .get();
 
-      // Delete each task in a loop
       for (QueryDocumentSnapshot doc in snapshot.docs) {
         await doc.reference.delete();
       }
@@ -221,11 +212,10 @@ class _MyHomePageState extends State<MyHomePage> {
         taskCompletionList.clear();
       });
     } catch (e) {
-      print('Fehler beim Löschen aller Aufgaben: $e');
+      print('Error deleting all tasks: $e');
     }
   }
 
-  // User wird ausgeloggt
   void signUserOut() {
     FirebaseAuth.instance.signOut();
   }
@@ -234,7 +224,15 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      drawer: SideMenu(),
+      drawer: SideMenu(
+        selectedListId: selectedList,
+        onSelectedListChanged: (listId) {
+          setState(() {
+            selectedList = listId;
+            fetchTodosForSelectedList();
+          });
+        },
+      ),
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.background,
         toolbarHeight: 60.0,
@@ -263,14 +261,14 @@ class _MyHomePageState extends State<MyHomePage> {
                       width: 40,
                       child: CircleProgressBar(
                         foregroundColor:
-                            Theme.of(context).colorScheme.secondary,
+                        Theme.of(context).colorScheme.secondary,
                         backgroundColor: Theme.of(context).colorScheme.tertiary,
                         value: toDoList.isEmpty
                             ? 0.0
                             : toDoList
-                                    .where((task) => task['taskCompleted'])
-                                    .length /
-                                toDoList.length,
+                            .where((task) => task['taskCompleted'])
+                            .length /
+                            toDoList.length,
                         animationDuration: const Duration(seconds: 1),
                       ),
                     ),
@@ -357,9 +355,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 padding: const EdgeInsets.all(10),
                 child: Icon(
                   Icons.more_vert,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .secondary, // Farbe des Icons im Button anpassen
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
               ),
             ),
@@ -370,14 +366,12 @@ class _MyHomePageState extends State<MyHomePage> {
         height: 60,
         width: 140,
         child: FloatingActionButton.extended(
-
           elevation: 0,
           onPressed: createTask,
           backgroundColor: Theme.of(context).colorScheme.primary,
           shape: StadiumBorder(
               side: BorderSide(
                   color: Theme.of(context).iconTheme.color!, width: 2)),
-
           label: Text(
             "Add Todo",
             style: TextStyle(
