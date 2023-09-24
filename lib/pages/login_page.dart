@@ -150,13 +150,13 @@ class _LoginPageState extends State<LoginPage> {
                                 borderRadius: BorderRadius.circular(15),
                               )),
                               backgroundColor: MaterialStateProperty.all<Color>(
-                                  Theme.of(context).colorScheme.primary)),
+                                  Theme.of(context).colorScheme.secondary)),
                           onPressed: () {
                             signUserIn();
                           },
-                          child: const Text(
+                          child: Text(
                             "Sign In",
-                            style: TextStyle(
+                            style: TextStyle(color: Theme.of(context).colorScheme.primary,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),

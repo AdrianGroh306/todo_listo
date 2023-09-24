@@ -21,7 +21,7 @@ class MyTextField extends StatelessWidget {
         obscureText: obscureText,
         // controller: usernameController,
         decoration: InputDecoration(
-          fillColor: Colors.white,
+          fillColor: Theme.of(context).colorScheme.primary,
           filled: true,
           hintText: hintText,
           hintStyle: const TextStyle(fontSize: 14,fontWeight: FontWeight.bold ),

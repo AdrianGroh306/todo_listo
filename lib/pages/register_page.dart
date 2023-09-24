@@ -148,13 +148,13 @@ class _RegisterPageState extends State<RegisterPage> {
                                 borderRadius: BorderRadius.circular(15),
                               )),
                               backgroundColor: MaterialStateProperty.all<Color>(
-                                  Theme.of(context).colorScheme.primary)),
+                                  Theme.of(context).colorScheme.secondary)),
                           onPressed: () {
                             signUserUp();
                           },
-                          child: const Text(
-                            "Sign Up",
-                            style: TextStyle(
+                          child: Text(
+                            "Sign In",
+                            style: TextStyle(color: Theme.of(context).colorScheme.primary,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
