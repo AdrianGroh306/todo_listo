@@ -180,8 +180,8 @@ class _CreateListBoxState extends State<CreateListBox> {
                 MyButton(
                   text: "Back",
                   onPressed: handleBackButtonPressed,
-                  color: Theme.of(context).colorScheme.secondary,
-                  textColor: Theme.of(context).colorScheme.primary,
+                  color: Theme.of(context).colorScheme.primary,
+                  textColor: Theme.of(context).colorScheme.secondary,
                   borderRadius: 15,
                 ),
                 const SizedBox(width: 70),
@@ -197,8 +197,8 @@ class _CreateListBoxState extends State<CreateListBox> {
                     }
                     Navigator.of(context).pop();
                   },
-                  color: Theme.of(context).colorScheme.primary,
-                  textColor: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.secondary,
+                  textColor: Theme.of(context).colorScheme.primary,
                   borderRadius: 15,
                 ),
               ],

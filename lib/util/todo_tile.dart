@@ -95,41 +95,61 @@ class _ToDoTileState extends State<ToDoTile> {
                         builder: (BuildContext context) {
                           String newTaskName = widget.taskName;
                           return AlertDialog(
+                            contentPadding: const EdgeInsets.symmetric(
+                                vertical: 5, horizontal: 20),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            title: const Text("EDIT TASK",
-                                style: TextStyle(color: Color(0xFF3F51B5))),
+                            title: const Center(
+                              child: Text(
+                                "Edit Todo",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                             content: TextField(
                               controller: _controller,
                               autofocus: true,
-                              cursorColor: Theme.of(context).colorScheme.primary,
+                              cursorColor:
+                                  Theme.of(context).colorScheme.primary,
                               decoration: InputDecoration(
-                                hintText: newTaskName,
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                  borderSide: BorderSide(
+                                      color: Theme.of(context).colorScheme.primary, width: 2),
                                 ),
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                  borderSide: BorderSide(
+                                      color: Theme.of(context).colorScheme.primary, width: 2),
                                 ),
+                                hintText: "Edit Todos",
                               ),
                               onChanged: (value) {
                                 newTaskName = value;
                               },
                             ),
-                            actions: <Widget>[
+                            actionsPadding: EdgeInsets.symmetric(
+                                horizontal:
+                                    20), // Anpassung des Abstands für die actions
+                            actions: <Widget>[SizedBox(height: 20,),
                               Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   MyButton(
                                     text: "Back",
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                     },
-                                    color: Colors.white,
-                                    textColor: Colors.indigo[700],
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                    textColor:
+                                        Theme.of(context).colorScheme.secondary,
                                     borderRadius: 15,
                                   ),
-                                  const SizedBox(width: 75),
                                   MyButton(
                                     text: "Save",
                                     onPressed: () {
@@ -141,11 +161,16 @@ class _ToDoTileState extends State<ToDoTile> {
 
                                       Navigator.of(context).pop();
                                     },
-                                    color: Colors.indigo[700],
-                                    textColor: Colors.white,
+                                    color:
+                                        Theme.of(context).colorScheme.secondary,
+                                    textColor:
+                                        Theme.of(context).colorScheme.primary,
                                     borderRadius: 15,
                                   ),
                                 ],
+                              ),
+                              SizedBox(
+                                height: 20,
                               ),
                             ],
                           );

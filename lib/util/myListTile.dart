@@ -74,9 +74,13 @@ class _MyListTileState extends State<MyListTile> {
       // Greifen Sie auf die Firestore-Instanz zu
       FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-      // Pfad zur gewünschten Sammlung und zum Dokument
+      // Holen Sie die Dokument-ID aus den Widget-Eigenschaften
+      String documentId = widget.listName; // Verwenden Sie beispielsweise den Listen-Namen als Dokument-ID
+
+      // Pfad zur gewünschten Sammlung
       String collectionPath = 'lists'; // Pfad zur Sammlung
-      String documentId = 'your_document_id'; // Dokument-ID
+
+      print('Lösche Liste mit Dokument-ID: $documentId');
 
       // Löschen Sie das Dokument
       await firestore.collection(collectionPath).doc(documentId).delete();
@@ -89,6 +93,7 @@ class _MyListTileState extends State<MyListTile> {
       print('Fehler beim Löschen der Liste: $e');
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
