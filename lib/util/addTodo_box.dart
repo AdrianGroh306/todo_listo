@@ -16,13 +16,13 @@ class DialogBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return AlertDialog(backgroundColor: Theme.of(context).colorScheme.background,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
       content: SizedBox(
         width: 250,
-        height: 150,
+        height: 160,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -37,7 +37,7 @@ class DialogBox extends StatelessWidget {
               height: 10,
             ),
             Expanded(
-              child: TextField(
+              child: TextField(style: TextStyle(color: Theme.of(context).colorScheme.secondary),
                 autofocus: true,
                 controller: controller,
                 decoration: InputDecoration(
@@ -55,7 +55,7 @@ class DialogBox extends StatelessWidget {
                 ),
                 onSubmitted: onSubmitted,
                 cursorColor: Theme.of(context).colorScheme.primary,
-                maxLines: 3,
+                maxLines: 2,
                 textInputAction:
                     TextInputAction.done, // Set TextInputAction to done
               ),

@@ -40,7 +40,7 @@ class _CreateListBoxState extends State<CreateListBox> {
     Icons.desktop_windows,
     Icons.directions_bike,
     Icons.directions_boat,
-    Icons.directions_bus,
+    Icons.favorite,
     Icons.directions_car, // Row 5
     Icons.directions_railway,
     Icons.directions_subway,
@@ -88,7 +88,7 @@ class _CreateListBoxState extends State<CreateListBox> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return AlertDialog(backgroundColor: Theme.of(context).colorScheme.background,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
@@ -116,7 +116,7 @@ class _CreateListBoxState extends State<CreateListBox> {
             const SizedBox(
               height: 5,
             ),
-            TextField(
+            TextField(style: TextStyle(color: Theme.of(context).colorScheme.secondary),
               controller: _textEditingController,
               autofocus: true,
               decoration: InputDecoration(
@@ -139,6 +139,7 @@ class _CreateListBoxState extends State<CreateListBox> {
               cursorColor: Theme.of(context).colorScheme.primary,
               maxLines: 1,
               textInputAction: TextInputAction.done,
+
             ),
             const SizedBox(height: 10),
             Expanded(
@@ -164,7 +165,7 @@ class _CreateListBoxState extends State<CreateListBox> {
                         size: 30,
                         color: selectedIcon == iconData
                             ? Theme.of(context).colorScheme.primary
-                            : Colors.blue,
+                            : Colors.white,
                       ),
                     );
                   },

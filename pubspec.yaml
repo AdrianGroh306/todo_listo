@@ -41,6 +41,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   circle_progress_bar: ^0.1.2
   uuid: ^4.0.0
+  flutter_riverpod: ^2.4.1
 
 
 
