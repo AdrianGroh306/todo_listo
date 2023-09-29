@@ -201,6 +201,7 @@ class _MyHomePageState extends State<MyHomePage> {
       QuerySnapshot snapshot = await _firestore
           .collection('todos')
           .where('userId', isEqualTo: userId)
+          .where('listId', isEqualTo: selectedList)
           .get();
 
       for (QueryDocumentSnapshot doc in snapshot.docs) {
