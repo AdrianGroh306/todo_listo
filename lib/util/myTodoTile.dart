@@ -203,10 +203,6 @@ class _ToDoTileState extends State<ToDoTile> {
                     ),
                   ),
                 ),
-                const Icon(
-                  Icons.linear_scale_sharp,
-                  color: Colors.white,
-                ),
                 const SizedBox(
                   width: 10,
                 ),

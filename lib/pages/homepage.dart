@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:todo/util/addTodo_box.dart';
 import 'package:todo/util/sideMenu_bar.dart';
-import 'package:todo/util/todo_tile.dart';
+import 'package:todo/util/myTodoTile.dart';
 import '../util/MenuItem.dart';
 
 class MyHomePage extends StatefulWidget {

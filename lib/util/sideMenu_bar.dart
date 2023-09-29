@@ -123,6 +123,7 @@ class _SideMenuState extends State<SideMenu> {
           'listId': listId,
           'listName': listName,
           'listIcon': iconData.codePoint,
+          'createdAt': FieldValue.serverTimestamp(),
         });
 
         final newList = {
@@ -130,6 +131,7 @@ class _SideMenuState extends State<SideMenu> {
           'listId': listId,
           'listName': listName,
           'listIcon': iconData,
+          'createdAt': FieldValue.serverTimestamp(),
         };
 
         setState(() {
@@ -149,18 +151,31 @@ class _SideMenuState extends State<SideMenu> {
 
   void deleteList(String documentId) async {
     try {
+      // Zuerst alle To-Dos der Liste abrufen
+      final querySnapshot = await _firestore
+          .collection('todos')
+          .where('listId', isEqualTo: documentId)
+          .get();
+
+      // Alle To-Dos löschen
+      for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // Dann die Liste löschen
       await _firestore.collection('lists').doc(documentId).delete();
 
       setState(() {
         listNames.removeWhere((item) => item['documentId'] == documentId);
         if (widget.selectedListId == documentId) {
-          widget.selectedListId = null;
+          widget.onSelectedListChanged(listNames.first['listId']);
         }
       });
     } catch (e) {
       print('Error deleting list: $e');
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
