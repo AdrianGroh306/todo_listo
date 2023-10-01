@@ -175,6 +175,19 @@ class _SideMenuState extends State<SideMenu> {
       print('Error deleting list: $e');
     }
   }
+  void updateSelectedListForUser(String selectedListId) async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .set({'selectedListId': selectedListId}, SetOptions(merge: true));
+      }
+    } catch (e) {
+      print('Error updating selected list for user: $e');
+    }
+  }
 
 
   @override
@@ -263,6 +276,8 @@ class _SideMenuState extends State<SideMenu> {
                           setState(() {
                             widget.onSelectedListChanged(listId);
                           });
+                          // Call the function to update selected list ID for the user
+                          updateSelectedListForUser(listId);
                         },
                         onDelete: () {
                           deleteList(documentId);
