@@ -31,6 +31,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    _setSelectedListIdIfNotExists();
     _fetchTodos();
   }
 
@@ -62,7 +63,26 @@ class _MyHomePageState extends State<MyHomePage> {
       print('[Error] Fetching Todos for the selected list: $e');
     }
   }
-
+  // Set selectedListId to the topmost list if it doesn't exist
+  void _setSelectedListIdIfNotExists() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null && _selectedTaskListId == null) {
+      final querySnapshot = await _firestoreDB
+          .collection('users')
+          .doc(userId)
+          .get();
+      final userData = querySnapshot.data();
+      if (userData != null) {
+        final lists = userData['lists'] as List<dynamic>;
+        if (lists.isNotEmpty) {
+          final topListId = lists[0]; // Assuming the top list is the one you want
+          setState(() {
+            _selectedTaskListId = topListId;
+          });
+        }
+      }
+    }
+  }
   // Save a new task to Firestore
   void _saveTodos(String? taskName) async {
     try {
