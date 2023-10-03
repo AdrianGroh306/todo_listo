@@ -27,12 +27,11 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Map<String, dynamic>> _todos = [];
   List<ValueNotifier<bool>> _taskCompletionNotifiers = [];
   String? _selectedTaskListId;
-  int? _selectedListIcon;
 
   @override
   void initState() {
     super.initState();
-    _setSelectedListId();
+    _fetchTodos();
   }
 
   // Fetch tasks associated with the selected list
@@ -62,33 +61,6 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     } catch (e) {
       print('[Error] Fetching Todos for the selected list: $e');
-    }
-  }
-
-  // Set selectedListId based on the topmost list
-  void _setSelectedListId() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId != null) {
-      try {
-        final querySnapshot =
-            await _firestoreDB.collection('users').doc(userId).get();
-        final userData = querySnapshot.data();
-        if (userData != null) {
-          final lists = userData['lists'] as List<dynamic>;
-          if (lists.isNotEmpty) {
-            final topListId =
-                lists[0]['listId']; // Get the listId of the topmost list
-            setState(() {
-              _selectedTaskListId = topListId;
-            });
-
-            // Fetch Todos after setting the selectedListId
-            _fetchTodos(); // Füge diesen Aufruf hinzu
-          }
-        }
-      } catch (e) {
-        print('[Error] Setting selectedListId: $e');
-      }
     }
   }
 
@@ -124,7 +96,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // Update task's name in Firestore
-  void _updateTaskName(String documentId, String newTaskName) async {
+  void _updateTodoName(String documentId, String newTaskName) async {
     try {
       await _firestoreDB.collection('todos').doc(documentId).update({
         'taskName': newTaskName,
@@ -180,7 +152,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // Show dialog for creating a task
-  void _createTask() {
+  void _createTodo() {
     showDialog(
       context: context,
       builder: (context) {
@@ -198,7 +170,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // Delete a single task
-  void _deleteTask(int index) async {
+  void _deleteTodo(int index) async {
     final task = _todos[index];
     if (!task.containsKey('documentId')) {
       print('[Error] Document ID not found while deleting task.');
@@ -215,7 +187,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // Delete all tasks for the selected list
-  void _deleteAllTask() async {
+  void _deleteAllListTodos() async {
     try {
       final userId = FirebaseAuth.instance.currentUser!.uid;
       final selectedListId = await getCurrentSelectedListId();
@@ -277,6 +249,13 @@ class _MyHomePageState extends State<MyHomePage> {
         if (userData != null) {
           final selectedListId = userData['selectedListId'] as String?;
           return selectedListId;
+        } else {
+          // Wenn selectedListId in userData null ist, die oberste Liste aus 'lists' abrufen
+          final lists = userData?['lists'] as List<dynamic>;
+          if (lists.isNotEmpty) {
+            final topListId = lists[0]['listId'] as String?;
+            return topListId;
+          }
         }
       } catch (e) {
         print('[Error] Getting current selectedListId: $e');
@@ -368,7 +347,7 @@ class _MyHomePageState extends State<MyHomePage> {
             PopupMenuButton<MenuItem>(
               onSelected: (value) {
                 if (value == MenuItem.item1) {
-                  _deleteAllTask();
+                  _deleteAllListTodos();
                 }
                 if (value == MenuItem.item2) {
                   _signUserOut();
@@ -448,7 +427,7 @@ class _MyHomePageState extends State<MyHomePage> {
         width: 140,
         child: FloatingActionButton.extended(
           elevation: 0,
-          onPressed: _createTask,
+          onPressed: _createTodo,
           backgroundColor: Theme.of(context).colorScheme.primary,
           shape: StadiumBorder(
               side: BorderSide(
@@ -479,9 +458,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   taskName: task['taskName'] as String,
                   taskCompleted: value,
                   onChanged: (newValue) => _checkBoxChanged(newValue, index),
-                  deleteFunction: (context) => _deleteTask(index),
+                  deleteFunction: (context) => _deleteTodo(index),
                   onTaskNameChanged: (newTaskName) =>
-                      _updateTaskName(task['documentId'], newTaskName),
+                      _updateTodoName(task['documentId'], newTaskName),
                 );
               },
             );

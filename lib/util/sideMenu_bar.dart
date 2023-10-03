@@ -147,7 +147,6 @@ class _SideMenuState extends State<SideMenu> {
     }
   }
 
-
   String _generateUniqueListId() {
     final uuid = Uuid();
     return uuid.v4();
@@ -155,6 +154,31 @@ class _SideMenuState extends State<SideMenu> {
 
   void deleteList(String documentId) async {
     try {
+      // Überprüfen, ob es mindestens zwei Listen gibt, bevor eine gelöscht wird
+      if (listNames.length < 2) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0), // Abgerundete Ecken
+              ),
+              content: Padding(
+                padding:
+                    EdgeInsets.symmetric(vertical: 5.0), // Vertikaler Abstand
+                child: Text(
+                  'You cannot delete the last list',
+                  style:
+                      TextStyle(color: Theme.of(context).colorScheme.primary,
+                      fontSize: 20,fontWeight: FontWeight.bold ),
+                ),
+              ),
+            );
+          },
+        );
+        return; // Abbrechen, wenn es nur eine Liste gibt
+      }
+
       // Zuerst alle To-Dos der Liste abrufen
       final querySnapshot = await _firestore
           .collection('todos')
@@ -179,22 +203,20 @@ class _SideMenuState extends State<SideMenu> {
       print('Error deleting list: $e');
     }
   }
+
   void updateSelectedListForUser(String selectedListDocumentId) async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .set({'selectedListId': selectedListDocumentId}, SetOptions(merge: true));
+        await FirebaseFirestore.instance.collection('users').doc(userId).set(
+            {'selectedListId': selectedListDocumentId},
+            SetOptions(merge: true));
       }
     } catch (e) {
-      print('Fehler beim Aktualisieren der ausgewählten Liste für den Benutzer: $e');
+      print(
+          'Fehler beim Aktualisieren der ausgewählten Liste für den Benutzer: $e');
     }
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -240,7 +262,7 @@ class _SideMenuState extends State<SideMenu> {
                                   border: Border.all(
                                     width: 2,
                                     color:
-                                    Theme.of(context).colorScheme.secondary,
+                                        Theme.of(context).colorScheme.secondary,
                                   ),
                                 ),
                                 child: CircleAvatar(
@@ -252,8 +274,9 @@ class _SideMenuState extends State<SideMenu> {
                               Text(
                                 FirebaseAuth.instance.currentUser?.email ?? '',
                                 style: TextStyle(
-                                    color:
-                                    Theme.of(context).colorScheme.secondary),
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .secondary),
                               ),
                             ],
                           ),
@@ -300,25 +323,24 @@ class _SideMenuState extends State<SideMenu> {
               child: ElevatedButton(
                 onPressed: () {
                   final newListName = _textEditingController.text;
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return CreateListBox(
-                          onListInfoSaved: (listName, iconData) {
-                            saveListInfo(listName, iconData);
-                            setState(() {
-                              selectedIcon = iconData;
-                            });
-                          },
-                          onIconSelected: (iconData) {
-                            setState(() {
-                              selectedIcon = iconData;
-                            });
-                          },
-                        );
-                      },
-                    );
-
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return CreateListBox(
+                        onListInfoSaved: (listName, iconData) {
+                          saveListInfo(listName, iconData);
+                          setState(() {
+                            selectedIcon = iconData;
+                          });
+                        },
+                        onIconSelected: (iconData) {
+                          setState(() {
+                            selectedIcon = iconData;
+                          });
+                        },
+                      );
+                    },
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Theme.of(context).colorScheme.secondary,
