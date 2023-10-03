@@ -1,6 +1,5 @@
 // Dart imports
 import 'dart:async';
-import 'dart:ffi';
 
 // Package imports
 import 'package:flutter/material.dart';
@@ -28,6 +27,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Map<String, dynamic>> _todos = [];
   List<ValueNotifier<bool>> _taskCompletionNotifiers = [];
   String? _selectedTaskListId;
+  int? _selectedListIcon;
 
   @override
   void initState() {
@@ -39,11 +39,12 @@ class _MyHomePageState extends State<MyHomePage> {
   void _fetchTodos() async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
-      if (userId != null && _selectedTaskListId != null) {
+      final selectedListId = await getCurrentSelectedListId();
+      if (userId != null && selectedListId != null) {
         final querySnapshot = await _firestoreDB
             .collection('todos')
             .where('userId', isEqualTo: userId)
-            .where('listId', isEqualTo: _selectedTaskListId)
+            .where('listId', isEqualTo: selectedListId)
             .get();
 
         setState(() {
@@ -63,20 +64,20 @@ class _MyHomePageState extends State<MyHomePage> {
       print('[Error] Fetching Todos for the selected list: $e');
     }
   }
+
   // Set selectedListId based on the topmost list
   void _setSelectedListId() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId != null) {
       try {
-        final querySnapshot = await _firestoreDB
-            .collection('users')
-            .doc(userId)
-            .get();
+        final querySnapshot =
+            await _firestoreDB.collection('users').doc(userId).get();
         final userData = querySnapshot.data();
         if (userData != null) {
           final lists = userData['lists'] as List<dynamic>;
           if (lists.isNotEmpty) {
-            final topListId = lists[0]['listId']; // Get the listId of the topmost list
+            final topListId =
+                lists[0]['listId']; // Get the listId of the topmost list
             setState(() {
               _selectedTaskListId = topListId;
             });
@@ -95,11 +96,12 @@ class _MyHomePageState extends State<MyHomePage> {
   void _saveTodos(String? taskName) async {
     try {
       final userId = FirebaseAuth.instance.currentUser!.uid;
+      final selectedListId = await getCurrentSelectedListId();
 
-      if (_selectedTaskListId != null && taskName != null) {
+      if (selectedListId != null && taskName != null) {
         DocumentReference docRef = await _firestoreDB.collection('todos').add({
           'userId': userId,
-          'listId': _selectedTaskListId,
+          'listId': selectedListId,
           'taskName': taskName,
           'taskCompleted': false,
         });
@@ -130,7 +132,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
       setState(() {
         final index =
-        _todos.indexWhere((task) => task['documentId'] == documentId);
+            _todos.indexWhere((task) => task['documentId'] == documentId);
         if (index != -1) {
           _todos[index]['taskName'] = newTaskName;
         }
@@ -141,7 +143,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // Update task's completion status
-  Future<void> _updateTaskCompletionStatus(String documentId, bool newCompletionStatus) async {
+  Future<void> _updateTaskCompletionStatus(
+      String documentId, bool newCompletionStatus) async {
     try {
       await _firestoreDB.collection('todos').doc(documentId).update({
         'taskCompleted': newCompletionStatus,
@@ -240,25 +243,19 @@ class _MyHomePageState extends State<MyHomePage> {
     FirebaseAuth.instance.signOut();
   }
 
-
   Future<int> _getSelectedListIcon() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId != null) {
       try {
-        // Zuerst die ausgewählte Liste des Benutzers abrufen
-        final userDoc = await _firestoreDB.collection('users').doc(userId).get();
-        final userData = userDoc.data();
+        final selectedListId = await getCurrentSelectedListId();
+        if (selectedListId != null) {
+          // Dann die ausgewählte Liste anhand der ausgewählten List-Id aus der Sammlung 'lists' abrufen
+          final selectedListDoc =
+              await _firestoreDB.collection('lists').doc(selectedListId).get();
+          final selectedListData = selectedListDoc.data();
 
-        if (userData != null) {
-          final selectedListId = userData['selectedListId'] as String?;
-          if (selectedListId != null) {
-            // Dann die ausgewählte Liste anhand der ausgewählten List-Id aus der Sammlung 'lists' abrufen
-            final selectedListDoc = await _firestoreDB.collection('lists').doc(selectedListId).get();
-            final selectedListData = selectedListDoc.data();
-
-            if (selectedListData != null) {
-              return selectedListData['listIcon'];
-            }
+          if (selectedListData != null) {
+            return selectedListData['listIcon'];
           }
         }
       } catch (e) {
@@ -268,8 +265,25 @@ class _MyHomePageState extends State<MyHomePage> {
     return 0; // Return a default icon code if there's an error or if the data is missing.
   }
 
-
-
+  Future<String?> getCurrentSelectedListId() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      try {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .get();
+        final userData = userDoc.data();
+        if (userData != null) {
+          final selectedListId = userData['selectedListId'] as String?;
+          return selectedListId;
+        }
+      } catch (e) {
+        print('[Error] Getting current selectedListId: $e');
+      }
+    }
+    return null; // Rückgabe, wenn keine ausgewählte Liste gefunden wurde oder ein Fehler auftrat
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -326,11 +340,13 @@ class _MyHomePageState extends State<MyHomePage> {
                     FutureBuilder<int>(
                       future: _getSelectedListIcon(),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return CircularProgressIndicator();
                         } else if (snapshot.hasData && snapshot.data != null) {
                           return Icon(
-                            IconData(snapshot.data!, fontFamily: 'MaterialIcons'),
+                            IconData(snapshot.data!,
+                                fontFamily: 'MaterialIcons'),
                             size: 20,
                           );
                         } else {
@@ -341,8 +357,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         }
                       },
                     )
-
-
                   ],
                 ),
                 const SizedBox(width: 10),
