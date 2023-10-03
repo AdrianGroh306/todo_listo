@@ -218,11 +218,11 @@ class _MyHomePageState extends State<MyHomePage> {
   void _deleteAllTask() async {
     try {
       final userId = FirebaseAuth.instance.currentUser!.uid;
-
+      final selectedListId = await getCurrentSelectedListId();
       final snapshot = await _firestoreDB
           .collection('todos')
           .where('userId', isEqualTo: userId)
-          .where('listId', isEqualTo: _selectedTaskListId)
+          .where('listId', isEqualTo: selectedListId)
           .get();
 
       for (final doc in snapshot.docs) {
