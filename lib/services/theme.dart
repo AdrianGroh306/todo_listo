@@ -5,6 +5,10 @@ ThemeData lightTheme = ThemeData(
     iconTheme: const IconThemeData(
       color: Colors.white,
     ),
+    textSelectionTheme: const TextSelectionThemeData(
+      cursorColor: Colors.white,
+      selectionHandleColor: Colors.white,
+    ),
     colorScheme: ColorScheme.light(
       background: Colors.indigo[500]!,
       primary: Colors.indigo[800]!,
@@ -17,6 +21,11 @@ ThemeData lightTheme = ThemeData(
 ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
     iconTheme: const IconThemeData(color: Colors.white),
+    textSelectionTheme: const TextSelectionThemeData(
+      cursorColor: Colors.white,
+      selectionHandleColor:
+          Colors.white, // Hier die Farbe des Cursors (Tropfens) setzen
+    ),
     colorScheme: ColorScheme.dark(
       background: Colors.grey[900]!,
       primary: Colors.grey[850]!,
