@@ -1,5 +1,6 @@
 // Dart imports
 import 'dart:async';
+import 'dart:ffi';
 
 // Package imports
 import 'package:flutter/material.dart';
@@ -31,8 +32,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _setSelectedListIdIfNotExists();
-    _fetchTodos();
+    _setSelectedListId();
   }
 
   // Fetch tasks associated with the selected list
@@ -63,26 +63,34 @@ class _MyHomePageState extends State<MyHomePage> {
       print('[Error] Fetching Todos for the selected list: $e');
     }
   }
-  // Set selectedListId to the topmost list if it doesn't exist
-  void _setSelectedListIdIfNotExists() async {
+  // Set selectedListId based on the topmost list
+  void _setSelectedListId() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId != null && _selectedTaskListId == null) {
-      final querySnapshot = await _firestoreDB
-          .collection('users')
-          .doc(userId)
-          .get();
-      final userData = querySnapshot.data();
-      if (userData != null) {
-        final lists = userData['lists'] as List<dynamic>;
-        if (lists.isNotEmpty) {
-          final topListId = lists[0]; // Assuming the top list is the one you want
-          setState(() {
-            _selectedTaskListId = topListId;
-          });
+    if (userId != null) {
+      try {
+        final querySnapshot = await _firestoreDB
+            .collection('users')
+            .doc(userId)
+            .get();
+        final userData = querySnapshot.data();
+        if (userData != null) {
+          final lists = userData['lists'] as List<dynamic>;
+          if (lists.isNotEmpty) {
+            final topListId = lists[0]['listId']; // Get the listId of the topmost list
+            setState(() {
+              _selectedTaskListId = topListId;
+            });
+
+            // Fetch Todos after setting the selectedListId
+            _fetchTodos(); // Füge diesen Aufruf hinzu
+          }
         }
+      } catch (e) {
+        print('[Error] Setting selectedListId: $e');
       }
     }
   }
+
   // Save a new task to Firestore
   void _saveTodos(String? taskName) async {
     try {
@@ -232,7 +240,38 @@ class _MyHomePageState extends State<MyHomePage> {
     FirebaseAuth.instance.signOut();
   }
 
-@override
+
+  Future<int> _getSelectedListIcon() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      try {
+        // Zuerst die ausgewählte Liste des Benutzers abrufen
+        final userDoc = await _firestoreDB.collection('users').doc(userId).get();
+        final userData = userDoc.data();
+
+        if (userData != null) {
+          final selectedListId = userData['selectedListId'] as String?;
+          if (selectedListId != null) {
+            // Dann die ausgewählte Liste anhand der ausgewählten List-Id aus der Sammlung 'lists' abrufen
+            final selectedListDoc = await _firestoreDB.collection('lists').doc(selectedListId).get();
+            final selectedListData = selectedListDoc.data();
+
+            if (selectedListData != null) {
+              return selectedListData['listIcon'];
+            }
+          }
+        }
+      } catch (e) {
+        print('[Error] Getting selected list icon: $e');
+      }
+    }
+    return 0; // Return a default icon code if there's an error or if the data is missing.
+  }
+
+
+
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -284,10 +323,26 @@ class _MyHomePageState extends State<MyHomePage> {
                         animationDuration: const Duration(seconds: 1),
                       ),
                     ),
-                    const Icon(
-                      Icons.view_list_rounded,
-                      size: 20,
-                    ),
+                    FutureBuilder<int>(
+                      future: _getSelectedListIcon(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return CircularProgressIndicator();
+                        } else if (snapshot.hasData && snapshot.data != null) {
+                          return Icon(
+                            IconData(snapshot.data!, fontFamily: 'MaterialIcons'),
+                            size: 20,
+                          );
+                        } else {
+                          return const Icon(
+                            Icons.view_list_rounded,
+                            size: 20,
+                          );
+                        }
+                      },
+                    )
+
+
                   ],
                 ),
                 const SizedBox(width: 10),

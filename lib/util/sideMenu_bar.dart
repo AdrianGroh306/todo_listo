@@ -138,11 +138,15 @@ class _SideMenuState extends State<SideMenu> {
           listNames.add(newList);
           widget.selectedListId = documentRef.id;
         });
+
+        // Set the newly created list as the selected list for the user
+        updateSelectedListForUser(listId); // Füge diese Zeile hinzu
       }
     } catch (e) {
       print('Error saving list info: $e');
     }
   }
+
 
   String _generateUniqueListId() {
     final uuid = Uuid();
@@ -175,19 +179,21 @@ class _SideMenuState extends State<SideMenu> {
       print('Error deleting list: $e');
     }
   }
-  void updateSelectedListForUser(String selectedListId) async {
+  void updateSelectedListForUser(String selectedListDocumentId) async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
         await FirebaseFirestore.instance
             .collection('users')
             .doc(userId)
-            .set({'selectedListId': selectedListId}, SetOptions(merge: true));
+            .set({'selectedListId': selectedListDocumentId}, SetOptions(merge: true));
       }
     } catch (e) {
-      print('Error updating selected list for user: $e');
+      print('Fehler beim Aktualisieren der ausgewählten Liste für den Benutzer: $e');
     }
   }
+
+
 
 
   @override
@@ -277,7 +283,7 @@ class _SideMenuState extends State<SideMenu> {
                             widget.onSelectedListChanged(listId);
                           });
                           // Call the function to update selected list ID for the user
-                          updateSelectedListForUser(listId);
+                          updateSelectedListForUser(documentId);
                         },
                         onDelete: () {
                           deleteList(documentId);
