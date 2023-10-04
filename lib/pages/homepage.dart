@@ -437,7 +437,29 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
           Container(
             color: Theme.of(context).colorScheme.background,
-            child: ListView.builder(
+            child: _todos.isEmpty
+                ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.tag_faces, // Ändern Sie dies auf das gewünschte Icon
+                    size: 50,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(height: 15),
+                  Text(
+                    "Fügen ein Todo hinzu +",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            )
+                : ListView.builder(
               itemCount: _todos.length,
               itemBuilder: (context, index) {
                 final task = _todos[index];
@@ -459,6 +481,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               },
             ),
+
           ),
           Positioned(
             bottom: 20, // Adjust the position as needed
