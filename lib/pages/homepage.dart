@@ -268,7 +268,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      drawer: SideMenu(
+      endDrawer: SideMenu(
         selectedListId: _selectedTaskListId,
         onSelectedListChanged: (listId) {
           setState(() {
@@ -288,9 +288,83 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const SizedBox(),
+
+          children: [PopupMenuButton<MenuItem>(
+            onSelected: (value) {
+              if (value == MenuItem.item1) {
+                _deleteAllListTodos();
+              }
+              if (value == MenuItem.item2) {
+                _signUserOut();
+              }
+              if (value == MenuItem.item3) {}
+            },
+            color: Theme.of(context).colorScheme.primary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: MenuItem.item1,
+                child: Row(
+                  children: [
+                    const Icon(Icons.delete),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    Text("Delete all",
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.secondary,
+                            fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: MenuItem.item2,
+                child: Row(
+                  children: [
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    const Icon(Icons.logout),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    Text("Logout",
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.secondary,
+                            fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: MenuItem.item3,
+                child: Row(
+                  children: [
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    const Icon(Icons.settings_system_daydream_outlined),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    Text("Theme",
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.secondary,
+                            fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5,vertical: 10),
+              child: Icon(
+                Icons.settings,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+            ),
+          ),
+            const SizedBox(width: 70,),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -335,7 +409,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           );
                         }
                       },
-                    )
+                    ),
                   ],
                 ),
                 const SizedBox(width: 10),
@@ -344,81 +418,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         color: Theme.of(context).colorScheme.secondary)),
               ],
             ),
-            PopupMenuButton<MenuItem>(
-              onSelected: (value) {
-                if (value == MenuItem.item1) {
-                  _deleteAllListTodos();
-                }
-                if (value == MenuItem.item2) {
-                  _signUserOut();
-                }
-                if (value == MenuItem.item3) {}
-              },
-              color: Theme.of(context).colorScheme.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: MenuItem.item1,
-                  child: Row(
-                    children: [
-                      const Icon(Icons.delete),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      Text("Delete all",
-                          style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
-                              fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: MenuItem.item2,
-                  child: Row(
-                    children: [
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      const Icon(Icons.logout),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      Text("Logout",
-                          style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
-                              fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: MenuItem.item3,
-                  child: Row(
-                    children: [
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      const Icon(Icons.settings_system_daydream_outlined),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      Text("Theme",
-                          style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
-                              fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ],
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Icon(
-                  Icons.more_vert,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-              ),
-            ),
+
           ],
         ),
       ),

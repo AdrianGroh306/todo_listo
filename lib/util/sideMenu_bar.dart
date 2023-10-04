@@ -225,8 +225,8 @@ class _SideMenuState extends State<SideMenu> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.only(
-            topRight: Radius.circular(20),
-            bottomRight: Radius.circular(20),
+            topLeft: Radius.circular(20),
+            bottomLeft: Radius.circular(20),
           ),
           color: Theme.of(context).colorScheme.background,
         ),
