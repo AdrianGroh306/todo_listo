@@ -27,6 +27,8 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Map<String, dynamic>> _todos = [];
   List<ValueNotifier<bool>> _taskCompletionNotifiers = [];
   String? _selectedTaskListId;
+  IconData? _lastSelectedListIcon;
+  IconData? _selectedListIcon;
 
   @override
   void initState() {
@@ -38,25 +40,31 @@ class _MyHomePageState extends State<MyHomePage> {
   void _fetchTodos() async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
-      final selectedListId = await getCurrentSelectedListId();
-      if (userId != null && selectedListId != null) {
-        final querySnapshot = await _firestoreDB
-            .collection('todos')
-            .where('userId', isEqualTo: userId)
-            .where('listId', isEqualTo: selectedListId)
-            .get();
 
-        setState(() {
-          _todos = querySnapshot.docs.map((doc) {
-            return {
-              ...doc.data(),
-              'documentId': doc.id,
-            };
-          }).toList();
+      // Wenn der Nutzer nicht null ist, höre auf den Stream von getCurrentSelectedListId
+      if (userId != null) {
+        getCurrentSelectedListId().listen((selectedListId) async {
+          // Wenn selectedListId nicht null ist, hole die To-Dos
+          if (selectedListId != null) {
+            final querySnapshot = await _firestoreDB
+                .collection('todos')
+                .where('userId', isEqualTo: userId)
+                .where('listId', isEqualTo: selectedListId)
+                .get();
 
-          _taskCompletionNotifiers = _todos.map((task) {
-            return ValueNotifier<bool>(task['taskCompleted'] ?? false);
-          }).toList();
+            setState(() {
+              _todos = querySnapshot.docs.map((doc) {
+                return {
+                  ...doc.data(),
+                  'documentId': doc.id,
+                };
+              }).toList();
+
+              _taskCompletionNotifiers = _todos.map((task) {
+                return ValueNotifier<bool>(task['taskCompleted'] ?? false);
+              }).toList();
+            });
+          }
         });
       }
     } catch (e) {
@@ -64,36 +72,41 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+
   // Save a new task to Firestore
   void _saveTodos(String? taskName) async {
     try {
       final userId = FirebaseAuth.instance.currentUser!.uid;
-      final selectedListId = await getCurrentSelectedListId();
 
-      if (selectedListId != null && taskName != null) {
-        DocumentReference docRef = await _firestoreDB.collection('todos').add({
-          'userId': userId,
-          'listId': selectedListId,
-          'taskName': taskName,
-          'taskCompleted': false,
-        });
-
-        setState(() {
-          _todos.add({
-            'documentId': docRef.id,
+      await for (final selectedListId in getCurrentSelectedListId()) {
+        print(selectedListId);
+        if (selectedListId != null && taskName != null) {
+          DocumentReference docRef = await _firestoreDB.collection('todos').add({
+            'userId': userId,
+            'listId': selectedListId,
             'taskName': taskName,
             'taskCompleted': false,
           });
-          _taskCompletionNotifiers.add(ValueNotifier<bool>(false));
-          _todoController.clear();
-        });
 
-        Navigator.of(context).pop();
+          setState(() {
+            _todos.add({
+              'documentId': docRef.id,
+              'taskName': taskName,
+              'taskCompleted': false,
+            });
+            _taskCompletionNotifiers.add(ValueNotifier<bool>(false));
+            _todoController.clear();
+          });
+
+          Navigator.of(context).pop();
+          break; // Dies beendet die Schleife nach dem ersten erfolgreichen Speichern
+        }
       }
     } catch (e) {
       print('[Error] Saving task: $e');
     }
   }
+
 
   // Update task's name in Firestore
   void _updateTodoName(String documentId, String newTaskName) async {
@@ -215,53 +228,64 @@ class _MyHomePageState extends State<MyHomePage> {
     FirebaseAuth.instance.signOut();
   }
 
-  Future<int> _getSelectedListIcon() async {
+  Stream<int> getSelectedListIcon() async* {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId != null) {
       try {
-        final selectedListId = await getCurrentSelectedListId();
-        if (selectedListId != null) {
-          // Dann die ausgewählte Liste anhand der ausgewählten List-Id aus der Sammlung 'lists' abrufen
-          final selectedListDoc =
-              await _firestoreDB.collection('lists').doc(selectedListId).get();
-          final selectedListData = selectedListDoc.data();
-
-          if (selectedListData != null) {
-            return selectedListData['listIcon'];
+        final selectedListIdStream = getCurrentSelectedListId();
+        await for (final selectedListId in selectedListIdStream) {
+          if (selectedListId != null) {
+            final selectedListDoc =
+            await FirebaseFirestore.instance.collection('lists').doc(selectedListId).get();
+            final selectedListData = selectedListDoc.data();
+            if (selectedListData != null) {
+              // Ensure that the yielded value is an int.
+              int? listIcon = selectedListData['listIcon'] as int?;
+              yield listIcon ?? 0;
+            } else {
+              yield 0;
+            }
+          } else {
+            yield 0;
           }
         }
       } catch (e) {
         print('[Error] Getting selected list icon: $e');
+        yield 0;
       }
     }
-    return 0; // Return a default icon code if there's an error or if the data is missing.
   }
 
-  Future<String?> getCurrentSelectedListId() async {
+
+  Stream<String?> getCurrentSelectedListId() async* {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId != null) {
       try {
-        final userDoc = await FirebaseFirestore.instance
+        await for (final userSnapshot in FirebaseFirestore.instance
             .collection('users')
             .doc(userId)
-            .get();
-        final userData = userDoc.data();
-        if (userData != null) {
-          final selectedListId = userData['selectedListId'] as String?;
-          return selectedListId;
-        } else {
-          // Wenn selectedListId in userData null ist, die oberste Liste aus 'lists' abrufen
-          final lists = userData?['lists'] as List<dynamic>;
-          if (lists.isNotEmpty) {
-            final topListId = lists[0]['listId'] as String?;
-            return topListId;
+            .snapshots()) {
+          final userData = userSnapshot.data();
+          if (userData != null) {
+            final selectedListId = userData['selectedListId'] as String?;
+            yield selectedListId;
+          } else {
+            final lists = userData?['lists'] as List<dynamic>;
+            if (lists.isNotEmpty) {
+              final topListId = lists[0]['listId'] as String?;
+              yield topListId;
+            } else {
+              yield null;
+            }
           }
         }
       } catch (e) {
         print('[Error] Getting current selectedListId: $e');
+        yield null;
       }
+    } else {
+      yield null;
     }
-    return null; // Rückgabe, wenn keine ausgewählte Liste gefunden wurde oder ein Fehler auftrat
   }
 
   @override
@@ -390,16 +414,20 @@ class _MyHomePageState extends State<MyHomePage> {
                         animationDuration: const Duration(seconds: 1),
                       ),
                     ),
-                    FutureBuilder<int>(
-                      future: _getSelectedListIcon(),
+                    StreamBuilder<int>(
+                      stream: getSelectedListIcon(),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
                           return CircularProgressIndicator();
-                        } else if (snapshot.hasData && snapshot.data != null) {
+                        } else if (snapshot.hasError) {
+                          print('[Error] StreamBuilder: ${snapshot.error}');
+                          return const Icon(
+                            Icons.error,
+                            size: 20,
+                          );
+                        } else if (snapshot.hasData) {
                           return Icon(
-                            IconData(snapshot.data!,
-                                fontFamily: 'MaterialIcons'),
+                            IconData(snapshot.data!, fontFamily: 'MaterialIcons'),
                             size: 20,
                           );
                         } else {
@@ -410,6 +438,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         }
                       },
                     ),
+
                   ],
                 ),
                 const SizedBox(width: 10),
