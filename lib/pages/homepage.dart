@@ -27,8 +27,6 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Map<String, dynamic>> _todos = [];
   List<ValueNotifier<bool>> _taskCompletionNotifiers = [];
   String? _selectedTaskListId;
-  IconData? _lastSelectedListIcon;
-  IconData? _selectedListIcon;
 
   @override
   void initState() {
@@ -72,7 +70,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-
   // Save a new task to Firestore
   void _saveTodos(String? taskName) async {
     try {
@@ -81,7 +78,8 @@ class _MyHomePageState extends State<MyHomePage> {
       await for (final selectedListId in getCurrentSelectedListId()) {
         print(selectedListId);
         if (selectedListId != null && taskName != null) {
-          DocumentReference docRef = await _firestoreDB.collection('todos').add({
+          DocumentReference docRef =
+              await _firestoreDB.collection('todos').add({
             'userId': userId,
             'listId': selectedListId,
             'taskName': taskName,
@@ -106,7 +104,6 @@ class _MyHomePageState extends State<MyHomePage> {
       print('[Error] Saving task: $e');
     }
   }
-
 
   // Update task's name in Firestore
   void _updateTodoName(String documentId, String newTaskName) async {
@@ -235,8 +232,10 @@ class _MyHomePageState extends State<MyHomePage> {
         final selectedListIdStream = getCurrentSelectedListId();
         await for (final selectedListId in selectedListIdStream) {
           if (selectedListId != null) {
-            final selectedListDoc =
-            await FirebaseFirestore.instance.collection('lists').doc(selectedListId).get();
+            final selectedListDoc = await FirebaseFirestore.instance
+                .collection('lists')
+                .doc(selectedListId)
+                .get();
             final selectedListData = selectedListDoc.data();
             if (selectedListData != null) {
               // Ensure that the yielded value is an int.
@@ -256,6 +255,35 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  Stream<String?> getSelectedListName() async* {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      try {
+        final selectedListIdStream = getCurrentSelectedListId();
+        await for (final selectedListId in selectedListIdStream) {
+          if (selectedListId != null) {
+            final selectedListDoc = await FirebaseFirestore.instance
+                .collection('lists')
+                .doc(selectedListId)
+                .get();
+            final selectedListData = selectedListDoc.data();
+            if (selectedListData != null) {
+              // Ensure that the yielded value is an int.
+              String? listName = selectedListData['listName'] as String?;
+              yield listName ?? "Todo Listo";
+            } else {
+              yield "";
+            }
+          } else {
+            yield "";
+          }
+        }
+      } catch (e) {
+        print('[Error] Getting selected list icon: $e');
+        yield "";
+      }
+    }
+  }
 
   Stream<String?> getCurrentSelectedListId() async* {
     final userId = FirebaseAuth.instance.currentUser?.uid;
@@ -312,90 +340,10 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
         title: Row(
-
-          children: [PopupMenuButton<MenuItem>(
-            onSelected: (value) {
-              if (value == MenuItem.item1) {
-                _deleteAllListTodos();
-              }
-              if (value == MenuItem.item2) {
-                _signUserOut();
-              }
-              if (value == MenuItem.item3) {}
-            },
-            color: Theme.of(context).colorScheme.primary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: MenuItem.item1,
-                child: Row(
-                  children: [
-                    const Icon(Icons.delete),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Text("Delete all",
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
-                            fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: MenuItem.item2,
-                child: Row(
-                  children: [
-                    const SizedBox(
-                      width: 5,
-                    ),
-                    const Icon(Icons.logout),
-                    const SizedBox(
-                      width: 5,
-                    ),
-                    Text("Logout",
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
-                            fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: MenuItem.item3,
-                child: Row(
-                  children: [
-                    const SizedBox(
-                      width: 5,
-                    ),
-                    const Icon(Icons.settings_system_daydream_outlined),
-                    const SizedBox(
-                      width: 5,
-                    ),
-                    Text("Theme",
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
-                            fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-            ],
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5,vertical: 10),
-              child: Icon(
-                Icons.settings,
-                color: Theme.of(context).colorScheme.secondary,
-              ),
-            ),
-          ),
-            const SizedBox(width: 70,),
+          children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Todo',
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary)),
-                const SizedBox(width: 10),
                 Stack(
                   alignment: Alignment.center,
                   children: [
@@ -417,7 +365,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     StreamBuilder<int>(
                       stream: getSelectedListIcon(),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return CircularProgressIndicator();
                         } else if (snapshot.hasError) {
                           print('[Error] StreamBuilder: ${snapshot.error}');
@@ -427,7 +376,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           );
                         } else if (snapshot.hasData) {
                           return Icon(
-                            IconData(snapshot.data!, fontFamily: 'MaterialIcons'),
+                            IconData(snapshot.data!,
+                                fontFamily: 'MaterialIcons'),
                             size: 20,
                           );
                         } else {
@@ -438,16 +388,27 @@ class _MyHomePageState extends State<MyHomePage> {
                         }
                       },
                     ),
-
                   ],
+                ),const SizedBox(width: 10,),
+                StreamBuilder<String?>(
+                  stream: getSelectedListName(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData && snapshot.data != null) {
+                      return Text(
+                        snapshot.data!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                      );
+                    } else {
+                      return Text("Todo Listo",
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.secondary));
+                    }
+                  },
                 ),
-                const SizedBox(width: 10),
-                Text('Listo',
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary)),
               ],
             ),
-
           ],
         ),
       ),
@@ -472,29 +433,120 @@ class _MyHomePageState extends State<MyHomePage> {
               color: Theme.of(context).iconTheme.color, size: 30),
         ),
       ),
-      body: Container(
-        color: Theme.of(context).colorScheme.background,
-        child: ListView.builder(
-          itemCount: _todos.length,
-          itemBuilder: (context, index) {
-            final task = _todos[index];
+      body: Stack(
+        children: [
+          Container(
+            color: Theme.of(context).colorScheme.background,
+            child: ListView.builder(
+              itemCount: _todos.length,
+              itemBuilder: (context, index) {
+                final task = _todos[index];
 
-            return ValueListenableBuilder<bool>(
-              valueListenable: _taskCompletionNotifiers[index],
-              builder: (context, value, _) {
-                return ToDoTile(
-                  key: ValueKey(task['documentId']),
-                  taskName: task['taskName'] as String,
-                  taskCompleted: value,
-                  onChanged: (newValue) => _checkBoxChanged(newValue, index),
-                  deleteFunction: (context) => _deleteTodo(index),
-                  onTaskNameChanged: (newTaskName) =>
-                      _updateTodoName(task['documentId'], newTaskName),
+                return ValueListenableBuilder<bool>(
+                  valueListenable: _taskCompletionNotifiers[index],
+                  builder: (context, value, _) {
+                    return ToDoTile(
+                      key: ValueKey(task['documentId']),
+                      taskName: task['taskName'] as String,
+                      taskCompleted: value,
+                      onChanged: (newValue) =>
+                          _checkBoxChanged(newValue, index),
+                      deleteFunction: (context) => _deleteTodo(index),
+                      onTaskNameChanged: (newTaskName) =>
+                          _updateTodoName(task['documentId'], newTaskName),
+                    );
+                  },
                 );
               },
-            );
-          },
-        ),
+            ),
+          ),
+          Positioned(
+            bottom: 20, // Adjust the position as needed
+            left: 20, // Adjust the position as needed
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              child: PopupMenuButton<MenuItem>(
+                onSelected: (value) {
+                  if (value == MenuItem.item1) {
+                    _deleteAllListTodos();
+                  }
+                  if (value == MenuItem.item2) {
+                    _signUserOut();
+                  }
+                  if (value == MenuItem.item3) {}
+                },
+                color: Theme.of(context).colorScheme.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: MenuItem.item1,
+                    child: Row(
+                      children: [
+                        const Icon(Icons.delete),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Text("Delete all",
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary,
+                                fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: MenuItem.item2,
+                    child: Row(
+                      children: [
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        const Icon(Icons.logout),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        Text("Logout",
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary,
+                                fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: MenuItem.item3,
+                    child: Row(
+                      children: [
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        const Icon(Icons.settings_system_daydream_outlined),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        Text("Theme",
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary,
+                                fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                ],
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                  child: Icon(
+                    Icons.settings,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
