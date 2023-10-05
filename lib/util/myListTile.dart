@@ -9,7 +9,7 @@ class MyListTile extends StatefulWidget {
   final VoidCallback onTap;
   final Function onDelete;
 
-  MyListTile({
+  const MyListTile({
     Key? key,
     required this.listName,
     required this.isSelected,

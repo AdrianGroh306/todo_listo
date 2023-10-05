@@ -24,7 +24,7 @@ class SideMenu extends StatefulWidget {
 class _SideMenuState extends State<SideMenu> {
   late TextEditingController _textEditingController;
   late FirebaseFirestore _firestore;
-  FocusNode _focusNode = FocusNode();
+  final FocusNode _focusNode = FocusNode();
   List<Map<String, dynamic>> listNames = [];
   final List<String> profilPics = [
     'images/profil_pics/yellow_form.png',
@@ -99,7 +99,7 @@ class _SideMenuState extends State<SideMenu> {
           listNames = fetchedListNames;
 
           if (listNames.isEmpty) {
-            final homeListName = 'Home';
+            const homeListName = 'Home';
             saveListInfo(homeListName, Icons.house_rounded);
           }
 
@@ -148,7 +148,7 @@ class _SideMenuState extends State<SideMenu> {
   }
 
   String _generateUniqueListId() {
-    final uuid = Uuid();
+    const uuid = Uuid();
     return uuid.v4();
   }
 
@@ -165,7 +165,7 @@ class _SideMenuState extends State<SideMenu> {
               ),
               content: Padding(
                 padding:
-                    EdgeInsets.symmetric(vertical: 5.0), // Vertikaler Abstand
+                    const EdgeInsets.symmetric(vertical: 5.0), // Vertikaler Abstand
                 child: Text(
                   'You cannot delete the last list',
                   style:
@@ -322,7 +322,6 @@ class _SideMenuState extends State<SideMenu> {
               right: 20,
               child: ElevatedButton(
                 onPressed: () {
-                  final newListName = _textEditingController.text;
                   showDialog(
                     context: context,
                     builder: (context) {
@@ -352,8 +351,8 @@ class _SideMenuState extends State<SideMenu> {
                     ),
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
                   ),

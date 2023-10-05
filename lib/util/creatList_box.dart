@@ -192,7 +192,7 @@ class _CreateListBoxState extends State<CreateListBox> {
                     final listName = _textEditingController.text;
                     final iconData = selectedIcon;
 
-                    if (listName.isNotEmpty && iconData != null) {
+                    if (listName.isNotEmpty) {
                       widget.onListInfoSaved(listName, iconData);
                       print(iconData);
                     }

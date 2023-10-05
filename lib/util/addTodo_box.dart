@@ -7,7 +7,7 @@ class DialogBox extends StatelessWidget {
   final VoidCallback onCancel;
   final void Function(String?) onSubmitted;
 
-  DialogBox({
+  DialogBox({super.key,
     required this.controller,
     required this.onSave,
     required this.onCancel,
