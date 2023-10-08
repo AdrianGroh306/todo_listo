@@ -11,7 +11,8 @@ import 'package:todo/util/addTodo_box.dart';
 import 'package:todo/util/sideMenu_bar.dart';
 import 'package:todo/util/myTodoTile.dart';
 import '../util/MenuItem.dart';
-import 'package:circle_progress_bar/circle_progress_bar.dart';
+import '../util/my_app_bar.dart';
+import '../util/popupmenu.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
@@ -329,87 +330,11 @@ class _MyHomePageState extends State<MyHomePage> {
           });
         },
       ),
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.background,
-        toolbarHeight: 60.0,
-        elevation: 0,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(20),
-            bottomRight: Radius.circular(20),
-          ),
-        ),
-        title: Row(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: 45,
-                      child: CircleProgressBar(
-                        foregroundColor:
-                            Theme.of(context).colorScheme.secondary,
-                        backgroundColor: Theme.of(context).colorScheme.tertiary,
-                        value: _todos.isEmpty
-                            ? 0.0
-                            : _todos
-                                    .where((task) => task['taskCompleted'])
-                                    .length /
-                                _todos.length,
-                        animationDuration: const Duration(seconds: 1),
-                      ),
-                    ),
-                    StreamBuilder<int>(
-                      stream: getSelectedListIcon(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return CircularProgressIndicator();
-                        } else if (snapshot.hasError) {
-                          print('[Error] StreamBuilder: ${snapshot.error}');
-                          return const Icon(
-                            Icons.error,
-                            size: 20,
-                          );
-                        } else if (snapshot.hasData) {
-                          return Icon(
-                            IconData(snapshot.data!,
-                                fontFamily: 'MaterialIcons'),
-                            size: 20,
-                          );
-                        } else {
-                          return const Icon(
-                            Icons.view_list_rounded,
-                            size: 20,
-                          );
-                        }
-                      },
-                    ),
-                  ],
-                ),const SizedBox(width: 10,),
-                StreamBuilder<String?>(
-                  stream: getSelectedListName(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData && snapshot.data != null) {
-                      return Text(
-                        snapshot.data!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
-                      );
-                    } else {
-                      return Text("Todo Listo",
-                          style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary));
-                    }
-                  },
-                ),
-              ],
-            ),
-          ],
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: MyAppBar(
+         titleStream: getSelectedListName(), todos: _todos,
+          iconStream: getSelectedListIcon(),
         ),
       ),
       floatingActionButton: SizedBox(
@@ -483,91 +408,16 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
 
           ),
-          Positioned(
-            bottom: 20, // Adjust the position as needed
-            left: 20, // Adjust the position as needed
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              child: PopupMenuButton<MenuItem>(
-                onSelected: (value) {
-                  if (value == MenuItem.item1) {
-                    _deleteAllListTodos();
-                  }
-                  if (value == MenuItem.item2) {
-                    _signUserOut();
-                  }
-                  if (value == MenuItem.item3) {}
-                },
-                color: Theme.of(context).colorScheme.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: MenuItem.item1,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.delete),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Text("Delete all",
-                            style: TextStyle(
-                                color: Theme.of(context).colorScheme.secondary,
-                                fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: MenuItem.item2,
-                    child: Row(
-                      children: [
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        const Icon(Icons.logout),
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        Text("Logout",
-                            style: TextStyle(
-                                color: Theme.of(context).colorScheme.secondary,
-                                fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: MenuItem.item3,
-                    child: Row(
-                      children: [
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        const Icon(Icons.settings_system_daydream_outlined),
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        Text("Theme",
-                            style: TextStyle(
-                                color: Theme.of(context).colorScheme.secondary,
-                                fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                ],
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                  child: Icon(
-                    Icons.settings,
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                ),
-              ),
-            ),
+          MyPopupMenu(
+            onMenuItemSelected: (menuItem) {
+              if (menuItem == MenuItem.item1) {
+                _deleteAllListTodos();
+              } else if (menuItem == MenuItem.item2) {
+                _signUserOut();
+              } else if (menuItem == MenuItem.item3) {
+                // Implementiere die Logik für die dritte Option hier
+              }
+            },
           ),
         ],
       ),
