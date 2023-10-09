@@ -63,27 +63,6 @@ class MyPopupMenu extends StatelessWidget {
                 ],
               ),
             ),
-            PopupMenuItem(
-              value: MenuItem.item3,
-              child: Row(
-                children: [
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  const Icon(Icons.settings_system_daydream_outlined),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  Text(
-                    "Theme",
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),

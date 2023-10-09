@@ -201,16 +201,14 @@ class _MyHomePageState extends State<MyHomePage> {
   void _deleteAllListTodos() async {
     try {
       final userId = FirebaseAuth.instance.currentUser!.uid;
-      final selectedListId = await getCurrentSelectedListId();
+      final selectedListId = await getCurrentSelectedListId().first;
       final snapshot = await _firestoreDB
           .collection('todos')
           .where('userId', isEqualTo: userId)
           .where('listId', isEqualTo: selectedListId)
           .get();
 
-      for (final doc in snapshot.docs) {
-        await doc.reference.delete();
-      }
+      await Future.wait(snapshot.docs.map((doc) => doc.reference.delete()));
 
       setState(() {
         _todos.clear();
@@ -220,6 +218,7 @@ class _MyHomePageState extends State<MyHomePage> {
       print('[Error] Deleting all tasks: $e');
     }
   }
+
 
   // Logout user
   void _signUserOut() {
@@ -415,8 +414,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 _deleteAllListTodos();
               } else if (menuItem == MenuItem.item2) {
                 _signUserOut();
-              } else if (menuItem == MenuItem.item3) {
-                // Implementiere die Logik für die dritte Option hier
               }
             },
           ),
