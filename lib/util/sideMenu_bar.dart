@@ -255,20 +255,12 @@ class _SideMenuState extends State<SideMenu> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               const SizedBox(width: 10),
-                              Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    width: 2,
-                                    color:
-                                        Theme.of(context).colorScheme.secondary,
-                                  ),
-                                ),
-                                child: CircleAvatar(
+
+                              CircleAvatar(backgroundColor: Theme.of(context).colorScheme.background,
                                   backgroundImage: AssetImage(profilList ?? ''),
                                   radius: 30,
                                 ),
-                              ),
+
                               const SizedBox(width: 25),
                               Text(
                                 FirebaseAuth.instance.currentUser?.email ?? '',
