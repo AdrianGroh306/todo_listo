@@ -333,8 +333,9 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
         child: MyAppBar(
-         titleStream: getSelectedListName(), todos: _todos,
-          iconStream: getSelectedListIcon(),
+          todos: _todos,
+          selectedListIconStream: getSelectedListIcon(), // Pass the selected list's icon
+          selectedListNameStream: getSelectedListName(), // Pass the selected list's name
         ),
       ),
       floatingActionButton: SizedBox(

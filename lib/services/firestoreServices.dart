@@ -5,10 +5,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirestoreService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final userId = FirebaseAuth.instance.currentUser?.uid;
+
 
   // Save list information to Firestore
   static Future<void> saveListInfo(String listName, IconData iconData) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
     try {
       await _firestore.collection('lists').add({
         'userId': userId,
