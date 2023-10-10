@@ -118,10 +118,8 @@ class _SideMenuState extends State<SideMenu> {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
-        final listId = _generateUniqueListId();
         final documentRef = await _firestore.collection('lists').add({
           'userId': userId,
-          'listId': listId,
           'listName': listName,
           'listIcon': iconData.codePoint,
           'createdAt': FieldValue.serverTimestamp(),
@@ -129,7 +127,6 @@ class _SideMenuState extends State<SideMenu> {
 
         final newList = {
           'documentId': documentRef.id,
-          'listId': listId,
           'listName': listName,
           'listIcon': iconData,
           'createdAt': FieldValue.serverTimestamp(),
@@ -141,17 +138,13 @@ class _SideMenuState extends State<SideMenu> {
         });
 
         // Set the newly created list as the selected list for the user
-        updateSelectedListForUser(listId); // Füge diese Zeile hinzu
+        updateSelectedListForUser(documentRef.id); // Füge diese Zeile hinzu
       }
     } catch (e) {
       print('Error saving list info: $e');
     }
   }
 
-  String _generateUniqueListId() {
-    const uuid = Uuid();
-    return uuid.v4();
-  }
 
   void deleteList(String documentId) async {
     try {
