@@ -4,7 +4,7 @@ import 'package:todo/util/creatList_box.dart';
 import 'package:todo/util/myListTile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
+
 
 import 'editList_box.dart';
 
@@ -76,7 +76,6 @@ class _SideMenuState extends State<SideMenu> {
 
         final fetchedListNames = querySnapshot.docs.map((doc) {
           final documentId = doc.id;
-          final listId = doc['listId'] as String;
           final listName = doc['listName'] as String;
           final listIcon = doc['listIcon'];
 
@@ -90,7 +89,6 @@ class _SideMenuState extends State<SideMenu> {
 
           return {
             'documentId': documentId,
-            'listId': listId,
             'listName': listName,
             'listIcon': iconData,
           };
