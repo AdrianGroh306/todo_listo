@@ -374,7 +374,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   const SizedBox(height: 15),
                   Text(
-                    "Fügen ein Todo hinzu +",
+                    "Add a Todo +",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:todo/util/myButton.dart';
 
-class CreateListBox extends StatefulWidget {
-  final Function(String, IconData) onListInfoSaved;
-  final Function(IconData) onIconSelected; // Callback for icon selection
+import 'myButton.dart';
 
-  CreateListBox({Key? key, required this.onListInfoSaved, required this.onIconSelected})
-      : super(key: key);
+class EditListBox extends StatefulWidget {
+  final String listId;
+  final String initialListName;
+  final IconData initialIconData;
+  final Function(String, IconData) onListInfoUpdated;
+
+  EditListBox({
+    Key? key,
+    required this.listId,
+    required this.initialListName,
+    required this.initialIconData,
+    required this.onListInfoUpdated,
+  }) : super(key: key);
 
   @override
-  _CreateListBoxState createState() => _CreateListBoxState();
+  _EditListBoxState createState() => _EditListBoxState();
 }
 
-class _CreateListBoxState extends State<CreateListBox> {
-  IconData selectedIcon = Icons.list;
-  late TextEditingController _textEditingController;
+class _EditListBoxState extends State<EditListBox> {
+  TextEditingController? _textEditingController;
+  IconData? selectedIcon;
 
   final List<IconData> iconList = [
     Icons.list,
@@ -72,23 +80,33 @@ class _CreateListBoxState extends State<CreateListBox> {
   @override
   void initState() {
     super.initState();
-    _textEditingController = TextEditingController();
+    _textEditingController =
+        TextEditingController(text: widget.initialListName);
+    selectedIcon = widget.initialIconData;
   }
 
   @override
   void dispose() {
-    _textEditingController.dispose();
+    _textEditingController?.dispose();
     super.dispose();
   }
 
   void handleBackButtonPressed() {
     Navigator.of(context).pop();
-    _textEditingController.clear();
+    _textEditingController?.clear();
   }
+  void updateListInfo(String listName, IconData iconData) {
+    // Pass the correct iconData as the second argument
+    widget.onListInfoUpdated(listName, iconData);
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(backgroundColor: Theme.of(context).colorScheme.background,
+    return AlertDialog(
+      backgroundColor: Theme.of(context).colorScheme.background,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
@@ -99,7 +117,7 @@ class _CreateListBoxState extends State<CreateListBox> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Text(
-              "Create List",
+              "Edit List",
               style: TextStyle(
                 color: Theme.of(context).colorScheme.secondary,
                 fontSize: 20,
@@ -116,7 +134,8 @@ class _CreateListBoxState extends State<CreateListBox> {
             const SizedBox(
               height: 5,
             ),
-            TextField(style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+            TextField(
+              style: TextStyle(color: Theme.of(context).colorScheme.secondary),
               controller: _textEditingController,
               autofocus: true,
               decoration: InputDecoration(
@@ -139,7 +158,6 @@ class _CreateListBoxState extends State<CreateListBox> {
               cursorColor: Theme.of(context).colorScheme.primary,
               maxLines: 1,
               textInputAction: TextInputAction.done,
-
             ),
             const SizedBox(height: 10),
             Expanded(
@@ -158,7 +176,6 @@ class _CreateListBoxState extends State<CreateListBox> {
                         setState(() {
                           selectedIcon = iconData;
                         });
-                        widget.onIconSelected(selectedIcon); // Pass the selected icon to the callback
                       },
                       child: Icon(
                         iconData,
@@ -187,21 +204,24 @@ class _CreateListBoxState extends State<CreateListBox> {
                 ),
                 const SizedBox(width: 70),
                 MyButton(
-                  text: "Create",
+                  text: "Save",
                   onPressed: () {
-                    final listName = _textEditingController.text;
+                    final listName = _textEditingController?.text;
                     final iconData = selectedIcon;
 
-                    if (listName.isNotEmpty) {
-                      widget.onListInfoSaved(listName, iconData);
-                      print(iconData);
+                    if (listName!.isNotEmpty) {
+                      // Call the function to update the list information
+                      updateListInfo(listName, iconData!);
+
+                      // Close the dialog
+                      Navigator.of(context).pop();
                     }
-                    Navigator.of(context).pop();
                   },
                   color: Theme.of(context).colorScheme.secondary,
                   textColor: Theme.of(context).colorScheme.primary,
                   borderRadius: 15,
                 ),
+
               ],
             ),
           ],

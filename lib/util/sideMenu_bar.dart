@@ -6,6 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
+import 'editList_box.dart';
+
 class SideMenu extends StatefulWidget {
   String? selectedListId;
   final Function(String?) onSelectedListChanged;
@@ -158,18 +160,20 @@ class _SideMenuState extends State<SideMenu> {
         showDialog(
           context: context,
           builder: (context) {
-            return AlertDialog(elevation: 0,
+            return AlertDialog(
+              elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20.0), // Abgerundete Ecken
               ),
               content: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 5.0), // Vertikaler Abstand
+                padding: const EdgeInsets.symmetric(
+                    vertical: 5.0), // Vertikaler Abstand
                 child: Text(
                   'You cannot delete the last list',
-                  style:
-                      TextStyle(color: Theme.of(context).colorScheme.primary,
-                      fontSize: 20,fontWeight: FontWeight.bold ),
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             );
@@ -217,6 +221,31 @@ class _SideMenuState extends State<SideMenu> {
     }
   }
 
+  void updateListInfo(String listId, String listName, IconData iconData) async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null) {
+        await FirebaseFirestore.instance.collection('lists').doc(listId).update({
+          'listName': listName,
+          'listIcon': iconData.codePoint,
+        });
+        print('List info updated successfully: $listName, $iconData');
+
+        // Hier können Sie die Liste in Ihrem State aktualisieren
+        setState(() {
+          final index = listNames.indexWhere((item) => item['listId'] == listId);
+          if (index != -1) {
+            listNames[index]['listName'] = listName;
+            listNames[index]['listIcon'] = iconData;
+          }
+        });
+      }
+    } catch (e) {
+      print('Error updating list info: $e');
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -255,12 +284,12 @@ class _SideMenuState extends State<SideMenu> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               const SizedBox(width: 10),
-
-                              CircleAvatar(backgroundColor: Theme.of(context).colorScheme.background,
-                                  backgroundImage: AssetImage(profilList ?? ''),
-                                  radius: 30,
-                                ),
-
+                              CircleAvatar(
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.background,
+                                backgroundImage: AssetImage(profilList ?? ''),
+                                radius: 30,
+                              ),
                               const SizedBox(width: 25),
                               Text(
                                 FirebaseAuth.instance.currentUser?.email ?? '',
@@ -301,6 +330,21 @@ class _SideMenuState extends State<SideMenu> {
                         },
                         onDelete: () {
                           deleteList(documentId);
+                        },
+                        onEdit: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return EditListBox(
+                                initialListName: listName,
+                                initialIconData: iconData,
+                                listId: listId,
+                                onListInfoUpdated: (updatedListName, updatedIconData){
+                                  updateListInfo(listId, updatedListName, updatedIconData);
+                                },
+                              );
+                            },
+                          );
                         },
                       );
                     },
