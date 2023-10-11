@@ -102,8 +102,9 @@ class _SideMenuState extends State<SideMenu> {
             saveListInfo(homeListName, Icons.house_rounded);
           }
 
+          // Überprüfen, ob widget.selectedListId null ist, bevor Sie es verwenden
           if (widget.selectedListId == null && listNames.isNotEmpty) {
-            widget.selectedListId = listNames.first['listId'];
+            widget.selectedListId = listNames.first['documentId'];
           }
         });
       }
@@ -111,6 +112,7 @@ class _SideMenuState extends State<SideMenu> {
       print('Error fetching list names: $e');
     }
   }
+
 
   void saveListInfo(String listName, IconData iconData) async {
     try {
@@ -224,7 +226,7 @@ class _SideMenuState extends State<SideMenu> {
 
         // Hier können Sie die Liste in Ihrem State aktualisieren
         setState(() {
-          final index = listNames.indexWhere((item) => item['listId'] == listId);
+          final index = listNames.indexWhere((item) => item['documentId'] == listId);
           if (index != -1) {
             listNames[index]['listName'] = listName;
             listNames[index]['listIcon'] = iconData;
@@ -327,13 +329,14 @@ class _SideMenuState extends State<SideMenu> {
                             context: context,
                             builder: (BuildContext context) {
                               return EditListBox(
-                                initialListName: listName,
-                                initialIconData: iconData,
-                                listId: listId,
+                                initialListName: listName ?? 'Default Name',
+                                initialIconData: iconData ?? Icons.list,
+                                listId: documentId ?? '',
                                 onListInfoUpdated: (updatedListName, updatedIconData){
-                                  updateListInfo(listId, updatedListName, updatedIconData);
+                                  updateListInfo(documentId, updatedListName, updatedIconData);
                                 },
                               );
+
                             },
                           );
                         },
