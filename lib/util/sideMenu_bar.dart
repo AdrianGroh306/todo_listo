@@ -5,7 +5,6 @@ import 'package:todo/util/myListTile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 import 'editList_box.dart';
 
 class SideMenu extends StatefulWidget {
@@ -113,7 +112,6 @@ class _SideMenuState extends State<SideMenu> {
     }
   }
 
-
   void saveListInfo(String listName, IconData iconData) async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
@@ -144,7 +142,6 @@ class _SideMenuState extends State<SideMenu> {
       print('Error saving list info: $e');
     }
   }
-
 
   void deleteList(String documentId) async {
     try {
@@ -214,11 +211,45 @@ class _SideMenuState extends State<SideMenu> {
     }
   }
 
+  Stream<String?> getCurrentSelectedListId() async* {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      try {
+        await for (final userSnapshot in FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .snapshots()) {
+          final userData = userSnapshot.data();
+          if (userData != null) {
+            final selectedListId = userData['selectedListId'] as String?;
+            yield selectedListId;
+          } else {
+            final lists = userData?['lists'] as List<dynamic>;
+            if (lists.isNotEmpty) {
+              final topListId = lists[0]['listId'] as String?;
+              yield topListId;
+            } else {
+              yield null;
+            }
+          }
+        }
+      } catch (e) {
+        print('[Error] Getting current selectedListId: $e');
+        yield null;
+      }
+    } else {
+      yield null;
+    }
+  }
+
   void updateListInfo(String listId, String listName, IconData iconData) async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
-        await FirebaseFirestore.instance.collection('lists').doc(listId).update({
+        await FirebaseFirestore.instance
+            .collection('lists')
+            .doc(listId)
+            .update({
           'listName': listName,
           'listIcon': iconData.codePoint,
         });
@@ -226,7 +257,8 @@ class _SideMenuState extends State<SideMenu> {
 
         // Hier können Sie die Liste in Ihrem State aktualisieren
         setState(() {
-          final index = listNames.indexWhere((item) => item['documentId'] == listId);
+          final index =
+              listNames.indexWhere((item) => item['documentId'] == listId);
           if (index != -1) {
             listNames[index]['listName'] = listName;
             listNames[index]['listIcon'] = iconData;
@@ -237,7 +269,6 @@ class _SideMenuState extends State<SideMenu> {
       print('Error updating list info: $e');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -305,38 +336,43 @@ class _SideMenuState extends State<SideMenu> {
                     itemBuilder: (context, index) {
                       final item = listNames[index];
                       final documentId = item['documentId'];
-                      final listId = item['listId'];
                       final listName = item['listName'];
-                      final isSelected = listId == widget.selectedListId;
                       final iconData = item['listIcon'];
 
-                      return MyListTile(
-                        listName: listName,
-                        isSelected: isSelected,
-                        iconData: iconData,
-                        onTap: () {
-                          setState(() {
-                            widget.onSelectedListChanged(listId);
-                          });
-                          // Call the function to update selected list ID for the user
-                          updateSelectedListForUser(documentId);
-                        },
-                        onDelete: () {
-                          deleteList(documentId);
-                        },
-                        onEdit: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return EditListBox(
-                                initialListName: listName ?? 'Default Name',
-                                initialIconData: iconData ?? Icons.list,
-                                listId: documentId ?? '',
-                                onListInfoUpdated: (updatedListName, updatedIconData){
-                                  updateListInfo(documentId, updatedListName, updatedIconData);
+                      return StreamBuilder<String?>(
+                        stream: getCurrentSelectedListId(),
+                        builder: (context, snapshot) {
+                          final currentSelectedListId = snapshot.data;
+                          final isSelected =
+                              documentId == currentSelectedListId;
+
+                          return MyListTile(
+                            listName: listName,
+                            isSelected: isSelected,
+                            iconData: iconData,
+                            onTap: () {
+                              // Setzen Sie den Status und aktualisieren Sie die Datenbank
+                              updateSelectedListForUser(documentId);
+                            },
+                            onDelete: () {
+                              deleteList(documentId);
+                            },
+                            onEdit: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return EditListBox(
+                                    initialListName: listName ?? 'Default Name',
+                                    initialIconData: iconData ?? Icons.list,
+                                    listId: documentId ?? '',
+                                    onListInfoUpdated:
+                                        (updatedListName, updatedIconData) {
+                                      updateListInfo(documentId,
+                                          updatedListName, updatedIconData);
+                                    },
+                                  );
                                 },
                               );
-
                             },
                           );
                         },
