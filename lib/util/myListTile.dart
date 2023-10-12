@@ -51,7 +51,7 @@ class MyListTile extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Icon(
                 iconData,
                 size: 25,

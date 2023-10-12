@@ -151,7 +151,7 @@ class _SideMenuState extends State<SideMenu> {
           context: context,
           builder: (context) {
             return AlertDialog(
-              elevation: 0,
+              elevation: 0,backgroundColor: Theme.of(context).colorScheme.background,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20.0), // Abgerundete Ecken
               ),
@@ -161,7 +161,7 @@ class _SideMenuState extends State<SideMenu> {
                 child: Text(
                   'You cannot delete the last list',
                   style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
+                      color: Theme.of(context).colorScheme.secondary,
                       fontSize: 20,
                       fontWeight: FontWeight.bold),
                 ),

@@ -32,7 +32,36 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    _fetchDefaultListIfNeeded();
     _fetchTodos();
+  }
+
+  // Neue Methode zum Erstellen der Standardliste "Home", wenn keine Listen vorhanden sind
+  void _fetchDefaultListIfNeeded() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      final querySnapshot = await _firestoreDB
+          .collection('lists')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        // Erstellen Sie die Standardliste "Home" mit einem Haus-Icon
+        final docRef = await _firestoreDB.collection('lists').add({
+          'createdAt': Timestamp.now(),
+          'userId': userId,
+          'listName': 'Home',
+          'listIcon': Icons.home.codePoint, // Hier verwenden wir das Haus-Icon
+        });
+
+        // Setzen Sie die neu erstellte Liste als ausgewählte Liste für den Benutzer
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .set({'selectedListId': docRef.id}, SetOptions(merge: true));
+      }
+    }
   }
 
   // Fetch tasks associated with the selected list
@@ -219,7 +248,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-
   // Logout user
   void _signUserOut() {
     FirebaseAuth.instance.signOut();
@@ -333,8 +361,10 @@ class _MyHomePageState extends State<MyHomePage> {
         preferredSize: const Size.fromHeight(60),
         child: MyAppBar(
           todos: _todos,
-          selectedListIconStream: getSelectedListIcon(), // Pass the selected list's icon
-          selectedListNameStream: getSelectedListName(), // Pass the selected list's name
+          selectedListIconStream:
+              getSelectedListIcon(), // Pass the selected list's icon
+          selectedListNameStream:
+              getSelectedListName(), // Pass the selected list's name
         ),
       ),
       floatingActionButton: SizedBox(
@@ -360,59 +390,60 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Stack(
         children: [
-          Container(
-            color: Theme.of(context).colorScheme.background,
-            child: _todos.isEmpty
-                ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.tag_faces, // Ändern Sie dies auf das gewünschte Icon
-                    size: 50,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(height: 15),
-                  Text(
-                    "Add a Todo +",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+          RefreshIndicator(
+            color: Theme.of(context).colorScheme.secondary,
+            onRefresh: () async {
+              _fetchTodos();
+            },
+            child: Container(
+              color: Theme.of(context).colorScheme.background,
+              child: _todos.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons
+                                .tag_faces, // Ändern Sie dies auf das gewünschte Icon
+                            size: 50,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(height: 15),
+                          Text(
+                            "Add a Todo +",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: _todos.length,
+                      itemBuilder: (context, index) {
+                        final task = _todos[index];
+
+                        return ValueListenableBuilder<bool>(
+                          valueListenable: _taskCompletionNotifiers[index],
+                          builder: (context, value, _) {
+                            return ToDoTile(
+                              key: ValueKey(task['documentId']),
+                              taskName: task['taskName'] as String,
+                              taskCompleted: value,
+                              onChanged: (newValue) =>
+                                  _checkBoxChanged(newValue, index),
+                              deleteFunction: (context) => _deleteTodo(index),
+                              onTaskNameChanged: (newTaskName) =>
+                                  _updateTodoName(
+                                      task['documentId'], newTaskName),
+                            );
+                          },
+                        );
+                      },
                     ),
-                  ),
-                ],
-              ),
-            )
-                : RefreshIndicator(
-                  color: Theme.of(context).colorScheme.secondary,
-                  onRefresh: () async {
-                    _fetchTodos();
-                  },
-                  child: ListView.builder(
-              itemCount: _todos.length,
-              itemBuilder: (context, index) {
-                  final task = _todos[index];
-
-                  return ValueListenableBuilder<bool>(
-                    valueListenable: _taskCompletionNotifiers[index],
-                    builder: (context, value, _) {
-                      return ToDoTile(
-                        key: ValueKey(task['documentId']),
-                        taskName: task['taskName'] as String,
-                        taskCompleted: value,
-                        onChanged: (newValue) =>
-                            _checkBoxChanged(newValue, index),
-                        deleteFunction: (context) => _deleteTodo(index),
-                        onTaskNameChanged: (newTaskName) =>
-                            _updateTodoName(task['documentId'], newTaskName),
-                      );
-                    },
-                  );
-              },
             ),
-                ),
-
           ),
           MyPopupMenu(
             onMenuItemSelected: (menuItem) {
