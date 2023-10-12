@@ -384,28 +384,34 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
             )
-                : ListView.builder(
+                : RefreshIndicator(
+                  color: Theme.of(context).colorScheme.secondary,
+                  onRefresh: () async {
+                    _fetchTodos();
+                  },
+                  child: ListView.builder(
               itemCount: _todos.length,
               itemBuilder: (context, index) {
-                final task = _todos[index];
+                  final task = _todos[index];
 
-                return ValueListenableBuilder<bool>(
-                  valueListenable: _taskCompletionNotifiers[index],
-                  builder: (context, value, _) {
-                    return ToDoTile(
-                      key: ValueKey(task['documentId']),
-                      taskName: task['taskName'] as String,
-                      taskCompleted: value,
-                      onChanged: (newValue) =>
-                          _checkBoxChanged(newValue, index),
-                      deleteFunction: (context) => _deleteTodo(index),
-                      onTaskNameChanged: (newTaskName) =>
-                          _updateTodoName(task['documentId'], newTaskName),
-                    );
-                  },
-                );
+                  return ValueListenableBuilder<bool>(
+                    valueListenable: _taskCompletionNotifiers[index],
+                    builder: (context, value, _) {
+                      return ToDoTile(
+                        key: ValueKey(task['documentId']),
+                        taskName: task['taskName'] as String,
+                        taskCompleted: value,
+                        onChanged: (newValue) =>
+                            _checkBoxChanged(newValue, index),
+                        deleteFunction: (context) => _deleteTodo(index),
+                        onTaskNameChanged: (newTaskName) =>
+                            _updateTodoName(task['documentId'], newTaskName),
+                      );
+                    },
+                  );
               },
             ),
+                ),
 
           ),
           MyPopupMenu(
