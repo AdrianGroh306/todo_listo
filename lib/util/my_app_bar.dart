@@ -5,7 +5,9 @@ final ValueNotifier<int> _selectedListIcon = ValueNotifier<int>(0);
 final ValueNotifier<double> _circularProgressValue = ValueNotifier<double>(0.0);
 
 class IconWidget extends StatelessWidget {
-  const IconWidget({Key? key});
+  final Color iconColor;
+
+  const IconWidget({Key? key, required this.iconColor}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +17,7 @@ class IconWidget extends StatelessWidget {
         return Icon(
           IconData(iconValue, fontFamily: 'MaterialIcons'),
           size: 20,
+          color: iconColor, // Die übergebene Farbe als Icon-Farbe verwenden
         );
       },
     );
@@ -23,7 +26,7 @@ class IconWidget extends StatelessWidget {
 
 class CircularProgressWidget extends StatelessWidget {
   final List<Map<String, dynamic>> todos;
-  const CircularProgressWidget({Key? key, required this.todos});
+  const CircularProgressWidget({super.key, required this.todos});
 
   @override
   Widget build(BuildContext context) {
@@ -52,11 +55,13 @@ class MyAppBar extends StatefulWidget {
   final List<Map<String, dynamic>> todos;
   final Stream<int> selectedListIconStream;
   final Stream<String?> selectedListNameStream;
+  final Stream<int?> selectedListColorStream;
 
   const MyAppBar({
     Key? key,
     required this.selectedListIconStream,
     required this.selectedListNameStream,
+    required this.selectedListColorStream,
     required this.todos,
   }) : super(key: key);
 
@@ -65,12 +70,18 @@ class MyAppBar extends StatefulWidget {
 }
 
 class _MyAppBarState extends State<MyAppBar> {
-  String? _selectedListName = "Todo Listo"; // Initialize with a default value
+  String? _selectedListName = "Todo Listo";
+  int? _selectedListColor;
 
   @override
   void initState() {
     super.initState();
 
+    widget.selectedListColorStream.listen((listColor) { // Listener für die ListColor hinzugefügt
+      setState(() {
+        _selectedListColor = listColor;
+      });
+    });
     widget.selectedListIconStream.listen((iconValue) {
       // Update the selected list icon
       _selectedListIcon.value = iconValue;
@@ -82,6 +93,8 @@ class _MyAppBarState extends State<MyAppBar> {
         _selectedListName = listName;
       });
     });
+
+
   }
 
   @override
@@ -103,14 +116,14 @@ class _MyAppBarState extends State<MyAppBar> {
                       todos: widget.todos,
                     ),
                   ),
-                  const IconWidget(),
+                  IconWidget(iconColor: Color(_selectedListColor!)),
                 ],
               ),
               const SizedBox(width: 10),
               Text(
                 _selectedListName ?? "Todo Listo",
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Color(_selectedListColor!),
                 ),
               ),
             ],

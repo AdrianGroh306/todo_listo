@@ -344,6 +344,33 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  Stream<int?> selectedListColorStream() async* {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    try {
+      final selectedListIdStream = getCurrentSelectedListId();
+      await for (final selectedListId in selectedListIdStream) {
+        if (selectedListId != null) {
+          final selectedListDoc = await FirebaseFirestore.instance
+              .collection('lists')
+              .doc(selectedListId)
+              .get();
+          final selectedListData = selectedListDoc.data();
+          if (selectedListData != null) {
+            int? listColor = selectedListData['listColor'] as int?;
+            yield listColor;
+          } else {
+            yield null;
+          }
+        } else {
+          yield null;
+        }
+      }
+    } catch (e) {
+      print('[Error] Getting selected list color: $e');
+      yield null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -361,6 +388,7 @@ class _MyHomePageState extends State<MyHomePage> {
         preferredSize: const Size.fromHeight(60),
         child: MyAppBar(
           todos: _todos,
+          selectedListColorStream: selectedListColorStream(),
           selectedListIconStream:
               getSelectedListIcon(), // Pass the selected list's icon
           selectedListNameStream:
