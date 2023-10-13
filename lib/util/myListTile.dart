@@ -3,6 +3,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 
 class MyListTile extends StatelessWidget {
   final String listName;
+  final Color listColor;
   final bool isSelected;
   final IconData iconData;
   final VoidCallback onTap;
@@ -12,6 +13,7 @@ class MyListTile extends StatelessWidget {
   MyListTile({
     Key? key,
     required this.listName,
+    required this.listColor,
     required this.isSelected,
     required this.iconData,
     required this.onTap,
@@ -55,14 +57,14 @@ class MyListTile extends StatelessWidget {
               Icon(
                 iconData,
                 size: 25,
-                color: Theme.of(context).colorScheme.secondary,
+                color: listColor,
               ),
               Expanded(
                 child: ListTile(
                   title: Text(
                     listName,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: listColor,
                       fontSize: 18,
                     ),
                   ),

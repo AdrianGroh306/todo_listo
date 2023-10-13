@@ -172,7 +172,7 @@
                       },
                       child: Container(
                         width: 34,  // Set a fixed width for the color boxes.
-                        margin: EdgeInsets.symmetric(horizontal: 4), // Optional, add some space between the boxes.
+                        margin: const EdgeInsets.symmetric(horizontal: 4), // Optional, add some space between the boxes.
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: color,
@@ -221,7 +221,7 @@
                 ),
               ),
               const SizedBox(
-                height: 5,
+                height: 10,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

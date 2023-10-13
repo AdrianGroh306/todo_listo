@@ -64,47 +64,55 @@ class _SideMenuState extends State<SideMenu> {
     super.dispose();
   }
 
-  void fetchListNames() async {
+  void fetchListNames() {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
-        final querySnapshot = await _firestore
+        _firestore
             .collection('lists')
             .where('userId', isEqualTo: userId)
-            .get();
+            .get()
+            .then((querySnapshot) {
+          final fetchedListNames = querySnapshot.docs.map((doc) {
+            final documentId = doc.id;
+            final listName = doc['listName'] as String;
+            final listIcon = doc['listIcon'];
+            final listColor = doc['listColor'];
 
-        final fetchedListNames = querySnapshot.docs.map((doc) {
-          final documentId = doc.id;
-          final listName = doc['listName'] as String;
-          final listIcon = doc['listIcon'];
+            IconData iconData = Icons.list;
+            Color color = Theme.of(context).colorScheme.secondary; // Fallback-Farbe, wenn keine Farbe in der Datenbank gespeichert ist
 
-          IconData iconData = Icons.list;
-          if (listIcon != null) {
-            iconData = IconData(
-              listIcon,
-              fontFamily: 'MaterialIcons',
-            );
-          }
+            if (listIcon != null) {
+              iconData = IconData(
+                listIcon,
+                fontFamily: 'MaterialIcons',
+              );
+            }
 
-          return {
-            'documentId': documentId,
-            'listName': listName,
-            'listIcon': iconData,
-          };
-        }).toList();
+            if (listColor != null) {
+              color = Color(listColor);
+            }
 
-        setState(() {
-          listNames = fetchedListNames;
+            return {
+              'documentId': documentId,
+              'listName': listName,
+              'listIcon': iconData,
+              'listColor': color,
+            };
+          }).toList();
 
-          if (listNames.isEmpty) {
-            const homeListName = 'Home';
-            saveListInfo(homeListName, Icons.house_rounded);
-          }
+          setState(() {
+            listNames = fetchedListNames;
 
-          // Überprüfen, ob widget.selectedListId null ist, bevor Sie es verwenden
-          if (widget.selectedListId == null && listNames.isNotEmpty) {
-            widget.selectedListId = listNames.first['documentId'];
-          }
+            if (listNames.isEmpty) {
+              const homeListName = 'Home';
+              saveListInfo(homeListName, Icons.house_rounded, Theme.of(context).colorScheme.secondary);
+            }
+
+            if (widget.selectedListId == null && listNames.isNotEmpty) {
+              widget.selectedListId = listNames.first['documentId'];
+            }
+          });
         });
       }
     } catch (e) {
@@ -112,7 +120,8 @@ class _SideMenuState extends State<SideMenu> {
     }
   }
 
-  void saveListInfo(String listName, IconData iconData) async {
+
+  void saveListInfo(String listName, IconData iconData, Color color) async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
@@ -120,6 +129,7 @@ class _SideMenuState extends State<SideMenu> {
           'userId': userId,
           'listName': listName,
           'listIcon': iconData.codePoint,
+          'listColor': color.value, // Farbwert in der Datenbank speichern
           'createdAt': FieldValue.serverTimestamp(),
         });
 
@@ -127,6 +137,7 @@ class _SideMenuState extends State<SideMenu> {
           'documentId': documentRef.id,
           'listName': listName,
           'listIcon': iconData,
+          'listColor': color, // Farbobjekt in die Liste aufnehmen
           'createdAt': FieldValue.serverTimestamp(),
         };
 
@@ -136,12 +147,13 @@ class _SideMenuState extends State<SideMenu> {
         });
 
         // Set the newly created list as the selected list for the user
-        updateSelectedListForUser(documentRef.id); // Füge diese Zeile hinzu
+        updateSelectedListForUser(documentRef.id);
       }
     } catch (e) {
       print('Error saving list info: $e');
     }
   }
+
 
   void deleteList(String documentId) async {
     try {
@@ -338,6 +350,8 @@ class _SideMenuState extends State<SideMenu> {
                       final documentId = item['documentId'];
                       final listName = item['listName'];
                       final iconData = item['listIcon'];
+                      final listColor = item['listColor'];
+                      print(listColor);
 
                       return StreamBuilder<String?>(
                         stream: getCurrentSelectedListId(),
@@ -348,6 +362,7 @@ class _SideMenuState extends State<SideMenu> {
 
                           return MyListTile(
                             listName: listName,
+                            listColor: listColor,
                             isSelected: isSelected,
                             iconData: iconData,
                             onTap: () {
@@ -391,8 +406,8 @@ class _SideMenuState extends State<SideMenu> {
                     context: context,
                     builder: (context) {
                       return CreateListBox(
-                        onListInfoSaved: (listName, iconData) {
-                          saveListInfo(listName, iconData);
+                        onListInfoSaved: (listName, iconData, color) {
+                          saveListInfo(listName, iconData,color);
                           setState(() {
                             selectedIcon = iconData;
                           });
