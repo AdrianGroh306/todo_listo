@@ -254,7 +254,7 @@ class _SideMenuState extends State<SideMenu> {
     }
   }
 
-  void updateListInfo(String listId, String listName, IconData iconData) async {
+  void updateListInfo(String listId, String listName, IconData iconData, Color listColor) async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
@@ -264,6 +264,7 @@ class _SideMenuState extends State<SideMenu> {
             .update({
           'listName': listName,
           'listIcon': iconData.codePoint,
+          'listColor': listColor.value,
         });
         print('List info updated successfully: $listName, $iconData');
 
@@ -274,6 +275,7 @@ class _SideMenuState extends State<SideMenu> {
           if (index != -1) {
             listNames[index]['listName'] = listName;
             listNames[index]['listIcon'] = iconData;
+            listNames[index]['listColor'] = listColor;
           }
         });
       }
@@ -379,11 +381,12 @@ class _SideMenuState extends State<SideMenu> {
                                   return EditListBox(
                                     initialListName: listName ?? 'Default Name',
                                     initialIconData: iconData ?? Icons.list,
+                                    initialListColor: listColor,
                                     listId: documentId ?? '',
                                     onListInfoUpdated:
-                                        (updatedListName, updatedIconData) {
+                                        (updatedListName, updatedIconData,updatedListColor) {
                                       updateListInfo(documentId,
-                                          updatedListName, updatedIconData);
+                                          updatedListName, updatedIconData,updatedListColor);
                                     },
                                   );
                                 },

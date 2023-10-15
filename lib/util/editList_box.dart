@@ -6,7 +6,8 @@ class EditListBox extends StatefulWidget {
   final String listId;
   final String initialListName;
   final IconData initialIconData;
-  final Function(String, IconData) onListInfoUpdated;
+  final Function(String, IconData,Color) onListInfoUpdated;
+  final Color initialListColor;
 
   EditListBox({
     Key? key,
@@ -14,6 +15,7 @@ class EditListBox extends StatefulWidget {
     required this.initialListName,
     required this.initialIconData,
     required this.onListInfoUpdated,
+    required this.initialListColor,
   }) : super(key: key);
 
   @override
@@ -23,6 +25,7 @@ class EditListBox extends StatefulWidget {
 class _EditListBoxState extends State<EditListBox> {
   TextEditingController? _textEditingController;
   IconData? selectedIcon;
+  Color selectedColor = Colors.blue;
 
   final List<IconData> iconList = [
     Icons.list,
@@ -77,12 +80,25 @@ class _EditListBoxState extends State<EditListBox> {
     Icons.today, // Row 10
   ];
 
+  final List<Color> colorList = [
+    Colors.blue,
+    Colors.green,
+    Colors.red,
+    Colors.orange,
+    Colors.purple,
+    Colors.yellow[600]!,
+    Colors.green[900]!,
+    Colors.teal,
+    Colors.pink,
+  ];
+
   @override
   void initState() {
     super.initState();
     _textEditingController =
         TextEditingController(text: widget.initialListName);
     selectedIcon = widget.initialIconData;
+    selectedColor = widget.initialListColor;
   }
 
   @override
@@ -95,9 +111,9 @@ class _EditListBoxState extends State<EditListBox> {
     Navigator.of(context).pop();
     _textEditingController?.clear();
   }
-  void updateListInfo(String listName, IconData iconData) {
+  void updateListInfo(String listName, IconData iconData,Color color) {
     // Pass the correct iconData as the second argument
-    widget.onListInfoUpdated(listName, iconData);
+    widget.onListInfoUpdated(listName, iconData, color);
   }
 
 
@@ -119,7 +135,7 @@ class _EditListBoxState extends State<EditListBox> {
             Text(
               "Edit List",
               style: TextStyle(
-                color: Theme.of(context).colorScheme.secondary,
+                color: selectedColor,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -129,6 +145,7 @@ class _EditListBoxState extends State<EditListBox> {
             ),
             Icon(
               selectedIcon,
+              color: selectedColor,
               size: 45,
             ),
             const SizedBox(
@@ -159,6 +176,38 @@ class _EditListBoxState extends State<EditListBox> {
               maxLines: 1,
               textInputAction: TextInputAction.done,
             ),
+            const SizedBox(height: 10,),
+            SizedBox(
+              height: 40,  // Set a fixed height to ensure only one row is visible.
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,  // Set the scroll direction to horizontal.
+                itemCount: colorList.length,
+                itemBuilder: (context, index) {
+                  final color = colorList[index];
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedColor = color; // Setze die ausgewählte Farbe
+                      });
+                    },
+                    child: Container(
+                      width: 34,  // Set a fixed width for the color boxes.
+                      margin: const EdgeInsets.symmetric(horizontal: 4), // Optional, add some space between the boxes.
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: color,
+                        border: Border.all(
+                          color: selectedColor == color
+                              ? Theme.of(context).colorScheme.secondary
+                              : Theme.of(context).colorScheme.primary,
+                          width: 2.0,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
             const SizedBox(height: 10),
             Expanded(
               child: Scrollbar(
@@ -181,7 +230,7 @@ class _EditListBoxState extends State<EditListBox> {
                         iconData,
                         size: 30,
                         color: selectedIcon == iconData
-                            ? Theme.of(context).colorScheme.primary
+                            ? selectedColor
                             : Colors.white,
                       ),
                     );
@@ -208,10 +257,11 @@ class _EditListBoxState extends State<EditListBox> {
                   onPressed: () {
                     final listName = _textEditingController?.text;
                     final iconData = selectedIcon;
+                    final listColor = selectedColor;
 
                     if (listName!.isNotEmpty) {
                       // Call the function to update the list information
-                      updateListInfo(listName, iconData!);
+                      updateListInfo(listName, iconData!,listColor);
 
                       // Close the dialog
                       Navigator.of(context).pop();
