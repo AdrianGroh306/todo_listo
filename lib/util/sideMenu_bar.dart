@@ -76,8 +76,8 @@ class _SideMenuState extends State<SideMenu> {
           final fetchedListNames = querySnapshot.docs.map((doc) {
             final documentId = doc.id;
             final listName = doc['listName'] as String;
-            final listIcon = doc['listIcon'];
-            final listColor = doc['listColor'];
+            final listIcon = doc['listIcon'] as int?;
+            final listColor = doc['listColor'] as int?;
 
             IconData iconData = Icons.list;
             Color color = Theme.of(context).colorScheme.secondary; // Fallback-Farbe, wenn keine Farbe in der Datenbank gespeichert ist
@@ -103,15 +103,6 @@ class _SideMenuState extends State<SideMenu> {
 
           setState(() {
             listNames = fetchedListNames;
-
-            if (listNames.isEmpty) {
-              const homeListName = 'Home';
-              saveListInfo(homeListName, Icons.house_rounded, Theme.of(context).colorScheme.secondary);
-            }
-
-            if (widget.selectedListId == null && listNames.isNotEmpty) {
-              widget.selectedListId = listNames.first['documentId'];
-            }
           });
         });
       }

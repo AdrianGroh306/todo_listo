@@ -34,9 +34,9 @@ dependencies:
   flutter_launcher_icons: "^0.13.1"
   roundcheckbox: "^2.0.5"
   auto_size_text: "^3.0.0"
-  firebase_core: ^2.13.0
-  firebase_auth: ^4.6.1
-  cloud_firestore: ^4.8.0
+  firebase_core: ^2.17.0
+  firebase_auth: ^4.10.1
+  cloud_firestore: ^4.9.3
   google_sign_in: ^6.1.2
   cupertino_icons: ^1.0.2
   circle_progress_bar: ^0.1.2

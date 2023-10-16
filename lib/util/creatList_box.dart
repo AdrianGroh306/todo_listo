@@ -155,6 +155,7 @@ class _CreateListBoxState extends State<CreateListBox> {
               ),
               cursorColor: Theme.of(context).colorScheme.primary,
               maxLines: 1,
+              maxLength: 16,
               textInputAction: TextInputAction.done,
             ),
             const SizedBox(

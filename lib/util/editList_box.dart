@@ -174,6 +174,7 @@ class _EditListBoxState extends State<EditListBox> {
               ),
               cursorColor: Theme.of(context).colorScheme.primary,
               maxLines: 1,
+              maxLength: 16,
               textInputAction: TextInputAction.done,
             ),
             const SizedBox(height: 10,),
