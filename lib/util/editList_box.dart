@@ -32,6 +32,7 @@ class _EditListBoxState extends State<EditListBox> {
     Icons.mood,
     Icons.music_note,
     Icons.key,
+    Icons.check,
     Icons.card_giftcard, //row 1
     Icons.sunny,
     Icons.videogame_asset_rounded,
@@ -53,7 +54,6 @@ class _EditListBoxState extends State<EditListBox> {
     Icons.directions_boat,
     Icons.favorite,
     Icons.directions_car, // Row 5
-    Icons.directions_railway,
     Icons.directions_subway,
     Icons.directions_walk,
     Icons.euro_symbol,
