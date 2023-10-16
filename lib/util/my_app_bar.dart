@@ -16,7 +16,7 @@ class IconWidget extends StatelessWidget {
       builder: (context, iconValue, _) {
         return Icon(
           IconData(iconValue, fontFamily: 'MaterialIcons'),
-          size: 20,
+          size: 22,
           color: iconColor, // Die übergebene Farbe als Icon-Farbe verwenden
         );
       },

@@ -35,35 +35,6 @@ class _MyHomePageState extends State<MyHomePage> {
     _fetchDefaultListIfNeeded();
     _fetchTodos();
   }
-
-  // Neue Methode zum Erstellen der Standardliste "Home", wenn keine Listen vorhanden sind
-  void _fetchDefaultListIfNeeded() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId != null) {
-      final querySnapshot = await _firestoreDB
-          .collection('lists')
-          .where('userId', isEqualTo: userId)
-          .get();
-
-      if (querySnapshot.docs.isEmpty) {
-        // Erstellen Sie die Standardliste "Home" mit einem Haus-Icon
-        final docRef = await _firestoreDB.collection('lists').add({
-          'createdAt': Timestamp.now(),
-          'userId': userId,
-          'listName': 'Home',
-          'listIcon': Icons.home.codePoint, // Hier verwenden wir das Haus-Icon
-        });
-
-        // Setzen Sie die neu erstellte Liste als ausgewählte Liste für den Benutzer
-
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .set({'selectedListId': docRef.id}, SetOptions(merge: true));
-      }
-    }
-  }
-
   // Fetch tasks associated with the selected list
   void _fetchTodos() async {
     try {
@@ -298,7 +269,7 @@ class _MyHomePageState extends State<MyHomePage> {
             if (selectedListData != null) {
               // Ensure that the yielded value is an int.
               String? listName = selectedListData['listName'] as String?;
-              yield listName ?? "Todo Listo";
+              yield listName;
             } else {
               yield "";
             }
@@ -370,6 +341,41 @@ class _MyHomePageState extends State<MyHomePage> {
       yield null;
     }
   }
+  void _fetchDefaultListIfNeeded() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      final querySnapshot = await _firestoreDB
+          .collection('lists')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        // Create the default list "TodoListo" with blue color, timestamp, and icon.
+        final docRef = await _firestoreDB.collection('lists').add({
+          'createdAt': Timestamp.now(),
+          'userId': userId,
+          'listName': 'TodoListo',
+          'listIcon': Icons.check.codePoint, // Icon code for check
+          'listColor': Colors.blue.value, // Blue color value
+        });
+
+        // Set the newly created list as the selected list for the user.
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .set({'selectedListId': docRef.id}, SetOptions(merge: true));
+
+        // Update the _selectedTaskListId variable with the new list ID.
+        setState(() {
+          _selectedTaskListId = docRef.id;
+        });
+
+        // Fetch the list of todos for the new selected list.
+        _fetchTodos();
+      }
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
