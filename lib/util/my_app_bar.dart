@@ -31,7 +31,8 @@ class CircularProgressWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalTodos = todos.length;
-    final completedTodos = todos.where((todo) => todo['taskCompleted'] == true).length;
+    final completedTodos =
+        todos.where((todo) => todo['taskCompleted'] == true).length;
     final progressValue = totalTodos == 0 ? 0.0 : completedTodos / totalTodos;
 
     // Aktualisieren Sie den Fortschrittswert
@@ -77,7 +78,8 @@ class _MyAppBarState extends State<MyAppBar> {
   void initState() {
     super.initState();
 
-    widget.selectedListColorStream.listen((listColor) { // Listener für die ListColor hinzugefügt
+    widget.selectedListColorStream.listen((listColor) {
+      // Listener für die ListColor hinzugefügt
       setState(() {
         _selectedListColor = listColor;
       });
@@ -93,8 +95,6 @@ class _MyAppBarState extends State<MyAppBar> {
         _selectedListName = listName;
       });
     });
-
-
   }
 
   @override
@@ -107,7 +107,7 @@ class _MyAppBarState extends State<MyAppBar> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-             Stack(
+              Stack(
                 alignment: Alignment.center,
                 children: [
                   SizedBox(
@@ -116,15 +116,16 @@ class _MyAppBarState extends State<MyAppBar> {
                       todos: widget.todos,
                     ),
                   ),
-                  IconWidget(iconColor: Color(_selectedListColor!)),
+                  IconWidget(
+                      iconColor:
+                          Color(_selectedListColor ?? Colors.white.value)),
                 ],
               ),
               const SizedBox(width: 10),
               Text(
                 _selectedListName ?? "Todo Listo",
                 style: TextStyle(
-                  color: Color(_selectedListColor!),
-                ),
+                    color: Color(_selectedListColor ?? Colors.white.value)),
               ),
             ],
           ),
