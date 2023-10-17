@@ -36,6 +36,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _fetchDefaultListIfNeeded();
     _fetchTodos();
   }
+
   // Fetch tasks associated with the selected list
   void _fetchTodos() async {
     try {
@@ -342,6 +343,7 @@ class _MyHomePageState extends State<MyHomePage> {
       yield null;
     }
   }
+
   void _fetchDefaultListIfNeeded() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId != null) {
@@ -377,7 +379,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -403,26 +404,31 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: SizedBox(
-        height: 60,
+        height: 50,
         width: 140,
         child: FloatingActionButton.extended(
           elevation: 0,
           onPressed: _createTodo,
           backgroundColor: Theme.of(context).colorScheme.primary,
-          shape: StadiumBorder(
-              side: BorderSide(
-                  color: Theme.of(context).iconTheme.color!, width: 2)),
           label: Text(
             "Add Todo",
             style: TextStyle(
-                color: Theme.of(context).iconTheme.color,
-                fontWeight: FontWeight.bold,
-                fontSize: 16),
+              color: Theme.of(context).iconTheme.color,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
           ),
-          icon: Icon(Icons.add,
-              color: Theme.of(context).iconTheme.color, size: 30),
+          icon: Icon(
+            Icons.add,
+            color: Theme.of(context).iconTheme.color,
+            size: 28,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20), // Anpassen des Radius nach Bedarf
+          ),
         ),
       ),
+
       body: Stack(
         children: [
           RefreshIndicator(
@@ -455,31 +461,38 @@ class _MyHomePageState extends State<MyHomePage> {
                         ],
                       ),
                     )
-                  : ListView.builder(
-                      itemCount: _todos.length,
-                      itemBuilder: (context, index) {
-                        final task = _todos[index];
+                  : Padding(
+                    padding: const EdgeInsets.only(bottom: 75),
 
-                        return ValueListenableBuilder<bool>(
-                          valueListenable: _taskCompletionNotifiers[index],
-                          builder: (context, value, _) {
-                            return ToDoTile(
-                              key: ValueKey(task['documentId']),
-                              taskName: task['taskName'] as String,
-                              taskCompleted: value,
-                              onChanged: (newValue) =>
-                                  _checkBoxChanged(newValue, index),
-                              deleteFunction: (context) => _deleteTodo(index),
-                              onTaskNameChanged: (newTaskName) =>
-                                  _updateTodoName(
-                                      task['documentId'], newTaskName),
-                            );
-                          },
-                        );
-                      },
-                    ),
+                    child: ListView.builder(
+
+                        itemCount: _todos.length,
+                        itemBuilder: (context, index) {
+                          final task = _todos[index];
+
+                          return ValueListenableBuilder<bool>(
+                            valueListenable: _taskCompletionNotifiers[index],
+                            builder: (context, value, _) {
+                              return ToDoTile(
+                                key: ValueKey(task['documentId']),
+                                taskName: task['taskName'] as String,
+                                taskCompleted: value,
+                                onChanged: (newValue) =>
+                                    _checkBoxChanged(newValue, index),
+                                deleteFunction: (context) => _deleteTodo(index),
+                                onTaskNameChanged: (newTaskName) =>
+                                    _updateTodoName(
+                                        task['documentId'], newTaskName),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                  ),
+
             ),
           ),
+
           MyPopupMenu(
             onMenuItemSelected: (menuItem) {
               if (menuItem == MenuItem.item1) {

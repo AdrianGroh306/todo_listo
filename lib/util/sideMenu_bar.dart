@@ -80,7 +80,9 @@ class _SideMenuState extends State<SideMenu> {
             final listColor = doc['listColor'] as int?;
 
             IconData iconData = Icons.list;
-            Color color = Theme.of(context).colorScheme.secondary; // Fallback-Farbe, wenn keine Farbe in der Datenbank gespeichert ist
+            Color color = Theme.of(context)
+                .colorScheme
+                .secondary; // Fallback-Farbe, wenn keine Farbe in der Datenbank gespeichert ist
 
             if (listIcon != null) {
               iconData = IconData(
@@ -110,7 +112,6 @@ class _SideMenuState extends State<SideMenu> {
       print('Error fetching list names: $e');
     }
   }
-
 
   void saveListInfo(String listName, IconData iconData, Color color) async {
     try {
@@ -145,7 +146,6 @@ class _SideMenuState extends State<SideMenu> {
     }
   }
 
-
   void deleteList(String documentId) async {
     try {
       // Überprüfen, ob es mindestens zwei Listen gibt, bevor eine gelöscht wird
@@ -154,7 +154,8 @@ class _SideMenuState extends State<SideMenu> {
           context: context,
           builder: (context) {
             return AlertDialog(
-              elevation: 0,backgroundColor: Theme.of(context).colorScheme.background,
+              elevation: 0,
+              backgroundColor: Theme.of(context).colorScheme.background,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20.0), // Abgerundete Ecken
               ),
@@ -245,7 +246,8 @@ class _SideMenuState extends State<SideMenu> {
     }
   }
 
-  void updateListInfo(String listId, String listName, IconData iconData, Color listColor) async {
+  void updateListInfo(String listId, String listName, IconData iconData,
+      Color listColor) async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
@@ -374,10 +376,13 @@ class _SideMenuState extends State<SideMenu> {
                                     initialIconData: iconData ?? Icons.list,
                                     initialListColor: listColor,
                                     listId: documentId ?? '',
-                                    onListInfoUpdated:
-                                        (updatedListName, updatedIconData,updatedListColor) {
-                                      updateListInfo(documentId,
-                                          updatedListName, updatedIconData,updatedListColor);
+                                    onListInfoUpdated: (updatedListName,
+                                        updatedIconData, updatedListColor) {
+                                      updateListInfo(
+                                          documentId,
+                                          updatedListName,
+                                          updatedIconData,
+                                          updatedListColor);
                                     },
                                   );
                                 },
@@ -392,8 +397,9 @@ class _SideMenuState extends State<SideMenu> {
               ),
             ),
             Positioned(
-              bottom: 20,
-              right: 20,
+              bottom: 15,
+              right: 15,
+              height: 50,
               child: ElevatedButton(
                 onPressed: () {
                   showDialog(
@@ -401,7 +407,7 @@ class _SideMenuState extends State<SideMenu> {
                     builder: (context) {
                       return CreateListBox(
                         onListInfoSaved: (listName, iconData, color) {
-                          saveListInfo(listName, iconData,color);
+                          saveListInfo(listName, iconData, color);
                           setState(() {
                             selectedIcon = iconData;
                           });
