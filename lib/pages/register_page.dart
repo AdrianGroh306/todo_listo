@@ -1,9 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:todo/util/myTextField.dart';
-import 'package:todo/util/square_tile.dart';
+
 
 import '../services/auth_service.dart';
+import '../util/myTextField.dart';
+import '../util/square_tile.dart';
 
 class RegisterPage extends StatefulWidget {
   final Function()? onTap;

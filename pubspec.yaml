@@ -1,4 +1,4 @@
-name: todo
+name: TodoListo
 description: just a todo app
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -51,6 +51,8 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "images/logo_todolisto.png"
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "images/todolisto_logo_foreground.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
   web:
     generate: true

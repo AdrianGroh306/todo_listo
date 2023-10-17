@@ -7,12 +7,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Local imports
-import 'package:todo/util/addTodo_box.dart';
-import 'package:todo/util/sideMenu_bar.dart';
-import 'package:todo/util/myTodoTile.dart';
+
 import '../util/MenuItem.dart';
+import '../util/addTodo_box.dart';
+import '../util/myTodoTile.dart';
 import '../util/my_app_bar.dart';
 import '../util/popupmenu.dart';
+import '../util/sideMenu_bar.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
