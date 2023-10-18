@@ -99,6 +99,7 @@ flutter:
   - images/profil_pics/
   - "images/apple_logo.png"
   - "images/google_logo.png"
+  - "images/logo_todolisto.png"
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

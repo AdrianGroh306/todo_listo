@@ -79,22 +79,11 @@ class _RegisterPageState extends State<RegisterPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(
-                    height: 30,
-                  ),
-
-                  //logo
-                   Icon(
-                    Icons.notes_rounded,
-                    color: Theme.of(context).colorScheme.secondary,
-                    shadows: <Shadow>[
-                     const Shadow(color: Colors.black45, blurRadius: 30.0)
-                    ],
-                    size: 150,
-                  ),
+                 //logo
+                  Image.asset("images/logo_todolisto.png",height: 90,width: 100,),
 
                   const SizedBox(
-                    height: 10,
+                    height: 50,
                   ),
 
                   //welcome message
