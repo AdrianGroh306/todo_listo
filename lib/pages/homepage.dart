@@ -29,28 +29,36 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Map<String, dynamic>> _todos = [];
   List<ValueNotifier<bool>> _taskCompletionNotifiers = [];
   String? _selectedTaskListId;
+  StreamSubscription<String?>? _currentSelectedListIdSubscription;
+
+
 
   @override
   void initState() {
     super.initState();
     _fetchDefaultListIfNeeded();
-    _fetchTodos();
+    _currentSelectedListIdSubscription = getCurrentSelectedListId().listen((selectedListId) {
+      _selectedTaskListId = selectedListId;
+      if (selectedListId != null) {
+        _fetchTodos(_selectedTaskListId!);
+      }
+    });
   }
 
-  // Fetch tasks associated with the selected list
-  void _fetchTodos() async {
-    try {
-      final userId = FirebaseAuth.instance.currentUser?.uid;
-
-      // Wenn der Nutzer nicht null ist, höre auf den Stream von getCurrentSelectedListId
-      if (userId != null) {
-        getCurrentSelectedListId().listen((selectedListId) async {
-          // Wenn selectedListId nicht null ist, hole die To-Dos
-          if (selectedListId != null) {
+  @override
+  void dispose() {
+    _currentSelectedListIdSubscription?.cancel();
+    _todoController.dispose();
+    super.dispose();
+  }
+        void _fetchTodos(String listId) async {
+        final userId = FirebaseAuth.instance.currentUser?.uid;
+        if (userId != null) {
+          try {
             final querySnapshot = await _firestoreDB
                 .collection('todos')
                 .where('userId', isEqualTo: userId)
-                .where('listId', isEqualTo: selectedListId)
+                .where('listId', isEqualTo: listId)
                 .get();
 
             setState(() {
@@ -65,13 +73,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 return ValueNotifier<bool>(task['taskCompleted'] ?? false);
               }).toList();
             });
+          } catch (e) {
+            print('[Error] Fetching Todos: $e');
           }
-        });
+        }
       }
-    } catch (e) {
-      print('[Error] Fetching Todos for the selected list: $e');
-    }
-  }
 
   // Save a new task to Firestore
   void _saveTodos(String? taskName) async {
@@ -169,14 +175,17 @@ class _MyHomePageState extends State<MyHomePage> {
     showDialog(
       context: context,
       builder: (context) {
-        return DialogBox(
-          controller: _todoController,
-          onSave: _saveTodos,
-          onCancel: () {
-            Navigator.of(context).pop();
-            _todoController.clear();
-          },
-          onSubmitted: _saveTodos,
+        return SingleChildScrollView(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: DialogBox(
+            controller: _todoController,
+            onSave: _saveTodos,
+            onCancel: () {
+              Navigator.of(context).pop();
+              _todoController.clear();
+            },
+            onSubmitted: _saveTodos,
+          ),
         );
       },
     );
@@ -374,7 +383,7 @@ class _MyHomePageState extends State<MyHomePage> {
         });
 
         // Fetch the list of todos for the new selected list.
-        _fetchTodos();
+        _fetchTodos(_selectedTaskListId!);
       }
     }
   }
@@ -388,7 +397,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onSelectedListChanged: (listId) {
           setState(() {
             _selectedTaskListId = listId;
-            _fetchTodos();
+            _fetchTodos(_selectedTaskListId!);
           });
         },
       ),
@@ -434,7 +443,7 @@ class _MyHomePageState extends State<MyHomePage> {
           RefreshIndicator(
             color: Theme.of(context).colorScheme.secondary,
             onRefresh: () async {
-              _fetchTodos();
+              _fetchTodos(_selectedTaskListId!);
             },
             child: Container(
               color: Theme.of(context).colorScheme.background,
