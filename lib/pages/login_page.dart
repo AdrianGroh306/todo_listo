@@ -132,7 +132,7 @@ class _LoginPageState extends State<LoginPage> {
 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: Container(
+                    child: SizedBox(
                       height: 60,
                       width: double.infinity,
                       child: ElevatedButton(

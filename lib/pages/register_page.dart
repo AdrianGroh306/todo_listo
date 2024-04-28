@@ -127,7 +127,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   // sign up button
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: Container(
+                    child: SizedBox(
                       height: 60,
                       width: double.infinity,
                       child: ElevatedButton(
@@ -192,7 +192,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         imagePath: "images/google_logo.png",
                         onTap: () => AuthService().signInWithGoogle(),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 30,
                       ),
                       SquareTile(

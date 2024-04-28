@@ -10,7 +10,7 @@ class MyListTile extends StatelessWidget {
   final Function onDelete;
   final VoidCallback onEdit;
 
-  MyListTile({
+  const MyListTile({
     Key? key,
     required this.listName,
     required this.listColor,

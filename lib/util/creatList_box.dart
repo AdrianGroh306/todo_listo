@@ -6,7 +6,7 @@ class CreateListBox extends StatefulWidget {
   final Function(String, IconData, Color) onListInfoSaved;
   final Function(IconData) onIconSelected; // Callback for icon selection
 
-  CreateListBox(
+  const CreateListBox(
       {Key? key, required this.onListInfoSaved, required this.onIconSelected})
       : super(key: key);
 

@@ -9,7 +9,7 @@ class EditListBox extends StatefulWidget {
   final Function(String, IconData,Color) onListInfoUpdated;
   final Color initialListColor;
 
-  EditListBox({
+  const EditListBox({
     Key? key,
     required this.listId,
     required this.initialListName,

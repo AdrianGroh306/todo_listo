@@ -7,7 +7,7 @@ class MyButton extends StatelessWidget {
   final Color? textColor;
   final double borderRadius;
 
-  MyButton({
+  const MyButton({
     super.key,
     required this.text,
     required this.onPressed,

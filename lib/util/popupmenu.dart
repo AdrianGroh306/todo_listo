@@ -5,7 +5,7 @@ import 'MenuItem.dart';
 class MyPopupMenu extends StatelessWidget {
   final Function(MenuItem) onMenuItemSelected;
 
-  MyPopupMenu({required this.onMenuItemSelected});
+  const MyPopupMenu({super.key, required this.onMenuItemSelected});
 
   @override
   Widget build(BuildContext context) {
