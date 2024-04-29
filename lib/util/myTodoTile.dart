@@ -94,10 +94,8 @@ class _ToDoTileState extends State<ToDoTile> {
                         builder: (BuildContext context) {
                           String newTaskName = widget.taskName;
                           return AlertDialog(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.background,
-                            contentPadding: const EdgeInsets.symmetric(
-                                vertical: 5, horizontal: 20),
+                            backgroundColor: Theme.of(context).colorScheme.background,
+                            contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -112,7 +110,10 @@ class _ToDoTileState extends State<ToDoTile> {
                                 ),
                               ),
                             ),
-                            content: TextField(style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+                            content: TextField(
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.secondary),
                               controller: _controller,
                               autofocus: true,
                               cursorColor:
@@ -121,8 +122,7 @@ class _ToDoTileState extends State<ToDoTile> {
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(20),
                                   borderSide: BorderSide(
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
+                                      color: Theme.of(context).colorScheme.primary,
                                       width: 2),
                                 ),
                                 focusedBorder: OutlineInputBorder(
@@ -132,16 +132,14 @@ class _ToDoTileState extends State<ToDoTile> {
                                           Theme.of(context).colorScheme.primary,
                                       width: 2),
                                 ),
-                                hintText: "Edit Todos",
+                                hintText: "Todo...",
                               ),
                               onChanged: (value) {
                                 newTaskName = value;
                               },
-
                             ),
-                            actionsPadding: const EdgeInsets.symmetric(
-                                horizontal:
-                                    20), // Anpassung des Abstands für die actions
+                            actionsPadding:
+                                const EdgeInsets.symmetric(horizontal: 20),
                             actions: <Widget>[
                               const SizedBox(
                                 height: 20,
