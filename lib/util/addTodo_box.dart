@@ -55,7 +55,7 @@ class DialogBox extends StatelessWidget {
                   hintText: "Add Task",
                 ),
                 onSubmitted: onSubmitted,
-                cursorColor: Theme.of(context).colorScheme.primary,
+                cursorColor: Theme.of(context).colorScheme.secondary,
                 maxLines: 2,
                 textInputAction:
                     TextInputAction.done, // Set TextInputAction to done

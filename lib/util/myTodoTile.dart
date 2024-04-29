@@ -116,7 +116,7 @@ class _ToDoTileState extends State<ToDoTile> {
                               controller: _controller,
                               autofocus: true,
                               cursorColor:
-                                  Theme.of(context).colorScheme.primary,
+                                  Theme.of(context).colorScheme.secondary,
                               decoration: InputDecoration(
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(20),
@@ -137,6 +137,7 @@ class _ToDoTileState extends State<ToDoTile> {
                               onChanged: (value) {
                                 newTaskName = value;
                               },
+
                             ),
                             actionsPadding: const EdgeInsets.symmetric(
                                 horizontal:

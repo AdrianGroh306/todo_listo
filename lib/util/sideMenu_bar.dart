@@ -289,9 +289,11 @@ class _SideMenuState extends State<SideMenu> {
           ),
           color: Theme.of(context).colorScheme.background,
         ),
-        child: Stack(
-          children: <Widget>[
-            SingleChildScrollView(
+        child: StreamBuilder<String?>(
+          stream: getCurrentSelectedListId(),
+          builder: (context, snapshot) {
+            final currentSelectedListId = snapshot.data;
+            return SingleChildScrollView(
               child: Column(
                 children: <Widget>[
                   SizedBox(
@@ -316,18 +318,14 @@ class _SideMenuState extends State<SideMenu> {
                             children: [
                               const SizedBox(width: 10),
                               CircleAvatar(
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.background,
+                                backgroundColor: Theme.of(context).colorScheme.background,
                                 backgroundImage: AssetImage(profilList ?? ''),
                                 radius: 30,
                               ),
                               const SizedBox(width: 25),
                               Text(
                                 FirebaseAuth.instance.currentUser?.email ?? '',
-                                style: TextStyle(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .secondary),
+                                style: TextStyle(color: Theme.of(context).colorScheme.secondary),
                               ),
                             ],
                           ),
@@ -346,45 +344,30 @@ class _SideMenuState extends State<SideMenu> {
                       final listName = item['listName'];
                       final iconData = item['listIcon'];
                       final listColor = item['listColor'];
-                      print(listColor);
+                      final isSelected = documentId == currentSelectedListId;
 
-                      return StreamBuilder<String?>(
-                        stream: getCurrentSelectedListId(),
-                        builder: (context, snapshot) {
-                          final currentSelectedListId = snapshot.data;
-                          final isSelected =
-                              documentId == currentSelectedListId;
-
-                          return MyListTile(
-                            listName: listName,
-                            listColor: listColor,
-                            isSelected: isSelected,
-                            iconData: iconData,
-                            onTap: () {
-                              // Setzen Sie den Status und aktualisieren Sie die Datenbank
-                              updateSelectedListForUser(documentId);
-                            },
-                            onDelete: () {
-                              deleteList(documentId);
-                            },
-                            onEdit: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return EditListBox(
-                                    initialListName: listName ?? 'Default Name',
-                                    initialIconData: iconData ?? Icons.list,
-                                    initialListColor: listColor,
-                                    listId: documentId ?? '',
-                                    onListInfoUpdated: (updatedListName,
-                                        updatedIconData, updatedListColor) {
-                                      updateListInfo(
-                                          documentId,
-                                          updatedListName,
-                                          updatedIconData,
-                                          updatedListColor);
-                                    },
-                                  );
+                      return MyListTile(
+                        listName: listName,
+                        listColor: listColor,
+                        isSelected: isSelected,
+                        iconData: iconData,
+                        onTap: () {
+                          updateSelectedListForUser(documentId);
+                        },
+                        onDelete: () {
+                          deleteList(documentId);
+                        },
+                        onEdit: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return EditListBox(
+                                initialListName: listName ?? 'Default Name',
+                                initialIconData: iconData ?? Icons.list,
+                                initialListColor: listColor,
+                                listId: documentId ?? '',
+                                onListInfoUpdated: (updatedListName, updatedIconData, updatedListColor) {
+                                  updateListInfo(documentId, updatedListName, updatedIconData, updatedListColor);
                                 },
                               );
                             },
@@ -395,60 +378,11 @@ class _SideMenuState extends State<SideMenu> {
                   ),
                 ],
               ),
-            ),
-            Positioned(
-              bottom: 15,
-              right: 15,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return CreateListBox(
-                        onListInfoSaved: (listName, iconData, color) {
-                          saveListInfo(listName, iconData, color);
-                          setState(() {
-                            selectedIcon = iconData;
-                          });
-                        },
-                        onIconSelected: (iconData) {
-                          setState(() {
-                            selectedIcon = iconData;
-                          });
-                        },
-                      );
-                    },
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.secondary,
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      20,
-                    ),
-                  ),
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Text(
-                    "Create List",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
   }
+
 }
