@@ -10,7 +10,7 @@ ThemeData lightTheme = ThemeData(
       selectionHandleColor: Colors.white,
     ),
     colorScheme: ColorScheme.light(
-      background: Colors.indigo[500]!,
+      surface: Colors.indigo[500]!,
       primary: Colors.indigo[800]!,
       secondary: Colors.white,
       tertiary: Colors.black12,

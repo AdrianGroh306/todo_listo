@@ -19,6 +19,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final passwordconfirmController = TextEditingController();
+  bool _isPasswordVisible = true;
 
 // sign up method
   void signUserUp() async {
@@ -110,13 +111,37 @@ class _RegisterPageState extends State<RegisterPage> {
                   MyTextField(
                     controller: passwordController,
                     hintText: "Password",
-                    obscureText: true,
+                    obscureText: _isPasswordVisible,
+                    suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        }),
                   ),
                   //password confirm textfield
                   MyTextField(
                     controller: passwordconfirmController,
                     hintText: "Confirm Password",
-                    obscureText: true,
+                    obscureText: _isPasswordVisible,
+                    suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        }),
                   ),
                   //forget password text
 

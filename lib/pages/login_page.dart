@@ -2,9 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
+import '../services/forgot_password_page.dart';
 import '../util/myTextField.dart';
 import '../util/square_tile.dart';
-
 
 class LoginPage extends StatefulWidget {
   final Function()? onTap;
@@ -18,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   //text editing controllers
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  bool _isPasswordVisible = true;
 
 // sign in method
   void signUserIn() async {
@@ -65,23 +66,24 @@ class _LoginPageState extends State<LoginPage> {
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
-        color: Theme.of(context).colorScheme.background,
+        color: Theme.of(context).colorScheme.surface,
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-
-
                   //logo
-                 Image.asset("images/logo_todolisto.png",height: 90,width: 100,),
+                  Image.asset(
+                    "images/logo_todolisto.png",
+                    height: 90,
+                    width: 100,
+                  ),
 
                   const SizedBox(
                     height: 50,
                   ),
 
-                  //welcome message
                   const Text(
                     "Welcome back, u have been missed <3",
                     style: TextStyle(
@@ -105,31 +107,47 @@ class _LoginPageState extends State<LoginPage> {
                   MyTextField(
                     controller: passwordController,
                     hintText: "Password",
-                    obscureText: true,
+                    obscureText: _isPasswordVisible,
+                    suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        }),
                   ),
                   //forget password text
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Text(
-                          "Forgot Password?",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
+                            );
+                          },
+                          child: const Text(
+                            "Forgot Password?",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-
                   const SizedBox(
                     height: 25,
                   ),
-
-                  // sign in button
-
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15),
                     child: SizedBox(
@@ -137,19 +155,20 @@ class _LoginPageState extends State<LoginPage> {
                       width: double.infinity,
                       child: ElevatedButton(
                           style: ButtonStyle(
-                              shape: MaterialStateProperty.all<
+                              shape: WidgetStateProperty.all<
                                       RoundedRectangleBorder>(
                                   RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15),
                               )),
-                              backgroundColor: MaterialStateProperty.all<Color>(
+                              backgroundColor: WidgetStateProperty.all<Color>(
                                   Theme.of(context).colorScheme.secondary)),
                           onPressed: () {
                             signUserIn();
                           },
                           child: Text(
                             "Sign In",
-                            style: TextStyle(color: Theme.of(context).colorScheme.primary,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -160,8 +179,6 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(
                     height: 30,
                   ),
-
-                  //divder or text
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 25),
                     child: Row(
