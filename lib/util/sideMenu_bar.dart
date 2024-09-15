@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'creatList_box.dart';
 import 'editList_box.dart';
 import 'myListTile.dart';
 
@@ -36,7 +35,7 @@ class _SideMenuState extends State<SideMenu> {
 
   String? profilList;
 
-  IconData? selectedIcon; // Hinzugefügtes Feld für das ausgewählte Icon
+  IconData? selectedIcon;
 
   @override
   void initState() {
@@ -61,6 +60,7 @@ class _SideMenuState extends State<SideMenu> {
   @override
   void dispose() {
     _textEditingController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -138,7 +138,7 @@ class _SideMenuState extends State<SideMenu> {
           widget.selectedListId = documentRef.id;
         });
 
-        // Set the newly created list as the selected list for the user
+        // Setze die neu erstellte Liste als ausgewählte Liste für den Benutzer
         updateSelectedListForUser(documentRef.id);
       }
     } catch (e) {
@@ -155,13 +155,13 @@ class _SideMenuState extends State<SideMenu> {
           builder: (context) {
             return AlertDialog(
               elevation: 0,
-              backgroundColor: Theme.of(context).colorScheme.background,
+              backgroundColor: Theme.of(context).colorScheme.surface,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20.0), // Abgerundete Ecken
               ),
               content: Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 5.0), // Vertikaler Abstand
+                padding:
+                const EdgeInsets.symmetric(vertical: 5.0), // Vertikaler Abstand
                 child: Text(
                   'You cannot delete the last list',
                   style: TextStyle(
@@ -193,7 +193,7 @@ class _SideMenuState extends State<SideMenu> {
       setState(() {
         listNames.removeWhere((item) => item['documentId'] == documentId);
         if (widget.selectedListId == documentId) {
-          widget.onSelectedListChanged(listNames.first['listId']);
+          widget.onSelectedListChanged(listNames.first['documentId']);
         }
       });
     } catch (e) {
@@ -206,8 +206,7 @@ class _SideMenuState extends State<SideMenu> {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
         await FirebaseFirestore.instance.collection('users').doc(userId).set(
-            {'selectedListId': selectedListDocumentId},
-            SetOptions(merge: true));
+            {'selectedListId': selectedListDocumentId}, SetOptions(merge: true));
       }
     } catch (e) {
       print(
@@ -228,13 +227,7 @@ class _SideMenuState extends State<SideMenu> {
             final selectedListId = userData['selectedListId'] as String?;
             yield selectedListId;
           } else {
-            final lists = userData?['lists'] as List<dynamic>;
-            if (lists.isNotEmpty) {
-              final topListId = lists[0]['listId'] as String?;
-              yield topListId;
-            } else {
-              yield null;
-            }
+            yield null;
           }
         }
       } catch (e) {
@@ -261,10 +254,10 @@ class _SideMenuState extends State<SideMenu> {
         });
         print('List info updated successfully: $listName, $iconData');
 
-        // Hier können Sie die Liste in Ihrem State aktualisieren
+        // Aktualisieren der Liste im State
         setState(() {
           final index =
-              listNames.indexWhere((item) => item['documentId'] == listId);
+          listNames.indexWhere((item) => item['documentId'] == listId);
           if (index != -1) {
             listNames[index]['listName'] = listName;
             listNames[index]['listIcon'] = iconData;
@@ -275,6 +268,21 @@ class _SideMenuState extends State<SideMenu> {
     } catch (e) {
       print('Error updating list info: $e');
     }
+  }
+  void _showAddListDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return EditListBox(
+          initialListName: '',
+          initialIconData: Icons.list,
+          initialListColor: Theme.of(context).colorScheme.primary,
+          onListInfoUpdated: (listName, iconData, listColor) {
+            saveListInfo(listName, iconData, listColor);
+          }, listId: '',
+        );
+      },
+    );
   }
 
   @override
@@ -287,56 +295,58 @@ class _SideMenuState extends State<SideMenu> {
             topLeft: Radius.circular(20),
             bottomLeft: Radius.circular(20),
           ),
-          color: Theme.of(context).colorScheme.background,
+          color: Theme.of(context).colorScheme.surface,
         ),
         child: StreamBuilder<String?>(
           stream: getCurrentSelectedListId(),
           builder: (context, snapshot) {
             final currentSelectedListId = snapshot.data;
-            return SingleChildScrollView(
-              child: Column(
-                children: <Widget>[
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.17,
+            return Column(
+              children: <Widget>[
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.17,
+                  child: Container(
+                    alignment: Alignment.center,
                     child: Container(
-                      alignment: Alignment.center,
-                      child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.transparent,
+                      ),
+                      child: DrawerHeader(
                         decoration: const BoxDecoration(
                           color: Colors.transparent,
+                          borderRadius: BorderRadius.only(
+                            topRight: Radius.circular(20),
+                            bottomRight: Radius.circular(20),
+                            bottomLeft: Radius.circular(20),
+                          ),
                         ),
-                        child: DrawerHeader(
-                          decoration: const BoxDecoration(
-                            color: Colors.transparent,
-                            borderRadius: BorderRadius.only(
-                              topRight: Radius.circular(20),
-                              bottomRight: Radius.circular(20),
-                              bottomLeft: Radius.circular(20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            const SizedBox(width: 10),
+                            CircleAvatar(
+                              backgroundColor:
+                              Theme.of(context).colorScheme.surface,
+                              backgroundImage: AssetImage(profilList ?? ''),
+                              radius: 30,
                             ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const SizedBox(width: 10),
-                              CircleAvatar(
-                                backgroundColor: Theme.of(context).colorScheme.background,
-                                backgroundImage: AssetImage(profilList ?? ''),
-                                radius: 30,
-                              ),
-                              const SizedBox(width: 25),
-                              Text(
-                                FirebaseAuth.instance.currentUser?.email ?? '',
-                                style: TextStyle(color: Theme.of(context).colorScheme.secondary),
-                              ),
-                            ],
-                          ),
+                            const SizedBox(width: 25),
+                            Text(
+                              FirebaseAuth.instance.currentUser?.email ?? '',
+                              style: TextStyle(
+                                  color:
+                                  Theme.of(context).colorScheme.secondary),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                  ListView.builder(
+                ),
+                // Expanded Widget hinzugefügt
+                Expanded(
+                  child: ListView.builder(
                     padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
                     itemCount: listNames.length,
                     itemBuilder: (context, index) {
                       final item = listNames[index];
@@ -353,6 +363,8 @@ class _SideMenuState extends State<SideMenu> {
                         iconData: iconData,
                         onTap: () {
                           updateSelectedListForUser(documentId);
+                          widget.onSelectedListChanged(documentId);
+                          Navigator.of(context).pop();
                         },
                         onDelete: () {
                           deleteList(documentId);
@@ -366,8 +378,10 @@ class _SideMenuState extends State<SideMenu> {
                                 initialIconData: iconData ?? Icons.list,
                                 initialListColor: listColor,
                                 listId: documentId ?? '',
-                                onListInfoUpdated: (updatedListName, updatedIconData, updatedListColor) {
-                                  updateListInfo(documentId, updatedListName, updatedIconData, updatedListColor);
+                                onListInfoUpdated: (updatedListName,
+                                    updatedIconData, updatedListColor) {
+                                  updateListInfo(documentId, updatedListName,
+                                      updatedIconData, updatedListColor);
                                 },
                               );
                             },
@@ -376,13 +390,36 @@ class _SideMenuState extends State<SideMenu> {
                       );
                     },
                   ),
-                ],
-              ),
+                ),
+                // Button zum Hinzufügen neuer Listen
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.secondary, backgroundColor: Theme.of(context).colorScheme.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    ),
+                    icon: const Icon(Icons.add),
+                    label: Text(
+                      'Add List',
+                      style: TextStyle(fontSize: 16,color: Theme.of(context).colorScheme.secondary,),
+                    ),
+                    onPressed: () {
+                      // Aktion beim Drücken des Buttons
+                      _showAddListDialog();
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
             );
           },
         ),
       ),
     );
   }
-
 }

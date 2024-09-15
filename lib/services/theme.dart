@@ -16,6 +16,7 @@ ThemeData lightTheme = ThemeData(
       tertiary: Colors.black12,
       error: Colors.red,
       shadow: Colors.black.withOpacity(0.2),
+      scrim: Colors.transparent,
     ));
 
 ThemeData darkTheme = ThemeData(
@@ -27,10 +28,11 @@ ThemeData darkTheme = ThemeData(
           Colors.white, // Hier die Farbe des Cursors (Tropfens) setzen
     ),
     colorScheme: ColorScheme.dark(
-      background: Colors.grey[900]!,
+      surface: Colors.grey[900]!,
       primary: Colors.grey[850]!,
       secondary: Colors.white,
       tertiary: Colors.black12,
       error: Colors.red,
       shadow: Colors.white.withOpacity(0.2),
+      scrim: Colors.transparent,
     ));

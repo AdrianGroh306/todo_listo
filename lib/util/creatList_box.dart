@@ -104,7 +104,7 @@ class _CreateListBoxState extends State<CreateListBox> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
@@ -253,7 +253,6 @@ class _CreateListBoxState extends State<CreateListBox> {
 
                     if (listName.isNotEmpty) {
                       widget.onListInfoSaved(listName, iconData, color);
-                      print(iconData);
                     }
                     Navigator.of(context).pop();
                   },

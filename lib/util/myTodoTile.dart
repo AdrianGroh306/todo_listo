@@ -3,12 +3,14 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 
 import 'myButton.dart';
 
+// ignore: must_be_immutable
 class ToDoTile extends StatefulWidget {
   String taskName;
   final bool taskCompleted;
   Function(bool?)? onChanged;
   Function(BuildContext)? deleteFunction;
   final ValueChanged<String>? onTaskNameChanged;
+  final Widget? trailing;
 
   ToDoTile({
     super.key,
@@ -17,6 +19,7 @@ class ToDoTile extends StatefulWidget {
     required this.onChanged,
     required this.deleteFunction,
     this.onTaskNameChanged,
+    this.trailing,
   });
 
   void updateTaskName(String newTaskName) {
@@ -94,7 +97,7 @@ class _ToDoTileState extends State<ToDoTile> {
                         builder: (BuildContext context) {
                           String newTaskName = widget.taskName;
                           return AlertDialog(
-                            backgroundColor: Theme.of(context).colorScheme.background,
+                            backgroundColor: Theme.of(context).colorScheme.surface,
                             contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
@@ -201,6 +204,7 @@ class _ToDoTileState extends State<ToDoTile> {
                     ),
                   ),
                 ),
+                if (widget.trailing != null) widget.trailing!,
                 const SizedBox(
                   width: 10,
                 ),

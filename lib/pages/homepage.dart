@@ -31,13 +31,12 @@ class _MyHomePageState extends State<MyHomePage> {
   String? _selectedTaskListId;
   StreamSubscription<String?>? _currentSelectedListIdSubscription;
 
-
-
   @override
   void initState() {
     super.initState();
     _fetchDefaultListIfNeeded();
-    _currentSelectedListIdSubscription = getCurrentSelectedListId().listen((selectedListId) {
+    _currentSelectedListIdSubscription =
+        getCurrentSelectedListId().listen((selectedListId) {
       _selectedTaskListId = selectedListId;
       if (selectedListId != null) {
         _fetchTodos(_selectedTaskListId!);
@@ -51,33 +50,105 @@ class _MyHomePageState extends State<MyHomePage> {
     _todoController.dispose();
     super.dispose();
   }
-        void _fetchTodos(String listId) async {
-        final userId = FirebaseAuth.instance.currentUser?.uid;
-        if (userId != null) {
-          try {
-            final querySnapshot = await _firestoreDB
-                .collection('todos')
-                .where('userId', isEqualTo: userId)
-                .where('listId', isEqualTo: listId)
-                .get();
 
-            setState(() {
-              _todos = querySnapshot.docs.map((doc) {
-                return {
-                  ...doc.data(),
-                  'documentId': doc.id,
-                };
-              }).toList();
+  void _fetchTodos(String listId) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      try {
+        final querySnapshot = await _firestoreDB
+            .collection('todos')
+            .where('userId', isEqualTo: userId)
+            .where('listId', isEqualTo: listId)
+            .get();
 
-              _taskCompletionNotifiers = _todos.map((task) {
-                return ValueNotifier<bool>(task['taskCompleted'] ?? false);
-              }).toList();
-            });
-          } catch (e) {
-            print('[Error] Fetching Todos: $e');
-          }
-        }
+        setState(() {
+          _todos = querySnapshot.docs.map((doc) {
+            return {
+              ...doc.data(),
+              'documentId': doc.id,
+            };
+          }).toList();
+
+          _taskCompletionNotifiers = _todos.map((task) {
+            return ValueNotifier<bool>(task['taskCompleted'] ?? false);
+          }).toList();
+        });
+
+        // Nach dem Abrufen der Aufgaben rufen wir die Aktualisierungsmethode auf
+        await _addOrderFieldToExistingTodos();
+
+        // Nach der Aktualisierung rufen wir die Aufgaben erneut ab, diesmal mit der Sortierung
+        await _fetchTodosWithOrder(listId);
+      } catch (e) {
+        print('[Error] Fetching Todos: $e');
       }
+    }
+  }
+
+  Future<void> _fetchTodosWithOrder(String listId) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      try {
+        final querySnapshot = await _firestoreDB
+            .collection('todos')
+            .where('userId', isEqualTo: userId)
+            .where('listId', isEqualTo: listId)
+            .orderBy('order')
+            .get();
+
+        setState(() {
+          _todos = querySnapshot.docs.map((doc) {
+            return {
+              ...doc.data(),
+              'documentId': doc.id,
+            };
+          }).toList();
+
+          _taskCompletionNotifiers = _todos.map((task) {
+            return ValueNotifier<bool>(task['taskCompleted'] ?? false);
+          }).toList();
+        });
+      } catch (e) {
+        print('[Error] Fetching Todos with order: $e');
+      }
+    }
+  }
+
+
+
+  Future<void> _addOrderFieldToExistingTodos() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null && _selectedTaskListId != null) {
+      try {
+        final querySnapshot = await _firestoreDB
+            .collection('todos')
+            .where('userId', isEqualTo: userId)
+            .where('listId', isEqualTo: _selectedTaskListId)
+            .get();
+
+        int order = 0;
+        WriteBatch batch = _firestoreDB.batch();
+
+        for (final doc in querySnapshot.docs) {
+          final data = doc.data();
+          if (!data.containsKey('order')) {
+            final docRef = doc.reference;
+            batch.update(docRef, {'order': order});
+          } else {
+            // Falls das 'order'-Feld bereits existiert, aktualisieren wir die Variable 'order' entsprechend
+            order = data['order'] + 1;
+          }
+          order++;
+        }
+
+        await batch.commit();
+        print('Alle bestehenden Aufgaben wurden aktualisiert.');
+      } catch (e) {
+        print('[Error] Beim Aktualisieren der Aufgaben: $e');
+      }
+    }
+  }
+
 
   // Save a new task to Firestore
   void _saveTodos(String? taskName) async {
@@ -85,14 +156,15 @@ class _MyHomePageState extends State<MyHomePage> {
       final userId = FirebaseAuth.instance.currentUser!.uid;
 
       await for (final selectedListId in getCurrentSelectedListId()) {
-        print(selectedListId);
         if (selectedListId != null && taskName != null) {
+          int order = _todos.length;
           DocumentReference docRef =
               await _firestoreDB.collection('todos').add({
             'userId': userId,
             'listId': selectedListId,
             'taskName': taskName,
             'taskCompleted': false,
+            'order': order,
           });
 
           setState(() {
@@ -100,6 +172,7 @@ class _MyHomePageState extends State<MyHomePage> {
               'documentId': docRef.id,
               'taskName': taskName,
               'taskCompleted': false,
+              'order': order,
             });
             _taskCompletionNotifiers.add(ValueNotifier<bool>(false));
             _todoController.clear();
@@ -176,7 +249,8 @@ class _MyHomePageState extends State<MyHomePage> {
       context: context,
       builder: (context) {
         return SingleChildScrollView(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
           child: DialogBox(
             controller: _todoController,
             onSave: _saveTodos,
@@ -387,11 +461,58 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     }
   }
+  Future<void> _updateTaskOrderInFirestore() async {
+    WriteBatch batch = _firestoreDB.batch();
+
+    for (int i = 0; i < _todos.length; i++) {
+      final task = _todos[i];
+      final documentId = task['documentId'];
+      final docRef = _firestoreDB.collection('todos').doc(documentId);
+      batch.update(docRef, {'order': i});
+      task['order'] = i; // Lokales 'order'-Feld aktualisieren
+    }
+    await batch.commit();
+  }
+
+
+  void _onReorder(int oldIndex, int newIndex) async {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+
+    setState(() {
+      final movedTask = _todos.removeAt(oldIndex);
+      _todos.insert(newIndex, movedTask);
+      final movedNotifier = _taskCompletionNotifiers.removeAt(oldIndex);
+      _taskCompletionNotifiers.insert(newIndex, movedNotifier);
+    });
+    // Aktualisieren der Reihenfolge in Firestore
+    await _updateTaskOrderInFirestore();
+  }
+  Widget _buildTodoTile(int index) {
+    final task = _todos[index];
+
+    return ToDoTile(
+      key: ValueKey(task['documentId']),
+      taskName: task['taskName'] as String,
+      taskCompleted: _taskCompletionNotifiers[index].value,
+      onChanged: (newValue) => _checkBoxChanged(newValue, index),
+      deleteFunction: (context) => _deleteTodo(index),
+      onTaskNameChanged: (newTaskName) =>
+          _updateTodoName(task['documentId'], newTaskName),
+      trailing: ReorderableDragStartListener(
+        index: index,
+        child: const Icon(Icons.drag_handle),
+      ),
+    );
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: false,
       endDrawer: SideMenu(
         selectedListId: _selectedTaskListId,
         onSelectedListChanged: (listId) {
@@ -433,11 +554,11 @@ class _MyHomePageState extends State<MyHomePage> {
             size: 28,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20), // Anpassen des Radius nach Bedarf
+            borderRadius:
+                BorderRadius.circular(20),
           ),
         ),
       ),
-
       body: Stack(
         children: [
           RefreshIndicator(
@@ -446,7 +567,7 @@ class _MyHomePageState extends State<MyHomePage> {
               _fetchTodos(_selectedTaskListId!);
             },
             child: Container(
-              color: Theme.of(context).colorScheme.background,
+              color: Theme.of(context).colorScheme.scrim,
               child: _todos.isEmpty
                   ? Center(
                       child: Column(
@@ -470,38 +591,18 @@ class _MyHomePageState extends State<MyHomePage> {
                         ],
                       ),
                     )
-                  : Padding(
-                    padding: const EdgeInsets.only(bottom: 75),
+                  : ReorderableListView(
+                onReorder: _onReorder,
 
-                    child: ListView.builder(
-
-                        itemCount: _todos.length,
-                        itemBuilder: (context, index) {
-                          final task = _todos[index];
-
-                          return ValueListenableBuilder<bool>(
-                            valueListenable: _taskCompletionNotifiers[index],
-                            builder: (context, value, _) {
-                              return ToDoTile(
-                                key: ValueKey(task['documentId']),
-                                taskName: task['taskName'] as String,
-                                taskCompleted: value,
-                                onChanged: (newValue) =>
-                                    _checkBoxChanged(newValue, index),
-                                deleteFunction: (context) => _deleteTodo(index),
-                                onTaskNameChanged: (newTaskName) =>
-                                    _updateTodoName(
-                                        task['documentId'], newTaskName),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                  ),
-
+                buildDefaultDragHandles: false,
+                padding: const EdgeInsets.only(bottom: 75),
+                children: [
+                  for (int index = 0; index < _todos.length; index++)
+                    _buildTodoTile(index),
+                ],
+    ),
             ),
           ),
-
           MyPopupMenu(
             onMenuItemSelected: (menuItem) {
               if (menuItem == MenuItem.item1) {
