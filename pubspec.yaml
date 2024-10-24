@@ -34,14 +34,16 @@ dependencies:
   flutter_launcher_icons: "^0.13.1"
   roundcheckbox: "^2.0.5"
   auto_size_text: "^3.0.0"
-  firebase_core: ^2.17.0
-  firebase_auth: ^4.10.1
-  cloud_firestore: ^4.9.3
+  firebase_core: ^3.4.1
+  firebase_auth: ^5.2.1
+  cloud_firestore: ^5.4.1
   google_sign_in: ^6.1.2
   cupertino_icons: ^1.0.2
   circle_progress_bar: ^0.1.2
   uuid: ^4.0.0
   flutter_riverpod: ^2.4.1
+  provider: ^6.1.2
+  flutter_smart_dialog: ^4.9.8+2
 
 
 
@@ -81,7 +83,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.0
+  flutter_lints: ^4.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -1,13 +1,8 @@
-// Dart imports
-import 'dart:async';
-
-// Package imports
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-// Local imports
-
+import 'package:provider/provider.dart';
+import '../states/list_state.dart';
+import '../states/todo_state.dart';
+import '../states/auth_state.dart';
 import '../util/MenuItem.dart';
 import '../util/addTodo_box.dart';
 import '../util/myTodoTile.dart';
@@ -16,604 +11,274 @@ import '../util/popupmenu.dart';
 import '../util/sideMenu_bar.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  const MyHomePage({super.key});
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final TextEditingController _todoController = TextEditingController();
-  final FirebaseFirestore _firestoreDB = FirebaseFirestore.instance;
-
-  List<Map<String, dynamic>> _todos = [];
-  List<ValueNotifier<bool>> _taskCompletionNotifiers = [];
-  String? _selectedTaskListId;
-  StreamSubscription<String?>? _currentSelectedListIdSubscription;
-
   @override
   void initState() {
     super.initState();
-    _fetchDefaultListIfNeeded();
-    _currentSelectedListIdSubscription =
-        getCurrentSelectedListId().listen((selectedListId) {
-      _selectedTaskListId = selectedListId;
-      if (selectedListId != null) {
-        _fetchTodos(_selectedTaskListId!);
+    final listState = Provider.of<ListState>(context, listen: false);
+    final todoState = Provider.of<TodoState>(context, listen: false);
+
+    listState.fetchOrCreateDefaultList().then((_) {
+      if (listState.selectedListId != null) {
+        todoState.fetchTodos(listState.selectedListId!);
       }
+    }).catchError((error) {
+      print('Error loading lists: $error');
     });
   }
-
-  @override
-  void dispose() {
-    _currentSelectedListIdSubscription?.cancel();
-    _todoController.dispose();
-    super.dispose();
-  }
-
-  void _fetchTodos(String listId) async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId != null) {
-      try {
-        final querySnapshot = await _firestoreDB
-            .collection('todos')
-            .where('userId', isEqualTo: userId)
-            .where('listId', isEqualTo: listId)
-            .get();
-
-        setState(() {
-          _todos = querySnapshot.docs.map((doc) {
-            return {
-              ...doc.data(),
-              'documentId': doc.id,
-            };
-          }).toList();
-
-          _taskCompletionNotifiers = _todos.map((task) {
-            return ValueNotifier<bool>(task['taskCompleted'] ?? false);
-          }).toList();
-        });
-
-        // Nach dem Abrufen der Aufgaben rufen wir die Aktualisierungsmethode auf
-        await _addOrderFieldToExistingTodos();
-
-        // Nach der Aktualisierung rufen wir die Aufgaben erneut ab, diesmal mit der Sortierung
-        await _fetchTodosWithOrder(listId);
-      } catch (e) {
-        print('[Error] Fetching Todos: $e');
-      }
-    }
-  }
-
-  Future<void> _fetchTodosWithOrder(String listId) async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId != null) {
-      try {
-        final querySnapshot = await _firestoreDB
-            .collection('todos')
-            .where('userId', isEqualTo: userId)
-            .where('listId', isEqualTo: listId)
-            .orderBy('order')
-            .get();
-
-        setState(() {
-          _todos = querySnapshot.docs.map((doc) {
-            return {
-              ...doc.data(),
-              'documentId': doc.id,
-            };
-          }).toList();
-
-          _taskCompletionNotifiers = _todos.map((task) {
-            return ValueNotifier<bool>(task['taskCompleted'] ?? false);
-          }).toList();
-        });
-      } catch (e) {
-        print('[Error] Fetching Todos with order: $e');
-      }
-    }
-  }
-
-
-
-  Future<void> _addOrderFieldToExistingTodos() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId != null && _selectedTaskListId != null) {
-      try {
-        final querySnapshot = await _firestoreDB
-            .collection('todos')
-            .where('userId', isEqualTo: userId)
-            .where('listId', isEqualTo: _selectedTaskListId)
-            .get();
-
-        int order = 0;
-        WriteBatch batch = _firestoreDB.batch();
-
-        for (final doc in querySnapshot.docs) {
-          final data = doc.data();
-          if (!data.containsKey('order')) {
-            final docRef = doc.reference;
-            batch.update(docRef, {'order': order});
-          } else {
-            // Falls das 'order'-Feld bereits existiert, aktualisieren wir die Variable 'order' entsprechend
-            order = data['order'] + 1;
-          }
-          order++;
-        }
-
-        await batch.commit();
-        print('Alle bestehenden Aufgaben wurden aktualisiert.');
-      } catch (e) {
-        print('[Error] Beim Aktualisieren der Aufgaben: $e');
-      }
-    }
-  }
-
-
-  // Save a new task to Firestore
-  void _saveTodos(String? taskName) async {
-    try {
-      final userId = FirebaseAuth.instance.currentUser!.uid;
-
-      await for (final selectedListId in getCurrentSelectedListId()) {
-        if (selectedListId != null && taskName != null) {
-          int order = _todos.length;
-          DocumentReference docRef =
-              await _firestoreDB.collection('todos').add({
-            'userId': userId,
-            'listId': selectedListId,
-            'taskName': taskName,
-            'taskCompleted': false,
-            'order': order,
-          });
-
-          setState(() {
-            _todos.add({
-              'documentId': docRef.id,
-              'taskName': taskName,
-              'taskCompleted': false,
-              'order': order,
-            });
-            _taskCompletionNotifiers.add(ValueNotifier<bool>(false));
-            _todoController.clear();
-          });
-
-          Navigator.of(context).pop();
-          break; // Dies beendet die Schleife nach dem ersten erfolgreichen Speichern
-        }
-      }
-    } catch (e) {
-      print('[Error] Saving task: $e');
-    }
-  }
-
-  // Update task's name in Firestore
-  void _updateTodoName(String documentId, String newTaskName) async {
-    try {
-      await _firestoreDB.collection('todos').doc(documentId).update({
-        'taskName': newTaskName,
-      });
-
-      setState(() {
-        final index =
-            _todos.indexWhere((task) => task['documentId'] == documentId);
-        if (index != -1) {
-          _todos[index]['taskName'] = newTaskName;
-        }
-      });
-    } catch (e) {
-      print('[Error] Updating task name: $e');
-    }
-  }
-
-  // Update task's completion status
-  Future<void> _updateTaskCompletionStatus(
-      String documentId, bool newCompletionStatus) async {
-    try {
-      await _firestoreDB.collection('todos').doc(documentId).update({
-        'taskCompleted': newCompletionStatus,
-      });
-    } catch (e) {
-      print('[Error] Updating task completion status: $e');
-    }
-  }
-
-  // Handle check-box change
-  void _checkBoxChanged(bool? value, int index) async {
-    if (index < 0 || index >= _todos.length) {
-      print('[Error] Invalid index while updating task.');
-      return;
-    }
-
-    final task = _todos[index];
-    if (!task.containsKey('documentId')) {
-      print('[Error] Document ID not found while updating task.');
-      return;
-    }
-
-    final documentId = task['documentId'] as String;
-    final newValue = value ?? false;
-    await _updateTaskCompletionStatus(documentId, newValue);
-
-    if (mounted) {
-      setState(() {
-        task['taskCompleted'] = newValue;
-        _taskCompletionNotifiers[index].value = newValue;
-      });
-    }
-  }
-
-  // Show dialog for creating a task
-  void _createTodo() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return SingleChildScrollView(
-          padding:
-              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          child: DialogBox(
-            controller: _todoController,
-            onSave: _saveTodos,
-            onCancel: () {
-              Navigator.of(context).pop();
-              _todoController.clear();
-            },
-            onSubmitted: _saveTodos,
-          ),
-        );
-      },
-    );
-  }
-
-  // Delete a single task
-  void _deleteTodo(int index) async {
-    final task = _todos[index];
-    if (!task.containsKey('documentId')) {
-      print('[Error] Document ID not found while deleting task.');
-      return;
-    }
-
-    final documentId = task['documentId'] as String;
-    await _firestoreDB.collection('todos').doc(documentId).delete();
-
-    setState(() {
-      _todos.removeAt(index);
-      _taskCompletionNotifiers.removeAt(index);
-    });
-  }
-
-  // Delete all tasks for the selected list
-  void _deleteAllListTodos() async {
-    try {
-      final userId = FirebaseAuth.instance.currentUser!.uid;
-      final selectedListId = await getCurrentSelectedListId().first;
-      final snapshot = await _firestoreDB
-          .collection('todos')
-          .where('userId', isEqualTo: userId)
-          .where('listId', isEqualTo: selectedListId)
-          .get();
-
-      await Future.wait(snapshot.docs.map((doc) => doc.reference.delete()));
-
-      setState(() {
-        _todos.clear();
-        _taskCompletionNotifiers.clear();
-      });
-    } catch (e) {
-      print('[Error] Deleting all tasks: $e');
-    }
-  }
-
-  // Logout user
-  void _signUserOut() {
-    FirebaseAuth.instance.signOut();
-  }
-
-  Stream<int> getSelectedListIcon() async* {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId != null) {
-      try {
-        final selectedListIdStream = getCurrentSelectedListId();
-        await for (final selectedListId in selectedListIdStream) {
-          if (selectedListId != null) {
-            final selectedListDoc = await FirebaseFirestore.instance
-                .collection('lists')
-                .doc(selectedListId)
-                .get();
-            final selectedListData = selectedListDoc.data();
-            if (selectedListData != null) {
-              // Ensure that the yielded value is an int.
-              int? listIcon = selectedListData['listIcon'] as int?;
-              yield listIcon ?? 0;
-            } else {
-              yield 0;
-            }
-          } else {
-            yield 0;
-          }
-        }
-      } catch (e) {
-        print('[Error] Getting selected list icon: $e');
-        yield 0;
-      }
-    }
-  }
-
-  Stream<String?> getSelectedListName() async* {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId != null) {
-      try {
-        final selectedListIdStream = getCurrentSelectedListId();
-        await for (final selectedListId in selectedListIdStream) {
-          if (selectedListId != null) {
-            final selectedListDoc = await FirebaseFirestore.instance
-                .collection('lists')
-                .doc(selectedListId)
-                .get();
-            final selectedListData = selectedListDoc.data();
-            if (selectedListData != null) {
-              // Ensure that the yielded value is an int.
-              String? listName = selectedListData['listName'] as String?;
-              yield listName;
-            } else {
-              yield "";
-            }
-          } else {
-            yield "";
-          }
-        }
-      } catch (e) {
-        print('[Error] Getting selected list icon: $e');
-        yield "";
-      }
-    }
-  }
-
-  Stream<String?> getCurrentSelectedListId() async* {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId != null) {
-      try {
-        await for (final userSnapshot in FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .snapshots()) {
-          final userData = userSnapshot.data();
-          if (userData != null) {
-            final selectedListId = userData['selectedListId'] as String?;
-            yield selectedListId;
-          } else {
-            final lists = userData?['lists'] as List<dynamic>;
-            if (lists.isNotEmpty) {
-              final topListId = lists[0]['listId'] as String?;
-              yield topListId;
-            } else {
-              yield null;
-            }
-          }
-        }
-      } catch (e) {
-        print('[Error] Getting current selectedListId: $e');
-        yield null;
-      }
-    } else {
-      yield null;
-    }
-  }
-
-  Stream<int?> selectedListColorStream() async* {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    try {
-      final selectedListIdStream = getCurrentSelectedListId();
-      await for (final selectedListId in selectedListIdStream) {
-        if (selectedListId != null) {
-          final selectedListDoc = await FirebaseFirestore.instance
-              .collection('lists')
-              .doc(selectedListId)
-              .get();
-          final selectedListData = selectedListDoc.data();
-          if (selectedListData != null) {
-            int? listColor = selectedListData['listColor'] as int?;
-            yield listColor;
-          } else {
-            yield null;
-          }
-        } else {
-          yield null;
-        }
-      }
-    } catch (e) {
-      print('[Error] Getting selected list color: $e');
-      yield null;
-    }
-  }
-
-  void _fetchDefaultListIfNeeded() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId != null) {
-      final querySnapshot = await _firestoreDB
-          .collection('lists')
-          .where('userId', isEqualTo: userId)
-          .get();
-
-      if (querySnapshot.docs.isEmpty) {
-        // Create the default list "TodoListo" with blue color, timestamp, and icon.
-        final docRef = await _firestoreDB.collection('lists').add({
-          'createdAt': Timestamp.now(),
-          'userId': userId,
-          'listName': 'TodoListo',
-          'listIcon': Icons.check.codePoint, // Icon code for check
-          'listColor': Colors.blue.value, // Blue color value
-        });
-
-        // Set the newly created list as the selected list for the user.
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .set({'selectedListId': docRef.id}, SetOptions(merge: true));
-
-        // Update the _selectedTaskListId variable with the new list ID.
-        setState(() {
-          _selectedTaskListId = docRef.id;
-        });
-
-        // Fetch the list of todos for the new selected list.
-        _fetchTodos(_selectedTaskListId!);
-      }
-    }
-  }
-  Future<void> _updateTaskOrderInFirestore() async {
-    WriteBatch batch = _firestoreDB.batch();
-
-    for (int i = 0; i < _todos.length; i++) {
-      final task = _todos[i];
-      final documentId = task['documentId'];
-      final docRef = _firestoreDB.collection('todos').doc(documentId);
-      batch.update(docRef, {'order': i});
-      task['order'] = i; // Lokales 'order'-Feld aktualisieren
-    }
-    await batch.commit();
-  }
-
-
-  void _onReorder(int oldIndex, int newIndex) async {
-    if (oldIndex < newIndex) {
-      newIndex -= 1;
-    }
-
-    setState(() {
-      final movedTask = _todos.removeAt(oldIndex);
-      _todos.insert(newIndex, movedTask);
-      final movedNotifier = _taskCompletionNotifiers.removeAt(oldIndex);
-      _taskCompletionNotifiers.insert(newIndex, movedNotifier);
-    });
-    // Aktualisieren der Reihenfolge in Firestore
-    await _updateTaskOrderInFirestore();
-  }
-  Widget _buildTodoTile(int index) {
-    final task = _todos[index];
-
-    return ToDoTile(
-      key: ValueKey(task['documentId']),
-      taskName: task['taskName'] as String,
-      taskCompleted: _taskCompletionNotifiers[index].value,
-      onChanged: (newValue) => _checkBoxChanged(newValue, index),
-      deleteFunction: (context) => _deleteTodo(index),
-      onTaskNameChanged: (newTaskName) =>
-          _updateTodoName(task['documentId'], newTaskName),
-      trailing: ReorderableDragStartListener(
-        index: index,
-        child: const Icon(Icons.drag_handle),
-      ),
-    );
-  }
-
-
 
   @override
   Widget build(BuildContext context) {
+    final todoState = Provider.of<TodoState>(context, listen: true);
+    final authState = Provider.of<AuthState>(context, listen: false);
+    final listState = Provider.of<ListState>(context);
+
+    if (listState.isLoading) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      );
+    }
+
+    void _handleSignOut(BuildContext context) {
+      authState.signOutUser();
+      listState.resetState();
+      todoState.resetState();
+
+      // Navigate to login screen
+      Navigator.of(context).pushReplacementNamed('/login');
+    }
+
+    final currentList = listState.lists.firstWhere(
+          (list) => list['documentId'] == listState.selectedListId,
+      orElse: () => {},
+    );
+    final listColor =
+    currentList.isNotEmpty ? Color(currentList['listColor']) : Colors.grey;
+
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: false,
       endDrawer: SideMenu(
-        selectedListId: _selectedTaskListId,
         onSelectedListChanged: (listId) {
-          setState(() {
-            _selectedTaskListId = listId;
-            _fetchTodos(_selectedTaskListId!);
-          });
+          listState.setSelectedList(listId!);
+          todoState.fetchTodos(listId);
         },
       ),
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: MyAppBar(
-          todos: _todos,
-          selectedListColorStream: selectedListColorStream(),
-          selectedListIconStream:
-              getSelectedListIcon(), // Pass the selected list's icon
-          selectedListNameStream:
-              getSelectedListName(), // Pass the selected list's name
-        ),
-      ),
-      floatingActionButton: SizedBox(
-        height: 50,
-        width: 140,
-        child: FloatingActionButton.extended(
-          elevation: 0,
-          onPressed: _createTodo,
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          label: Text(
-            "Add Todo",
-            style: TextStyle(
-              color: Theme.of(context).iconTheme.color,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-          icon: Icon(
-            Icons.add,
-            color: Theme.of(context).iconTheme.color,
-            size: 28,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(20),
-          ),
-        ),
+      appBar: const PreferredSize(
+        preferredSize: Size.fromHeight(60),
+        child: MyAppBar(),
       ),
       body: Stack(
         children: [
+          // To-Do-Liste im Hintergrund
           RefreshIndicator(
             color: Theme.of(context).colorScheme.secondary,
             onRefresh: () async {
-              _fetchTodos(_selectedTaskListId!);
+              await todoState.fetchTodos(todoState.selectedListId!);
             },
             child: Container(
               color: Theme.of(context).colorScheme.scrim,
-              child: _todos.isEmpty
+              child: todoState.todos.isEmpty
                   ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons
-                                .tag_faces, // Ändern Sie dies auf das gewünschte Icon
-                            size: 50,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(height: 15),
-                          Text(
-                            "Add a Todo +",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                        ],
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.tag_faces,
+                      size: 50,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(height: 15),
+                    Text(
+                      "Add a Todo +",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                    )
+                    ),
+                  ],
+                ),
+              )
                   : ReorderableListView(
-                onReorder: _onReorder,
-
+                onReorder: (oldIndex, newIndex) {
+                  todoState.reorderTodos(
+                      oldIndex, newIndex); // Todos neu sortieren
+                },
                 buildDefaultDragHandles: false,
                 padding: const EdgeInsets.only(bottom: 75),
+                scrollController: ScrollController(),
                 children: [
-                  for (int index = 0; index < _todos.length; index++)
-                    _buildTodoTile(index),
+                  for (int index = 0;
+                  index < todoState.todos.length;
+                  index++)
+                    _buildTodoTile(context, index, todoState),
                 ],
-    ),
+              ),
             ),
           ),
-          MyPopupMenu(
-            onMenuItemSelected: (menuItem) {
-              if (menuItem == MenuItem.item1) {
-                _deleteAllListTodos();
-              } else if (menuItem == MenuItem.item2) {
-                _signUserOut();
-              }
-            },
+          Positioned(
+            bottom: 65, // Fade über den Todo-Tiles
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 12,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).colorScheme.surface.withOpacity(0.8),
+                    Theme.of(context).colorScheme.surface.withOpacity(0.0),
+                  ],
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              height: 65,
+              color: Theme.of(context).colorScheme.surface,
+            ),
+          ),
+          // Buttons und FloatingActionButton im Vordergrund
+          Stack(
+            children: [
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 25),
+                  child: Container(
+                    height: 50,
+                    width: 140,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: listColor, width: 2),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: FloatingActionButton.extended(
+                      elevation: 0,
+                      onPressed: () {
+                        _createTodoDialog(context, todoState);
+                      },
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      label: Text(
+                        "Add Todo",
+                        style: TextStyle(
+                          color: Theme.of(context).iconTheme.color,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      icon: Icon(
+                        Icons.add,
+                        color: Theme.of(context).iconTheme.color,
+                        size: 28,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                      bottom: 12, right: 15),
+                  child: FloatingActionButton(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(40),
+                    ),
+                    elevation: 0,
+                    mini: true,
+                    onPressed: todoState.toggleVisibility,
+                    child: Icon(
+                      color: Theme.of(context).iconTheme.color,
+                      todoState.showCompletedTodos
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 15, bottom: 12),
+              child: MyPopupMenu(
+                onMenuItemSelected: (menuItem) {
+                  if (menuItem == MyMenuItem.item1) {
+                    todoState.deleteAllTodos();
+                  } else if (menuItem == MyMenuItem.item2) {
+                    _handleSignOut(context);
+                  }
+                },
+              ),
+            ),
           ),
         ],
       ),
     );
+  }
+
+  // ToDo-Tile aufbauen
+  Widget _buildTodoTile(BuildContext context, int index, TodoState todoState) {
+    final task = todoState.todos[index];
+
+    return Container(
+      key: ValueKey(task['documentId']),
+      color: Colors.transparent,
+      child: ToDoTile(
+        taskName: task['taskName'] as String,
+        taskCompleted: task['taskCompleted'] as bool,
+        onChanged: (newValue) => todoState.updateTaskCompletionStatus(
+            task['documentId'], newValue ?? false),
+        deleteFunction: (context) => todoState.deleteTodo(task['documentId']),
+        onTaskNameChanged: (newTaskName) =>
+            todoState.updateTodoName(task['documentId'], newTaskName),
+        trailing: ReorderableDragStartListener(
+          index: index,
+          child: Icon(Icons.drag_handle,
+              color: Theme.of(context).colorScheme.surface),
+        ),
+      ),
+    );
+  }
+
+  void _createTodoDialog(BuildContext context, TodoState todoState) {
+    final TextEditingController _todoController = TextEditingController();
+
+    DialogBox(
+      controller: _todoController,
+      onSave: (taskName) {
+        if (taskName != null) {
+          todoState.addTodo(todoState.selectedListId, taskName);
+        }
+      },
+      onCancel: () {
+        _todoController.clear();
+      },
+      onSubmitted: (taskName) {
+        if (taskName != null) {
+          todoState.addTodo(todoState.selectedListId, taskName);
+        }
+      },
+    ).show(context);
   }
 }

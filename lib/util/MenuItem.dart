@@ -1,6 +1,1 @@
-enum MenuItem {
-  item1,
-  item2,
-  item3,
-  item4,
-}
+enum MyMenuItem { item1, item2 }
