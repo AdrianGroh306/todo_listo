@@ -31,6 +31,7 @@
 
   <title>todo</title>
   <link rel="manifest" href="manifest.json">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   <script>
     // The value below is injected by flutter build, do not touch.
@@ -38,6 +39,12 @@
   </script>
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
+  <style>.keyboard-open .your-popup-class {
+  position: fixed;
+  bottom: 0;
+
+}
+  </style>
 </head>
 <body>
 <script>
@@ -54,6 +61,20 @@
         }
       });
     });
+   let initialWindowHeight = window.innerHeight;
+
+  window.addEventListener('resize', function() {
+    const currentWindowHeight = window.innerHeight;
+    const isKeyboardShown = initialWindowHeight > currentWindowHeight;
+
+    if (isKeyboardShown) {
+      // Tastatur ist sichtbar
+      document.body.classList.add('keyboard-open');
+    } else {
+      // Tastatur ist nicht sichtbar
+      document.body.classList.remove('keyboard-open');
+    }
+  });
   </script>
 <noscript>
   <strong>We're sorry but TodoListo doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
