@@ -52,22 +52,22 @@ dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "images/logo_todolisto.png"
-  adaptive_icon_background: "#ffffff"
-  adaptive_icon_foreground: "images/todolisto_logo_foreground.png"
+  image_path: "images/logo_todolisto_full.png"
+  adaptive_icon_background: "#000000"
+  adaptive_icon_foreground: "images/logo_todolisto_full.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
   web:
     generate: true
-    image_path: "images/logo_todolisto.png"
-    background_color: "#FFFFFF"
-    theme_color: "#FFFFFF"
+    image_path: "images/logo_todolisto_full.png"
+    background_color: "transparent"
+    theme_color: "transparent"
   windows:
     generate: true
-    image_path: "images/logo_todolisto.png"
+    image_path: "images/logo_todolisto_full.png"
     icon_size: 48 # min:48, max:256, default: 48
   macos:
     generate: true
-    image_path: "images/logo_todolisto.png"
+    image_path: "images/logo_todolisto_full.png"
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -102,6 +102,7 @@ flutter:
   - "images/apple_logo.png"
   - "images/google_logo.png"
   - "images/logo_todolisto.png"
+  - "images/logo_todolisto_full.png"
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

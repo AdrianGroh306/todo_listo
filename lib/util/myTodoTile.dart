@@ -1,57 +1,82 @@
-import 'package:TodoListo/util/myButton.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 class ToDoTile extends StatefulWidget {
-  String taskName;
+  final String taskName;
   final bool taskCompleted;
-  Function(bool?)? onChanged;
-  Function(BuildContext)? deleteFunction;
-  final ValueChanged<String>? onTaskNameChanged;
+  final Function(bool?) onChanged;
+  final Function(BuildContext) deleteFunction;
+  final Function(String) onTaskNameChanged;
   final Widget? trailing;
+  final bool isEditing;
+  final VoidCallback onEdit;
 
-  ToDoTile({
-    super.key,
+  const ToDoTile({
+    Key? key,
     required this.taskName,
     required this.taskCompleted,
     required this.onChanged,
     required this.deleteFunction,
-    this.onTaskNameChanged,
+    required this.onTaskNameChanged,
+    required this.isEditing,
+    required this.onEdit,
     this.trailing,
-  });
-
-  void updateTaskName(String newTaskName) {
-    if (onTaskNameChanged != null) {
-      onTaskNameChanged!(newTaskName);
-    }
-  }
+  }) : super(key: key);
 
   @override
-  State<ToDoTile> createState() => _ToDoTileState();
+  _ToDoTileState createState() => _ToDoTileState();
 }
 
 class _ToDoTileState extends State<ToDoTile> {
   late TextEditingController _controller;
-  final FocusNode _focusNode = FocusNode(); // FocusNode hinzufügen
+  late FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.taskName);
+    _focusNode = FocusNode();
+
+    if (widget.isEditing) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _focusNode.requestFocus();
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(ToDoTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isEditing && !oldWidget.isEditing) {
+      _focusNode.requestFocus();
+    } else if (!widget.isEditing && oldWidget.isEditing) {
+      _focusNode.unfocus();
+    }
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _focusNode.dispose(); // FocusNode freigeben
+    _focusNode.dispose();
     super.dispose();
+  }
+
+  void _saveTaskName() {
+    String newTaskName = _controller.text.trim();
+    if (newTaskName.isNotEmpty) {
+      widget.onTaskNameChanged(newTaskName);
+    } else {
+      widget.deleteFunction(context);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 15, right: 15, top: 5),
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return GestureDetector(
+      onTap: widget.onEdit,
       child: Slidable(
         endActionPane: ActionPane(
           motion: const DrawerMotion(),
@@ -59,168 +84,76 @@ class _ToDoTileState extends State<ToDoTile> {
             SlidableAction(
               onPressed: widget.deleteFunction,
               icon: Icons.delete,
-              backgroundColor: Theme.of(context).colorScheme.error,
+              backgroundColor: theme.colorScheme.error,
               borderRadius: BorderRadius.circular(15),
-            )
+            ),
           ],
         ),
-        child: SizedBox(
-          height: 50,
-          child: Container(
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(15),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.only(left: 15, right: 25),
+            leading: Transform.scale(
+              scale: 1.3,
+              child: Checkbox(
+                value: widget.taskCompleted,
+                onChanged: widget.onChanged,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                side: BorderSide(
+                  color: widget.taskCompleted
+                      ? colorScheme.secondary
+                      : colorScheme.secondary,
+                  width: 2,
+                ),
+                checkColor: colorScheme.surface,
+                fillColor: WidgetStateProperty.resolveWith<Color?>(
+                      (Set<WidgetState> states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return colorScheme.primary;
+                    }
+                    return Colors.transparent;
+                  },
+                ),
+              ),
             ),
-            child: Row(
-              children: [
-                Transform.scale(
-                  scale: 1.2,
-                  child: Checkbox(
-                    value: widget.taskCompleted,
-                    onChanged: widget.onChanged,
-                    activeColor: Theme.of(context).colorScheme.tertiary,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(5),
-                        bottomRight: Radius.circular(5),
-                        topLeft: Radius.circular(5),
-                        topRight: Radius.circular(5),
-                      ),
-                    ),
-                  ),
+            title: widget.isEditing
+                ? TextField(
+              controller: _controller,
+              focusNode: _focusNode,
+              autofocus: true,
+              onSubmitted: (value) {
+                _saveTaskName();
+              },
+              decoration: InputDecoration(
+                hintText: 'Enter todo',
+                hintStyle: TextStyle(
+                  color: colorScheme.onSurface.withOpacity(0.5),
                 ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      _showEditDialog(context);
-                    },
-                    child: Text(
-                      widget.taskName,
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: widget.taskCompleted ? Colors.grey : Colors.white,
-                        decoration: widget.taskCompleted
-                            ? TextDecoration.lineThrough
-                            : TextDecoration.none,
-                      ),
-                      maxLines: 2,
-                    ),
-                  ),
+                border: const UnderlineInputBorder(),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: colorScheme.secondary),
                 ),
-                if (widget.trailing != null) widget.trailing!,
-                const SizedBox(
-                  width: 10,
-                ),
-              ],
+              ),
+            )
+                : Text(
+              widget.taskName,
+              style: TextStyle(
+                decoration: widget.taskCompleted
+                    ? TextDecoration.lineThrough
+                    : null,
+                color: widget.taskCompleted
+                    ? colorScheme.onSurface.withOpacity(0.6)
+                    : colorScheme.onSurface,
+              ),
             ),
+            trailing: widget.trailing ?? Container(width: 0),
           ),
         ),
       ),
-    );
-  }
-
-  void _showEditDialog(BuildContext context) {
-    SmartDialog.show(
-      alignment: Alignment.center,
-      useAnimation: false,
-      builder: (context) {
-        // Verzögerung, um sicherzustellen, dass das Textfeld den Fokus erhält
-        Future.delayed(Duration.zero, () {
-          _focusNode.requestFocus(); // Fokus setzen
-        });
-        return Container(
-          padding: const EdgeInsets.all(20),
-          margin: const EdgeInsets.symmetric(horizontal: 15),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.secondary,
-              width: 2,
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "Edit Todo",
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _controller,
-                focusNode: _focusNode, // FocusNode zuweisen
-                autofocus: true,
-                cursorColor: Theme.of(context).colorScheme.secondary,
-                style: TextStyle(
-                  decoration: TextDecoration.none,
-                  decorationThickness: 0,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  enabledBorder: InputBorder.none,
-                  hintText: "Todo...",
-                  hintStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    widget.taskName = value;
-                  });
-                },
-                onSubmitted: (value) {
-                  widget.updateTaskName(value);
-                  SmartDialog.dismiss();
-                },
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  MyButton(
-                    text: "Back",
-                    onPressed: () {
-                      SmartDialog.dismiss();
-                    },
-                    color: Theme.of(context).colorScheme.primary,
-                    textColor: Theme.of(context).colorScheme.secondary,
-                    borderRadius: 15,
-                  ),
-                  const SizedBox(width: 70),
-                  MyButton(
-                    text: "Save",
-                    onPressed: () {
-                      widget.updateTaskName(_controller.text);
-                      SmartDialog.dismiss();
-                    },
-                    color: Theme.of(context).colorScheme.secondary,
-                    textColor: Theme.of(context).colorScheme.primary,
-                    borderRadius: 15,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

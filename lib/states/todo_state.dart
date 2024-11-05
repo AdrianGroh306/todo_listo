@@ -1,3 +1,4 @@
+// File: lib/states/todo_state.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -20,45 +21,40 @@ class TodoState extends ChangeNotifier {
   int? get selectedListColor => _selectedListColor;
   bool get showCompletedTodos => _showCompletedTodos;
 
-  // Methode zum Umschalten der Sichtbarkeit
   void toggleVisibility() {
     _showCompletedTodos = !_showCompletedTodos;
     notifyListeners();
   }
 
-  /// Lädt die Informationen zur aktuell ausgewählten Liste.
-  Future<void> fetchSelectedListInfo() async {
-    if (selectedListId == null) return;
+  Future<void> fetchSelectedListInfo(String listId) async {
+    if (listId == null) return;
 
     try {
       final selectedListDoc =
-      await _firestore.collection('lists').doc(selectedListId).get();
+      await _firestore.collection('lists').doc(listId).get();
       final selectedListData = selectedListDoc.data();
 
       if (selectedListData != null) {
         _selectedListName = selectedListData['listName'] as String?;
         _selectedListIcon = selectedListData['listIcon'] as int?;
         _selectedListColor = selectedListData['listColor'] as int?;
-        notifyListeners(); // UI aktualisieren
+        notifyListeners();
       }
     } catch (e) {
       print('[Error] Fetching selected list info: $e');
     }
   }
 
-  /// Lädt die Todos für eine bestimmte `listId`.
   Future<void> fetchTodos(String listId) async {
     try {
       selectedListId = listId;
 
-      // Fetch todos for the selected list
       final querySnapshot = await _firestore
           .collection('todos')
           .where('listId', isEqualTo: listId)
           .orderBy('order')
           .get();
 
-      // Load todos into the local list
       _todos = querySnapshot.docs.map((doc) {
         final data = doc.data();
         return {
@@ -75,8 +71,6 @@ class TodoState extends ChangeNotifier {
     }
   }
 
-
-  /// Fügt ein neues Todo zur Liste hinzu.
   Future<void> addTodo(String? listId, String taskName) async {
     if (listId == null) {
       print('Error: listId is null');
@@ -86,7 +80,6 @@ class TodoState extends ChangeNotifier {
     try {
       int order = _todos.length;
 
-      // Todo zur Datenbank hinzufügen
       final docRef = await _firestore.collection('todos').add({
         'listId': listId,
         'taskName': taskName,
@@ -94,7 +87,6 @@ class TodoState extends ChangeNotifier {
         'order': order,
       });
 
-      // Füge das Todo zur lokalen Liste hinzu
       _todos.add({
         'documentId': docRef.id,
         'taskName': taskName,
@@ -109,17 +101,19 @@ class TodoState extends ChangeNotifier {
     }
   }
 
-  /// Aktualisiert den Namen eines spezifischen Todos.
   Future<void> updateTodoName(String documentId, String newTaskName) async {
     try {
       await _firestore.collection('todos').doc(documentId).update({
         'taskName': newTaskName,
       });
 
-      // Aktualisiere das Todo in der lokalen Liste
-      final index = _todos.indexWhere((todo) => todo['documentId'] == documentId);
+      final index =
+      _todos.indexWhere((todo) => todo['documentId'] == documentId);
       if (index != -1) {
         _todos[index]['taskName'] = newTaskName;
+        if (_todos[index]['isNew'] == true) {
+          _todos[index].remove('isNew');
+        }
         notifyListeners();
       }
     } catch (e) {
@@ -127,15 +121,15 @@ class TodoState extends ChangeNotifier {
     }
   }
 
-  /// Aktualisiert den Status eines Todos (abgeschlossen/nicht abgeschlossen).
-  Future<void> updateTaskCompletionStatus(String documentId, bool isCompleted) async {
+  Future<void> updateTaskCompletionStatus(
+      String documentId, bool isCompleted) async {
     try {
       await _firestore.collection('todos').doc(documentId).update({
         'taskCompleted': isCompleted,
       });
 
-      // Aktualisiere den Status in der lokalen Liste
-      final index = _todos.indexWhere((todo) => todo['documentId'] == documentId);
+      final index =
+      _todos.indexWhere((todo) => todo['documentId'] == documentId);
       if (index != -1) {
         _todos[index]['taskCompleted'] = isCompleted;
         notifyListeners();
@@ -145,12 +139,10 @@ class TodoState extends ChangeNotifier {
     }
   }
 
-  /// Löscht ein spezifisches Todo.
   Future<void> deleteTodo(String documentId) async {
     try {
       await _firestore.collection('todos').doc(documentId).delete();
 
-      // Lösche das Todo aus der lokalen Liste
       _todos.removeWhere((todo) => todo['documentId'] == documentId);
       notifyListeners();
     } catch (e) {
@@ -158,19 +150,16 @@ class TodoState extends ChangeNotifier {
     }
   }
 
-  /// Aktualisiert die Reihenfolge der Todos.
   Future<void> reorderTodos(int oldIndex, int newIndex) async {
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
 
-    // Todo lokal verschieben
     final movedTodo = _todos.removeAt(oldIndex);
     _todos.insert(newIndex, movedTodo);
 
     notifyListeners();
 
-    // Reihenfolge in Firestore aktualisieren
     WriteBatch batch = _firestore.batch();
     for (int i = 0; i < _todos.length; i++) {
       final todo = _todos[i];
@@ -181,7 +170,6 @@ class TodoState extends ChangeNotifier {
     await batch.commit();
   }
 
-  /// Löscht alle Todos in der ausgewählten Liste.
   Future<void> deleteAllTodos() async {
     if (selectedListId != null) {
       try {
@@ -213,4 +201,5 @@ class TodoState extends ChangeNotifier {
     _showCompletedTodos = false;
     notifyListeners();
   }
+
 }

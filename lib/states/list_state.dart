@@ -1,3 +1,4 @@
+// File: lib/states/list_state.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -31,21 +32,18 @@ class ListState extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Fetch the user's document to get the last selectedListId
       final userDoc = await _firestore.collection('users').doc(userId).get();
       final userData = userDoc.data();
       String? storedSelectedListId = userData != null
           ? userData['selectedListId'] as String?
           : null;
 
-      // Fetch all lists belonging to the user
       final listsQuery = await _firestore
           .collection('lists')
           .where('userId', isEqualTo: userId)
           .get();
 
       if (listsQuery.docs.isEmpty) {
-        // No lists present, create a default list
         final docRef = await _firestore.collection('lists').add({
           'userId': userId,
           'listName': 'My Todos',
@@ -66,12 +64,10 @@ class ListState extends ChangeNotifier {
           'listColor': _selectedListColor,
         });
 
-        // Update the user's document with the new selectedListId
         await _firestore.collection('users').doc(userId).set({
           'selectedListId': _selectedListId,
         }, SetOptions(merge: true));
       } else {
-        // Lists are present
         _lists = listsQuery.docs.map((doc) {
           final data = doc.data();
           return {
@@ -82,18 +78,15 @@ class ListState extends ChangeNotifier {
           };
         }).toList();
 
-        // Check if storedSelectedListId exists in the fetched lists
         if (storedSelectedListId != null &&
             _lists.any((list) => list['documentId'] == storedSelectedListId)) {
           _selectedListId = storedSelectedListId;
         } else {
-          // If not, default to the first list
           final firstList = _lists.first;
           _selectedListId = firstList['documentId'];
         }
 
-        // Load the selected list's information
-        await fetchSelectedListInfo();
+        await fetchSelectedListInfo(_selectedListId!);
       }
     } catch (e) {
       print('Error fetching or creating default list: $e');
@@ -109,37 +102,36 @@ class ListState extends ChangeNotifier {
 
     _selectedListId = listId;
 
-    // Update the selected list in Firestore
     await _firestore.collection('users').doc(userId).set({
       'selectedListId': listId,
     }, SetOptions(merge: true));
 
-    // Load the information of the selected list
-    await fetchSelectedListInfo();
+    await fetchSelectedListInfo(listId);
 
-    notifyListeners(); // Call after data is updated
+    notifyListeners();
   }
 
-  // Lade die Infos der ausgewählten Liste (Name, Icon, Farbe)
-  Future<void> fetchSelectedListInfo() async {
+  Future<void> fetchSelectedListInfo(String listId) async {
     if (_selectedListId == null) return;
 
     try {
       final selectedListDoc =
-      await _firestore.collection('lists').doc(_selectedListId).get();
+      await _firestore.collection('lists').doc(listId).get();
       final selectedListData = selectedListDoc.data();
 
       if (selectedListData != null) {
         _selectedListName = selectedListData['listName'] as String?;
         _selectedListIcon = selectedListData['listIcon'] as int?;
         _selectedListColor = selectedListData['listColor'] as int?;
+        notifyListeners();
       }
     } catch (e) {
       print('[Error] Fetching selected list info: $e');
     }
   }
 
-  Future<String> addList(String listName, int listIcon, int listColor) async {
+  Future<String> addList(
+      String listName, int listIcon, int listColor) async {
     final userId = _auth.currentUser?.uid;
     if (userId == null) throw Exception("User not authenticated");
 
@@ -161,14 +153,12 @@ class ListState extends ChangeNotifier {
 
       notifyListeners();
 
-      // Gib die documentId zurück
       return docRef.id;
     } catch (e) {
       print('Error adding list: $e');
       rethrow;
     }
   }
-
 
   Future<void> updateList(String listId, String listName, IconData iconData,
       int listColor) async {
@@ -200,24 +190,19 @@ class ListState extends ChangeNotifier {
         throw Exception("You cannot delete the last list");
       }
 
-      // Delete the list from the database
       await _firestore.collection('lists').doc(documentId).delete();
 
-      // Remove the list from the local state
       _lists.removeWhere((item) => item['documentId'] == documentId);
 
-      // If the deleted list was the selected list, set another list as the default
       if (_selectedListId == documentId && _lists.isNotEmpty) {
         final newSelectedList = _lists.first;
         await setSelectedList(newSelectedList['documentId']);
       } else if (_lists.isEmpty) {
-        // If no lists are left, set all fields to null
         _selectedListId = null;
         _selectedListName = null;
         _selectedListIcon = null;
         _selectedListColor = null;
 
-        // Update the user's document
         final userId = _auth.currentUser?.uid;
         if (userId != null) {
           await _firestore.collection('users').doc(userId).set({
@@ -226,7 +211,6 @@ class ListState extends ChangeNotifier {
         }
       }
 
-      // Update the UI
       notifyListeners();
     } catch (e) {
       print('Error deleting list: $e');
@@ -243,5 +227,4 @@ class ListState extends ChangeNotifier {
     isLoading = false;
     notifyListeners();
   }
-
 }
