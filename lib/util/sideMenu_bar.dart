@@ -192,7 +192,7 @@ class _SideMenuState extends State<SideMenu> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(20),
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Theme
@@ -210,7 +210,7 @@ class _SideMenuState extends State<SideMenu> {
                   const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
                 icon: const Icon(Icons.add),
-                label: const Text('Add List'),
+                label: const Text(style: TextStyle(fontWeight: FontWeight.bold),'Add List'),
                 onPressed: () {
                   showDialog(
                     context: context,
