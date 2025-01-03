@@ -90,6 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return GestureDetector(
       onTap: stopEditing,
+      behavior: HitTestBehavior.translucent,
       child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
         resizeToAvoidBottomInset: false,
