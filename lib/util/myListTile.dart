@@ -11,7 +11,7 @@ class MyListTile extends StatelessWidget {
   final VoidCallback onEdit;
 
   const MyListTile({
-    Key? key,
+    super.key,
     required this.listName,
     required this.listColor,
     required this.isSelected,
@@ -19,7 +19,7 @@ class MyListTile extends StatelessWidget {
     required this.onTap,
     required this.onDelete,
     required this.onEdit,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
