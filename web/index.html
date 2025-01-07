@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -25,6 +25,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="todo">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no">
+
+
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
@@ -63,20 +66,6 @@
         }
       });
     });
-   let initialWindowHeight = window.innerHeight;
-
-  window.addEventListener('resize', function() {
-    const currentWindowHeight = window.innerHeight;
-    const isKeyboardShown = initialWindowHeight > currentWindowHeight;
-
-    if (isKeyboardShown) {
-      // Tastatur ist sichtbar
-      document.body.classList.add('keyboard-open');
-    } else {
-      // Tastatur ist nicht sichtbar
-      document.body.classList.remove('keyboard-open');
-    }
-  });
   </script>
 <noscript>
   <strong>We're sorry but TodoListo doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
