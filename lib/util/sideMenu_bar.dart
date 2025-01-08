@@ -209,7 +209,7 @@ class _SideMenuState extends State<SideMenu> {
                   padding:
                   const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
-                icon: const Icon(Icons.add),
+                icon: Icon(Icons.add, color: Theme.of(context).colorScheme.secondary),
                 label: const Text(style: TextStyle(fontWeight: FontWeight.bold),'Add List'),
                 onPressed: () {
                   showDialog(

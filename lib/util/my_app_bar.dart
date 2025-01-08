@@ -36,6 +36,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
         final progressValue = totalTodos == 0 ? 0.0 : completedTodos / totalTodos;
 
         return AppBar(
+          iconTheme: IconThemeData(color: Theme.of(context).colorScheme.secondary),
           elevation: 0,
           backgroundColor: Theme.of(context).colorScheme.surface,
           title: Row(

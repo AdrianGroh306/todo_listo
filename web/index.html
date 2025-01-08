@@ -66,7 +66,19 @@
         }
       });
     });
-  </script>
+  let initialWindowHeight = window.innerHeight;
+
+window.addEventListener('resize', function() {
+  const currentWindowHeight = window.innerHeight;
+  const isKeyboardShown = initialWindowHeight > currentWindowHeight;
+
+  if (isKeyboardShown) {
+    document.body.classList.add('keyboard-open');
+  } else {
+    document.body.classList.remove('keyboard-open');
+  }
+});
+</script>
 <noscript>
   <strong>We're sorry but TodoListo doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
 </noscript>

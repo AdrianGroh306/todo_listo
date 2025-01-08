@@ -12,7 +12,7 @@ class ToDoTile extends StatefulWidget {
   final VoidCallback onEdit;
 
   const ToDoTile({
-    Key? key,
+    super.key,
     required this.taskName,
     required this.taskCompleted,
     required this.onChanged,
@@ -21,7 +21,7 @@ class ToDoTile extends StatefulWidget {
     required this.isEditing,
     required this.onEdit,
     this.trailing,
-  }) : super(key: key);
+  });
 
   @override
   _ToDoTileState createState() => _ToDoTileState();
@@ -131,7 +131,7 @@ class _ToDoTileState extends State<ToDoTile> {
               decoration: InputDecoration(
                 hintText: 'Enter todo',
                 hintStyle: TextStyle(
-                  color: colorScheme.onSurface.withOpacity(0.5),
+                  color: colorScheme.onSurface,
                 ),
                 border: const UnderlineInputBorder(),
                 focusedBorder: UnderlineInputBorder(
@@ -146,8 +146,8 @@ class _ToDoTileState extends State<ToDoTile> {
                     ? TextDecoration.lineThrough
                     : null,
                 color: widget.taskCompleted
-                    ? colorScheme.onSurface.withOpacity(0.6)
-                    : colorScheme.onSurface,
+                    ? colorScheme.onSurface
+                    : colorScheme.secondary,
               ),
             ),
             trailing: widget.trailing ?? Container(width: 0),

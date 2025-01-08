@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
-    iconTheme: const IconThemeData(
+    iconTheme: IconThemeData(
       color: Colors.white,
     ),
     textSelectionTheme: const TextSelectionThemeData(
@@ -15,17 +15,17 @@ ThemeData lightTheme = ThemeData(
       secondary: Colors.white,
       tertiary: Colors.black12,
       error: Colors.red,
-      shadow: Colors.black.withOpacity(0.2),
+      shadow: Colors.black,
       scrim: Colors.transparent,
     ));
 
 ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
-    iconTheme: const IconThemeData(color: Colors.white),
+    iconTheme: IconThemeData(color: Colors.white),
     textSelectionTheme: const TextSelectionThemeData(
       cursorColor: Colors.white,
       selectionHandleColor:
-          Colors.white, // Hier die Farbe des Cursors (Tropfens) setzen
+          Colors.white,
     ),
     colorScheme: ColorScheme.dark(
       surface: Colors.grey[900]!,
@@ -33,6 +33,6 @@ ThemeData darkTheme = ThemeData(
       secondary: Colors.white,
       tertiary: Colors.black12,
       error: Colors.red,
-      shadow: Colors.white.withOpacity(0.2),
+      shadow: Colors.white,
       scrim: Colors.transparent,
     ));
