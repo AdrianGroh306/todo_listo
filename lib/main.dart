@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'pages/auth_page.dart';
 import 'services/theme.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +23,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => AuthState()),
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthState()),
         ChangeNotifierProvider(create: (_) => ListState()),
         ChangeNotifierProvider(create: (_) => TodoState()),
       ],
@@ -33,6 +35,15 @@ class MyApp extends StatelessWidget {
         themeMode: ThemeMode.system,
         home: const AuthPage(),
         builder: FlutterSmartDialog.init(),
+        // Performance optimizations for web
+        scrollBehavior: const MaterialScrollBehavior().copyWith(
+          dragDevices: {
+            PointerDeviceKind.mouse,
+            PointerDeviceKind.touch,
+            PointerDeviceKind.stylus,
+            PointerDeviceKind.unknown,
+          },
+        ),
       ),
     );
   }

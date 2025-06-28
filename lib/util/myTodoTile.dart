@@ -40,16 +40,16 @@ class _ToDoTileState extends State<ToDoTile>
     _textController = TextEditingController(text: widget.taskName);
     
     _checkboxAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 150), // Faster for mobile
       vsync: this,
     );
     
     _checkboxScaleAnimation = Tween<double>(
       begin: 1.0,
-      end: 0.85,
+      end: 0.9, // Less aggressive scaling
     ).animate(CurvedAnimation(
       parent: _checkboxAnimationController,
-      curve: Curves.easeInOutCubic,
+      curve: Curves.easeOut, // Simpler curve
     ));
   }
 
@@ -73,99 +73,103 @@ class _ToDoTileState extends State<ToDoTile>
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
-      decoration: BoxDecoration(
-        color: widget.taskCompleted 
-            ? colorScheme.surfaceContainerHighest.withOpacity(0.5)
-            : colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: _isHovered 
-              ? colorScheme.outline.withOpacity(0.3)
-              : Colors.transparent,
-          width: 1,
+    // Pre-calculate colors for better performance
+    final tileColor = widget.taskCompleted 
+        ? colorScheme.surfaceContainerHighest.withOpacity(0.5)
+        : colorScheme.surface;
+    final textColor = widget.taskCompleted 
+        ? colorScheme.onSurface.withOpacity(0.6)
+        : colorScheme.onSurface;
+    
+    return RepaintBoundary(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
+        decoration: BoxDecoration(
+          color: tileColor,
+          borderRadius: BorderRadius.circular(12),
+          border: _isHovered ? Border.all(
+            color: colorScheme.outline.withOpacity(0.3),
+            width: 1,
+          ) : null,
         ),
-      ),
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _isHovered = true),
-        onExit: (_) => setState(() => _isHovered = false),
-        child: ListTile(
-          contentPadding: const EdgeInsets.only(
-            left: 16,
-            right: 8,
-            top: 2,
-            bottom: 2,
-          ),
-          title: widget.isEditing
-              ? TextField(
-                  controller: _textController,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: colorScheme.primary),
+        child: MouseRegion(
+          onEnter: (_) => setState(() => _isHovered = true),
+          onExit: (_) => setState(() => _isHovered = false),
+          child: ListTile(
+            contentPadding: const EdgeInsets.only(
+              left: 16,
+              right: 8,
+              top: 2,
+              bottom: 2,
+            ),
+            title: widget.isEditing
+                ? TextField(
+                    controller: _textController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: colorScheme.primary),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: colorScheme.primary, width: 2),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                  ),
-                  onSubmitted: (value) {
-                    if (value.trim().isNotEmpty) {
-                      widget.onTaskNameChanged?.call(value.trim());
-                    }
-                  },
-                  onTapOutside: (_) {
-                    if (_textController.text.trim().isNotEmpty) {
-                      widget.onTaskNameChanged?.call(_textController.text.trim());
-                    }
-                  },
-                )
-              : GestureDetector(
-                  onTap: widget.quickToggle ? _handleCheckboxTap : widget.onEdit,
-                  child: Text(
-                    widget.taskName,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: widget.taskCompleted 
-                          ? colorScheme.onSurface.withOpacity(0.6)
-                          : colorScheme.onSurface,
-                      decoration: widget.taskCompleted
-                          ? TextDecoration.lineThrough
-                          : TextDecoration.none,
-                      decorationColor: colorScheme.onSurface.withOpacity(0.6),
-                      decorationThickness: 2,
-                      fontWeight: FontWeight.w500,
+                    onSubmitted: (value) {
+                      if (value.trim().isNotEmpty) {
+                        widget.onTaskNameChanged?.call(value.trim());
+                      }
+                    },
+                    onTapOutside: (_) {
+                      if (_textController.text.trim().isNotEmpty) {
+                        widget.onTaskNameChanged?.call(_textController.text.trim());
+                      }
+                    },
+                  )
+                : GestureDetector(
+                    onTap: widget.quickToggle ? _handleCheckboxTap : widget.onEdit,
+                    child: Text(
+                      widget.taskName,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: textColor,
+                        decoration: widget.taskCompleted
+                            ? TextDecoration.lineThrough
+                            : TextDecoration.none,
+                        decorationColor: textColor,
+                        decorationThickness: 2,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                ),
-          trailing: RepaintBoundary(
-            child: AnimatedBuilder(
-              animation: _checkboxScaleAnimation,
-              builder: (context, child) {
-                return Transform.scale(
-                  scale: _checkboxScaleAnimation.value * 1.3,
-                  child: Checkbox(
-                    value: widget.taskCompleted,
-                    onChanged: (_) => _handleCheckboxTap(),
-                    activeColor: colorScheme.primary,
-                    checkColor: colorScheme.onPrimary,
-                    side: BorderSide(
-                      color: colorScheme.outline,
-                      width: 2,
+            trailing: RepaintBoundary(
+              child: AnimatedBuilder(
+                animation: _checkboxScaleAnimation,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _checkboxScaleAnimation.value * 1.2,
+                    child: Checkbox(
+                      value: widget.taskCompleted,
+                      onChanged: (_) => _handleCheckboxTap(),
+                      activeColor: colorScheme.primary,
+                      checkColor: colorScheme.onPrimary,
+                      side: BorderSide(
+                        color: colorScheme.outline,
+                        width: 2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ),

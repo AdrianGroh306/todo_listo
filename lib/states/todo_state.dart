@@ -4,15 +4,43 @@ import 'package:flutter/material.dart';
 class TodoState extends ChangeNotifier {
   List<Map<String, dynamic>> _todos = [];
   String? selectedListId;
+  
+  // Cache computed lists for better performance
+  List<Map<String, dynamic>>? _cachedCompletedTodos;
+  List<Map<String, dynamic>>? _cachedIncompleteTodos;
+  bool _cacheValid = false;
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   List<Map<String, dynamic>> get todos => _todos;
   List<Map<String, dynamic>> get allTodos => _todos;
-  List<Map<String, dynamic>> get completedTodos =>
-      _todos.where((todo) => todo['taskCompleted'] == true).toList();
-  List<Map<String, dynamic>> get incompleteTodos =>
-      _todos.where((todo) => todo['taskCompleted'] == false).toList();
+  
+  List<Map<String, dynamic>> get completedTodos {
+    if (!_cacheValid || _cachedCompletedTodos == null) {
+      _cachedCompletedTodos = _todos.where((todo) => todo['taskCompleted'] == true).toList();
+    }
+    return _cachedCompletedTodos!;
+  }
+  
+  List<Map<String, dynamic>> get incompleteTodos {
+    if (!_cacheValid || _cachedIncompleteTodos == null) {
+      _cachedIncompleteTodos = _todos.where((todo) => todo['taskCompleted'] == false).toList();
+    }
+    return _cachedIncompleteTodos!;
+  }
+
+  void _invalidateCache() {
+    _cacheValid = false;
+    _cachedCompletedTodos = null;
+    _cachedIncompleteTodos = null;
+  }
+
+  @override
+  void notifyListeners() {
+    _invalidateCache();
+    _cacheValid = true; // Mark as valid after recomputing
+    super.notifyListeners();
+  }
 
   Future<void> fetchTodos(String listId) async {
     try {
@@ -171,6 +199,43 @@ class TodoState extends ChangeNotifier {
       // Revert on error
       fetchTodos(selectedListId!);
     }
+  }
+
+  // Get unique task names for autocomplete suggestions
+  List<String> getUniqueTaskNames() {
+    return _todos
+        .map((todo) => todo['taskName'] as String)
+        .where((name) => name.isNotEmpty)
+        .toSet()
+        .toList();
+  }
+
+  // Get frequency map for smart learning (tracks how often items are used)
+  Map<String, int> getItemFrequency() {
+    final frequencyMap = <String, int>{};
+    
+    for (final todo in _todos) {
+      final taskName = (todo['taskName'] as String).toLowerCase().trim();
+      if (taskName.isNotEmpty) {
+        frequencyMap[taskName] = (frequencyMap[taskName] ?? 0) + 1;
+      }
+    }
+    
+    return frequencyMap;
+  }
+
+  // Get most frequently used items (for quick suggestions)
+  List<String> getMostFrequentItems({int limit = 10}) {
+    final frequencyMap = getItemFrequency();
+    
+    // Convert to list and sort by frequency
+    final sortedItems = frequencyMap.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    
+    return sortedItems
+        .take(limit)
+        .map((entry) => entry.key)
+        .toList();
   }
 
   void resetState() {

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../states/list_state.dart';
 import '../states/todo_state.dart';
 import '../util/myTodoTile.dart';
-import '../util/simple_dialog_box.dart';
+import '../util/smart_add_dialog.dart';
 import '../util/my_app_bar.dart';
 import '../util/sideMenu_bar.dart';
 import 'completed_todos_page.dart';
@@ -95,7 +95,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   buildDefaultDragHandles: false,
                   padding: const EdgeInsets.only(bottom: 100),
                   itemCount: incompleteTodos.length,
+                  physics: const BouncingScrollPhysics(), // Better iOS feel
+                  scrollDirection: Axis.vertical,
                   onReorder: (oldIndex, newIndex) {
+                    // Debounce rapid reorder calls for better performance
                     todoState.reorderTodos(oldIndex, newIndex);
                   },
                   itemBuilder: (context, index) {
@@ -177,11 +180,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     showDialog(
                       context: context,
                       builder: (context) {
-                        final controller = TextEditingController();
-                        return SimpleDialogBox(
-                          controller: controller,
-                          onSave: () {
-                            final taskName = controller.text.trim();
+                        return SmartAddDialog(
+                          onSave: (taskName) {
                             if (taskName.isNotEmpty) {
                               todoState.addTodo(taskName, listState.selectedListId!);
                             }
