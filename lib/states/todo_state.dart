@@ -1,205 +1,181 @@
-// File: lib/states/todo_state.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class TodoState extends ChangeNotifier {
   List<Map<String, dynamic>> _todos = [];
   String? selectedListId;
-  String? _selectedListName;
-  int? _selectedListIcon;
-  int? _selectedListColor;
-  bool _showCompletedTodos = false;
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  List<Map<String, dynamic>> get todos => _showCompletedTodos
-      ? _todos.where((todo) => todo['taskCompleted'] == true).toList()
-      : _todos.where((todo) => todo['taskCompleted'] == false).toList();
+  List<Map<String, dynamic>> get todos => _todos;
   List<Map<String, dynamic>> get allTodos => _todos;
-  String? get selectedListName => _selectedListName;
-  int? get selectedListIcon => _selectedListIcon;
-  int? get selectedListColor => _selectedListColor;
-  bool get showCompletedTodos => _showCompletedTodos;
-
-  void toggleVisibility() {
-    _showCompletedTodos = !_showCompletedTodos;
-    notifyListeners();
-  }
-
-  Future<void> fetchSelectedListInfo(String listId) async {
-    if (listId == null) return;
-
-    try {
-      final selectedListDoc =
-      await _firestore.collection('lists').doc(listId).get();
-      final selectedListData = selectedListDoc.data();
-
-      if (selectedListData != null) {
-        _selectedListName = selectedListData['listName'] as String?;
-        _selectedListIcon = selectedListData['listIcon'] as int?;
-        _selectedListColor = selectedListData['listColor'] as int?;
-        notifyListeners();
-      }
-    } catch (e) {
-      print('[Error] Fetching selected list info: $e');
-    }
-  }
+  List<Map<String, dynamic>> get completedTodos =>
+      _todos.where((todo) => todo['taskCompleted'] == true).toList();
+  List<Map<String, dynamic>> get incompleteTodos =>
+      _todos.where((todo) => todo['taskCompleted'] == false).toList();
 
   Future<void> fetchTodos(String listId) async {
     try {
       selectedListId = listId;
-
-      final querySnapshot = await _firestore
+      
+      final query = _firestore
           .collection('todos')
           .where('listId', isEqualTo: listId)
-          .orderBy('order')
-          .get();
-
-      _todos = querySnapshot.docs.map((doc) {
+          .orderBy('order', descending: false);
+      final snapshot = await query.get();
+      
+      _todos = snapshot.docs.map((doc) {
         final data = doc.data();
-        return {
-          'documentId': doc.id,
-          'taskName': data['taskName'],
-          'taskCompleted': data['taskCompleted'],
-          'order': data['order'],
-        };
+        data['documentId'] = doc.id;
+        return data;
       }).toList();
-
+      
       notifyListeners();
     } catch (e) {
-      print('Error fetching todos: $e');
+      debugPrint('Error fetching todos: $e');
     }
   }
 
-  Future<void> addTodo(String? listId, String taskName) async {
-    if (listId == null) {
-      print('Error: listId is null');
-      return;
-    }
+  Future<void> addTodo(String taskName, String listId) async {
+    if (taskName.trim().isEmpty) return;
 
     try {
-      int order = _todos.length;
-
-      final docRef = await _firestore.collection('todos').add({
+      final todoData = {
+        'taskName': taskName.trim(),
+        'taskCompleted': false,
         'listId': listId,
-        'taskName': taskName,
-        'taskCompleted': false,
-        'order': order,
-      });
+        'order': _todos.length,
+        'createdAt': Timestamp.now(),
+      };
 
-      _todos.add({
-        'documentId': docRef.id,
-        'taskName': taskName,
-        'taskCompleted': false,
-        'order': order,
-      });
-
+      final docRef = await _firestore.collection('todos').add(todoData);
+      
+      final newTodo = {...todoData, 'documentId': docRef.id};
+      _todos.add(newTodo);
+      
       notifyListeners();
-      print('Todo erfolgreich zu Firestore hinzugefügt: ${docRef.id}');
     } catch (e) {
-      print('Error adding todo to Firestore: $e');
+      debugPrint('Error adding todo: $e');
     }
   }
 
-  Future<void> updateTodoName(String documentId, String newTaskName) async {
+  Future<void> updateTodo(String documentId, String newTaskName) async {
+    if (newTaskName.trim().isEmpty) return;
+
     try {
       await _firestore.collection('todos').doc(documentId).update({
-        'taskName': newTaskName,
+        'taskName': newTaskName.trim(),
       });
 
-      final index =
-      _todos.indexWhere((todo) => todo['documentId'] == documentId);
+      final index = _todos.indexWhere((todo) => todo['documentId'] == documentId);
       if (index != -1) {
-        _todos[index]['taskName'] = newTaskName;
-        if (_todos[index]['isNew'] == true) {
-          _todos[index].remove('isNew');
-        }
+        _todos[index]['taskName'] = newTaskName.trim();
         notifyListeners();
       }
     } catch (e) {
-      print('Error updating todo name: $e');
+      debugPrint('Error updating todo: $e');
     }
   }
 
-  Future<void> updateTaskCompletionStatus(
-      String documentId, bool isCompleted) async {
+  Future<void> toggleTodoCompletion(String documentId) async {
+    final index = _todos.indexWhere((todo) => todo['documentId'] == documentId);
+    if (index == -1) return;
+
+    final wasCompleted = _todos[index]['taskCompleted'] as bool;
+    final newStatus = !wasCompleted;
+
+    // Update UI immediately
+    _todos[index]['taskCompleted'] = newStatus;
+    notifyListeners();
+
     try {
       await _firestore.collection('todos').doc(documentId).update({
-        'taskCompleted': isCompleted,
+        'taskCompleted': newStatus,
       });
-
-      final index =
-      _todos.indexWhere((todo) => todo['documentId'] == documentId);
-      if (index != -1) {
-        _todos[index]['taskCompleted'] = isCompleted;
-        notifyListeners();
-      }
     } catch (e) {
-      print('Error updating todo completion status: $e');
+      debugPrint('Error toggling todo completion: $e');
+      // Revert on error
+      _todos[index]['taskCompleted'] = wasCompleted;
+      notifyListeners();
     }
   }
 
   Future<void> deleteTodo(String documentId) async {
     try {
-      await _firestore.collection('todos').doc(documentId).delete();
-
       _todos.removeWhere((todo) => todo['documentId'] == documentId);
       notifyListeners();
+      
+      await _firestore.collection('todos').doc(documentId).delete();
     } catch (e) {
-      print('Error deleting todo: $e');
+      debugPrint('Error deleting todo: $e');
+    }
+  }
+
+  Future<void> deleteCompletedTodos() async {
+    final completedTodos = _todos.where((todo) => todo['taskCompleted'] == true).toList();
+    if (completedTodos.isEmpty) return;
+
+    final documentsToDelete = completedTodos.map((todo) => todo['documentId'] as String).toList();
+    
+    _todos.removeWhere((todo) => todo['taskCompleted'] == true);
+    notifyListeners();
+
+    try {
+      final batch = _firestore.batch();
+      for (final docId in documentsToDelete) {
+        batch.delete(_firestore.collection('todos').doc(docId));
+      }
+      await batch.commit();
+    } catch (e) {
+      debugPrint('Error deleting completed todos: $e');
     }
   }
 
   Future<void> reorderTodos(int oldIndex, int newIndex) async {
-    if (oldIndex < newIndex) {
-      newIndex -= 1;
+    if (oldIndex == newIndex) return;
+    
+    final incompleteTodos = this.incompleteTodos;
+    if (oldIndex >= incompleteTodos.length || newIndex >= incompleteTodos.length) return;
+
+    // Adjust newIndex if moving down
+    if (newIndex > oldIndex) {
+      newIndex--;
     }
 
-    final movedTodo = _todos.removeAt(oldIndex);
-    _todos.insert(newIndex, movedTodo);
+    // Update local state immediately for smooth UI
+    final movedTodo = incompleteTodos.removeAt(oldIndex);
+    incompleteTodos.insert(newIndex, movedTodo);
 
+    // Update order values
+    for (int i = 0; i < incompleteTodos.length; i++) {
+      incompleteTodos[i]['order'] = i;
+    }
+
+    // Update the main _todos list
+    final completedTodos = this.completedTodos;
+    _todos = [...incompleteTodos, ...completedTodos];
+    
     notifyListeners();
 
-    WriteBatch batch = _firestore.batch();
-    for (int i = 0; i < _todos.length; i++) {
-      final todo = _todos[i];
-      final docRef = _firestore.collection('todos').doc(todo['documentId']);
-      batch.update(docRef, {'order': i});
-      todo['order'] = i;
-    }
-    await batch.commit();
-  }
-
-  Future<void> deleteAllTodos() async {
-    if (selectedListId != null) {
-      try {
-        final querySnapshot = await _firestore
-            .collection('todos')
-            .where('listId', isEqualTo: selectedListId)
-            .get();
-
-        WriteBatch batch = _firestore.batch();
-        for (final doc in querySnapshot.docs) {
-          batch.delete(doc.reference);
-        }
-        await batch.commit();
-
-        _todos.clear();
-        notifyListeners();
-      } catch (e) {
-        print('[Error] Deleting all todos: $e');
+    // Batch update Firestore
+    try {
+      final batch = _firestore.batch();
+      for (int i = 0; i < incompleteTodos.length; i++) {
+        final todo = incompleteTodos[i];
+        final docRef = _firestore.collection('todos').doc(todo['documentId']);
+        batch.update(docRef, {'order': i});
       }
+      await batch.commit();
+    } catch (e) {
+      debugPrint('Error reordering todos: $e');
+      // Revert on error
+      fetchTodos(selectedListId!);
     }
   }
 
   void resetState() {
-    _todos = [];
+    _todos.clear();
     selectedListId = null;
-    _selectedListName = null;
-    _selectedListIcon = null;
-    _selectedListColor = null;
-    _showCompletedTodos = false;
     notifyListeners();
   }
-
 }

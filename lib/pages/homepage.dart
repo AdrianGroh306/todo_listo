@@ -1,15 +1,12 @@
-// File: lib/pages/homepage.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../states/list_state.dart';
 import '../states/todo_state.dart';
-import '../states/auth_state.dart';
-import '../util/MenuItem.dart';
-import '../util/addTodo_box.dart';
 import '../util/myTodoTile.dart';
+import '../util/simple_dialog_box.dart';
 import '../util/my_app_bar.dart';
-import '../util/popupmenu.dart';
 import '../util/sideMenu_bar.dart';
+import 'completed_todos_page.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -27,289 +24,197 @@ class _MyHomePageState extends State<MyHomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final listState = Provider.of<ListState>(context, listen: false);
       final todoState = Provider.of<TodoState>(context, listen: false);
-
-      try {
+      
+      if (listState.selectedListId == null) {
         await listState.fetchOrCreateDefaultList();
+        // After creating/fetching default list, load todos
         if (listState.selectedListId != null) {
-          await todoState.fetchTodos(listState.selectedListId!);
+          todoState.fetchTodos(listState.selectedListId!);
         }
-      } catch (error) {
-        print('Error loading lists: $error');
+      } else {
+        // Load todos for the already selected list
+        todoState.fetchTodos(listState.selectedListId!);
       }
-    });
-  }
-
-  void startEditing(int index) {
-    setState(() {
-      editingIndex = index;
-    });
-  }
-
-  void stopEditing() {
-    setState(() {
-      editingIndex = null;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final todoState = Provider.of<TodoState>(context);
-    final authState = Provider.of<AuthState>(context, listen: false);
-    final listState = Provider.of<ListState>(context);
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      endDrawer: SideMenu(
+        onSelectedListChanged: (listId) {
+          if (listId != null) {
+            final todoState = Provider.of<TodoState>(context, listen: false);
+            todoState.fetchTodos(listId);
+          }
+        },
+      ),
+      appBar: const MyAppBar(),
+      body: Consumer2<ListState, TodoState>(
+        builder: (context, listState, todoState, child) {
+          final incompleteTodos = todoState.incompleteTodos;
+          
+          if (listState.selectedListId == null) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
 
-    if (listState.isLoading) {
-      return Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-      );
-    }
-
-    void handleSignOut(BuildContext context) {
-      authState.signOutUser();
-      listState.resetState();
-      todoState.resetState();
-      Navigator.of(context).pushReplacementNamed('/login');
-    }
-
-    final currentList = listState.lists.firstWhere(
-          (list) => list['documentId'] == listState.selectedListId,
-      orElse: () => {},
-    );
-    final listColor = currentList.isNotEmpty
-        ? Color(currentList['listColor'])
-        : Colors.grey;
-
-    Future<void> handleListSelection(String? listId) async {
-      if (listId == null) return;
-      await listState.setSelectedList(listId);
-      await todoState.fetchTodos(listId);
-    }
-
-    return GestureDetector(
-      onTap: stopEditing,
-      behavior: HitTestBehavior.translucent,
-      child: Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        resizeToAvoidBottomInset: false,
-        extendBodyBehindAppBar: false,
-        endDrawer: SideMenu(
-          onSelectedListChanged: handleListSelection,
-        ),
-        appBar: const MyAppBar(),
-        body: Stack(
-          children: [
-            RefreshIndicator(
-              color: Theme.of(context).colorScheme.secondary,
-              onRefresh: () async {
-                if (todoState.selectedListId != null) {
-                  await todoState.fetchTodos(todoState.selectedListId!);
-                }
-              },
-              child: Container(
-                color: Theme.of(context).colorScheme.scrim,
-                child: todoState.todos.isEmpty
-                    ? Center(
+          return incompleteTodos.isEmpty
+              ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.tag_faces,
-                        size: 50,
-                        color: Theme.of(context).colorScheme.primary,
+                        Icons.checklist,
+                        size: 64,
+                        color: Colors.grey[400],
                       ),
-                      const SizedBox(height: 15),
+                      const SizedBox(height: 16),
                       Text(
-                        "Add a Todo +",
+                        'List is empty',
                         style: TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Tap + to add your first item',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[500],
                         ),
                       ),
                     ],
                   ),
                 )
-                    : ReorderableListView(
+              : ReorderableListView.builder(
+                  buildDefaultDragHandles: false,
+                  padding: const EdgeInsets.only(bottom: 100),
+                  itemCount: incompleteTodos.length,
                   onReorder: (oldIndex, newIndex) {
                     todoState.reorderTodos(oldIndex, newIndex);
                   },
-                  buildDefaultDragHandles: false,
-                  padding: const EdgeInsets.only(bottom: 75),
-                  children: [
-                    for (int index = 0; index < todoState.todos.length; index++)
-                      _buildTodoTile(context, index, todoState),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 65,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 12,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Theme.of(context)
-                          .colorScheme
-                          .surface
-                          .withOpacity(0.8),
-                      Theme.of(context)
-                          .colorScheme
-                          .surface
-                          .withOpacity(0.0),
-                    ],
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                width: MediaQuery.of(context).size.width,
-                height: 65,
-                color: Theme.of(context).colorScheme.surface,
-              ),
-            ),
-            Stack(
-              children: [
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 25),
-                    child: Container(
-                      height: 50,
-                      width: 140,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: listColor, width: 2),
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: FloatingActionButton.extended(
-                        elevation: 0,
-                        onPressed: () {
-                          _createTodoDialog(context, todoState);
-                        },
-                        backgroundColor:
-                        Theme.of(context).colorScheme.primary,
-                        label: Text(
-                          "Add Todo",
-                          style: TextStyle(
-                            color:
-                            Theme.of(context).iconTheme.color,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        icon: Icon(
-                          Icons.add,
-                          color:
-                          Theme.of(context).iconTheme.color,
-                          size: 28,
-                        ),
-                      ),
+                  itemBuilder: (context, index) {
+                    final todo = incompleteTodos[index];
+                    return ReorderableDragStartListener(
+                      key: ValueKey(todo['documentId']),
+                      index: index,
+                      child: ToDoTile(
+                        taskName: todo['taskName'],
+                        taskCompleted: todo['taskCompleted'],
+                        isEditing: editingIndex == index,
+                      onEdit: () {
+                        setState(() {
+                          editingIndex = editingIndex == index ? null : index;
+                        });
+                      },
+                      onChanged: (value) {
+                        todoState.toggleTodoCompletion(todo['documentId']);
+                      },
+                      deleteFunction: (context) {
+                        todoState.deleteTodo(todo['documentId']);
+                        setState(() {
+                          editingIndex = null;
+                        });
+                      },
+                      onTaskNameChanged: (newName) {
+                        todoState.updateTodo(todo['documentId'], newName);
+                        setState(() {
+                          editingIndex = null;
+                        });
+                      },
                     ),
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Padding(
-                    padding:
-                    const EdgeInsets.only(bottom: 12, right: 15),
-                    child: FloatingActionButton(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(40),
-                      ),
-                      elevation: 0,
-                      mini: true,
-                      onPressed: todoState.toggleVisibility,
-                      child: Icon(
-                        todoState.showCompletedTodos
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        color: Theme.of(context).iconTheme.color,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 15, bottom: 12),
-                child: MyPopupMenu(
-                  onMenuItemSelected: (menuItem) {
-                    if (menuItem == MyMenuItem.item1) {
-                      todoState.deleteAllTodos();
-                    } else if (menuItem == MyMenuItem.item2) {
-                      handleSignOut(context);
-                    }
+                    );
                   },
+                );
+        },
+      ),
+      floatingActionButton: Consumer2<ListState, TodoState>(
+        builder: (context, listState, todoState, child) {
+          if (listState.selectedListId == null) return const SizedBox.shrink();
+          
+          final listColor = Color(listState.selectedListColor ?? Colors.blue.value);
+          final completedTodos = todoState.completedTodos;
+          
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // View Completed Button (links, kleiner, rund)
+              if (completedTodos.isNotEmpty)
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: FloatingActionButton(
+                    heroTag: "viewCompletedButton",
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const CompletedTodosPage(),
+                        ),
+                      );
+                    },
+                    backgroundColor: Theme.of(context).colorScheme.surface,
+                    foregroundColor: Colors.grey[600],
+                    shape: CircleBorder(
+                      side: BorderSide(color: Colors.grey[400]!, width: 1),
+                    ),
+                    child: Icon(Icons.visibility, size: 20, color: Colors.grey[600]),
+                  ),
+                ),
+              // Spacer zwischen den Buttons
+              if (completedTodos.isNotEmpty) const SizedBox(width: 16),
+              // Add Item Button (rechts, größer)
+              SizedBox(
+                width: 140,
+                height: 56,
+                child: FloatingActionButton.extended(
+                  heroTag: "addButton",
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        final controller = TextEditingController();
+                        return SimpleDialogBox(
+                          controller: controller,
+                          onSave: () {
+                            final taskName = controller.text.trim();
+                            if (taskName.isNotEmpty) {
+                              todoState.addTodo(taskName, listState.selectedListId!);
+                            }
+                            Navigator.of(context).pop();
+                          },
+                          onCancel: () {
+                            Navigator.of(context).pop();
+                          },
+                        );
+                      },
+                    );
+                  },
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  foregroundColor: listColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    side: BorderSide(color: listColor, width: 2),
+                  ),
+                  icon: Icon(Icons.add, color: listColor),
+                  label: Text(
+                    'Add Item',
+                    style: TextStyle(
+                      color: listColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        },
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
-  }
-
-  Widget _buildTodoTile(
-      BuildContext context, int index, TodoState todoState) {
-    final task = todoState.todos[index];
-
-    return Container(
-      key: ValueKey(task['documentId']),
-      color: Colors.transparent,
-      child: ToDoTile(
-        taskName: task['taskName'] as String,
-        taskCompleted: task['taskCompleted'] as bool,
-        onChanged: (newValue) => todoState
-            .updateTaskCompletionStatus(task['documentId'], newValue ?? false),
-        deleteFunction: (context) =>
-            todoState.deleteTodo(task['documentId']),
-        onTaskNameChanged: (newTaskName) =>
-            todoState.updateTodoName(task['documentId'], newTaskName),
-        isEditing: editingIndex == index,
-        onEdit: () => startEditing(index),
-        trailing: ReorderableDragStartListener(
-          index: index,
-          child: Icon(
-            Icons.drag_handle,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _createTodoDialog(BuildContext context, TodoState todoState) {
-    final TextEditingController _todoController = TextEditingController();
-
-    DialogBox(
-      controller: _todoController,
-      onSave: (taskName) {
-        if (taskName != null && taskName.trim().isNotEmpty) {
-          todoState.addTodo(todoState.selectedListId, taskName.trim());
-        }
-      },
-      onCancel: () {
-        _todoController.clear();
-      },
-      onSubmitted: (taskName) {
-        if (taskName != null && taskName.trim().isNotEmpty) {
-          todoState.addTodo(todoState.selectedListId, taskName.trim());
-        }
-      },
-    ).show(context);
   }
 }

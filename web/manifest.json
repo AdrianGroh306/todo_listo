@@ -1,13 +1,15 @@
 {
-    "name": "todo",
-    "short_name": "todo",
+    "name": "TodoListo - Shopping List",
+    "short_name": "TodoListo",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "transparent",
-    "theme_color": "transparent",
-    "description": "just a todo app",
+    "background_color": "#6750A4",
+    "theme_color": "#6750A4",
+    "description": "Modern shopping list app with Material 3 design",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
+    "categories": ["productivity", "shopping", "utilities"],
+    "lang": "en",
     "icons": [
         {
             "src": "icons/Icon-192.png",

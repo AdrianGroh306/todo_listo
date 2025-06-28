@@ -66,6 +66,7 @@ class MyListTile extends StatelessWidget {
                     style: TextStyle(
                       color: listColor,
                       fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   onTap: onTap,

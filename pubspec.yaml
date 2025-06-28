@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=2.19.6 <3.0.0'
+  sdk: '>=3.3.0 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -30,24 +30,21 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_slidable: "^3.1.2"
-  flutter_launcher_icons: ^0.14.2
-  roundcheckbox: "^2.0.5"
-  auto_size_text: "^3.0.0"
-  firebase_core: ^3.4.1
-  firebase_auth: ^5.2.1
-  cloud_firestore: ^5.4.1
-  google_sign_in: ^6.1.2
-  cupertino_icons: ^1.0.2
+  flutter_slidable: ^3.1.2
+  flutter_launcher_icons: ^0.14.4
+  roundcheckbox: ^2.0.5
+  auto_size_text: ^3.0.0
+  firebase_core: ^3.10.0
+  firebase_auth: ^5.4.0
+  cloud_firestore: ^5.6.1
+  google_sign_in: ^6.2.2
+  cupertino_icons: ^1.0.8
   circle_progress_bar: ^0.1.2
-  uuid: ^4.0.0
-  flutter_riverpod: ^2.4.1
-  provider: ^6.1.2
-  flutter_smart_dialog: ^4.9.8+2
-
-
-
-
+  uuid: ^4.5.1
+  flutter_riverpod: ^2.6.1
+  provider: ^6.1.5
+  flutter_smart_dialog: ^4.9.8+8
+  intl: ^0.20.2
 
 flutter_launcher_icons:
   android: true
@@ -68,11 +65,6 @@ flutter_launcher_icons:
   macos:
     generate: true
     image_path: "images/logo_todolisto_full.png"
-
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.2
 
 dev_dependencies:
   flutter_test:

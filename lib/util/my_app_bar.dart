@@ -1,4 +1,3 @@
-// File: lib/util/my_app_bar.dart
 import 'package:circle_progress_bar/circle_progress_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -25,7 +24,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
           return AppBar(
             elevation: 0,
             backgroundColor: Theme.of(context).colorScheme.surface,
-            title: const Text('Loading...'),
+            title: const Text('TodoListo'),
           );
         }
 
@@ -67,6 +66,8 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
                 selectedListName,
                 style: TextStyle(
                   color: Color(selectedListColor),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
                 ),
               ),
             ],
