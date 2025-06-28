@@ -83,7 +83,7 @@ class _ToDoTileState extends State<ToDoTile>
     
     return RepaintBoundary(
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 0.5), // Kleinerer vertikaler Abstand
         decoration: BoxDecoration(
           color: tileColor,
           borderRadius: BorderRadius.circular(12),
@@ -99,8 +99,8 @@ class _ToDoTileState extends State<ToDoTile>
             contentPadding: const EdgeInsets.only(
               left: 16,
               right: 8,
-              top: 2,
-              bottom: 2,
+              top: 1, // Weniger Padding oben
+              bottom: 1, // Weniger Padding unten
             ),
             title: widget.isEditing
                 ? TextField(

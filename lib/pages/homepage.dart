@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:ui' show lerpDouble;
 import '../states/list_state.dart';
 import '../states/todo_state.dart';
 import '../util/myTodoTile.dart';
@@ -91,22 +92,44 @@ class _MyHomePageState extends State<MyHomePage> {
                     ],
                   ),
                 )
-              : ReorderableListView.builder(
-                  buildDefaultDragHandles: false,
-                  padding: const EdgeInsets.only(bottom: 100),
-                  itemCount: incompleteTodos.length,
-                  physics: const BouncingScrollPhysics(), // Better iOS feel
-                  scrollDirection: Axis.vertical,
-                  onReorder: (oldIndex, newIndex) {
-                    // Debounce rapid reorder calls for better performance
-                    todoState.reorderTodos(oldIndex, newIndex);
-                  },
-                  itemBuilder: (context, index) {
-                    final todo = incompleteTodos[index];
-                    return ReorderableDragStartListener(
-                      key: ValueKey(todo['documentId']),
-                      index: index,
-                      child: ToDoTile(
+              : Container(
+                  // Begrenze Höhe bei mehr als 11 Items für Scrolling
+                  constraints: incompleteTodos.length > 11 
+                    ? const BoxConstraints(maxHeight: 600) 
+                    : const BoxConstraints(),
+                  child: ReorderableListView.builder(
+                    buildDefaultDragHandles: false,
+                    padding: const EdgeInsets.only(bottom: 100),
+                    itemCount: incompleteTodos.length,
+                    physics: const BouncingScrollPhysics(), // Better iOS feel
+                    scrollDirection: Axis.vertical,
+                    // Längere Delay für Drag-Start
+                    proxyDecorator: (child, index, animation) {
+                      return AnimatedBuilder(
+                        animation: animation,
+                        builder: (BuildContext context, Widget? child) {
+                          final double animValue = Curves.easeInOut.transform(animation.value);
+                          final double elevation = lerpDouble(0, 6, animValue)!;
+                          return Material(
+                            elevation: elevation,
+                            color: Colors.transparent,
+                            shadowColor: Colors.black.withOpacity(0.2),
+                            child: child,
+                          );
+                        },
+                        child: child,
+                      );
+                    },
+                    onReorder: (oldIndex, newIndex) {
+                      // Debounce rapid reorder calls for better performance
+                      todoState.reorderTodos(oldIndex, newIndex);
+                    },
+                    itemBuilder: (context, index) {
+                      final todo = incompleteTodos[index];
+                      return ReorderableDelayedDragStartListener(
+                        key: ValueKey(todo['documentId']),
+                        index: index,
+                        child: ToDoTile(
                         taskName: todo['taskName'],
                         taskCompleted: todo['taskCompleted'],
                         isEditing: editingIndex == index,
@@ -133,7 +156,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     );
                   },
-                );
+                ),
+              );
         },
       ),
       floatingActionButton: Consumer2<ListState, TodoState>(

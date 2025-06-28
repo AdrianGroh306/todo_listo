@@ -78,8 +78,14 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
     super.initState();
     _controller.addListener(_onTextChanged);
     _loadUserSuggestions(); // Lade gespeicherte Vorschläge von Firebase
+    
+    // Verbesserte Fokus-Behandlung für iOS
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          _focusNode.requestFocus();
+        }
+      });
       _showInitialSuggestions(); // Zeige häufige Items beim Start
     });
   }
@@ -328,134 +334,142 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return AlertDialog(
-      backgroundColor: colorScheme.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      title: Text(
-        'New Item',
-        style: TextStyle(
-          color: colorScheme.secondary,
-          fontWeight: FontWeight.w600,
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomInset * 0.5), // Verschiebt Dialog nach oben wenn Tastatur erscheint
+      child: AlertDialog(
+        backgroundColor: colorScheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
         ),
-      ),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Input field
-            TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              decoration: InputDecoration(
-                hintText: "Enter item...",
-                hintStyle: TextStyle(
-                  color: colorScheme.onSurface.withOpacity(0.6),
+        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 10), // Weniger Padding unten
+        title: Text(
+          'New Item',
+          style: TextStyle(
+            color: colorScheme.secondary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Input field
+                TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  autofocus: true, // Automatischer Fokus für iOS
+                  decoration: InputDecoration(
+                    hintText: "Enter item...",
+                    hintStyle: TextStyle(
+                      color: colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                    filled: true,
+                    fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: colorScheme.primary, width: 2),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  style: TextStyle(
+                    color: colorScheme.secondary,
+                    fontSize: 16,
+                  ),
+                  onSubmitted: (_) => _handleSave(),
                 ),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
-              style: TextStyle(
-                color: colorScheme.secondary,
-                fontSize: 16,
-              ),
-              onSubmitted: (_) => _handleSave(),
+                
+                // Suggestion chips (nur 3 nebeneinander)
+                if (_suggestions.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    children: _suggestions.take(3).map((suggestion) {
+                      // Bestimme Chip-Farbe basierend auf Suggestion-Typ
+                      Color chipColor;
+                      if (_userSuggestions.any((user) => 
+                          user.toLowerCase() == suggestion.toLowerCase())) {
+                        chipColor = colorScheme.secondary.withOpacity(0.1);
+                      } else if (Provider.of<TodoState>(context, listen: false)
+                          .getUniqueTaskNames().any((todo) => 
+                          todo.toLowerCase() == suggestion.toLowerCase())) {
+                        chipColor = colorScheme.tertiary.withOpacity(0.1);
+                      } else {
+                        chipColor = colorScheme.primary.withOpacity(0.1);
+                      }
+                      
+                      return ActionChip(
+                        label: Text(
+                          suggestion,
+                          style: TextStyle(
+                            color: colorScheme.onSurface,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        backgroundColor: chipColor,
+                        side: BorderSide(
+                          color: colorScheme.outline.withOpacity(0.2),
+                        ),
+                        onPressed: () {
+                          // Speichere die Eingabe und schließe Dialog direkt
+                          _saveUserSuggestion(suggestion);
+                          widget.onSave(suggestion);
+                        },
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ],
             ),
-            
-            // Suggestion chips (nur 3 nebeneinander)
-            if (_suggestions.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                children: _suggestions.take(3).map((suggestion) {
-                  // Bestimme Chip-Farbe basierend auf Suggestion-Typ
-                  Color chipColor;
-                  if (_userSuggestions.any((user) => 
-                      user.toLowerCase() == suggestion.toLowerCase())) {
-                    chipColor = colorScheme.secondary.withOpacity(0.1);
-                  } else if (Provider.of<TodoState>(context, listen: false)
-                      .getUniqueTaskNames().any((todo) => 
-                      todo.toLowerCase() == suggestion.toLowerCase())) {
-                    chipColor = colorScheme.tertiary.withOpacity(0.1);
-                  } else {
-                    chipColor = colorScheme.primary.withOpacity(0.1);
-                  }
-                  
-                  return ActionChip(
-                    label: Text(
-                      suggestion,
-                      style: TextStyle(
-                        color: colorScheme.onSurface,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    backgroundColor: chipColor,
-                    side: BorderSide(
-                      color: colorScheme.outline.withOpacity(0.2),
-                    ),
-                    onPressed: () {
-                      // Speichere die Eingabe und schließe Dialog direkt
-                      _saveUserSuggestion(suggestion);
-                      widget.onSave(suggestion);
-                    },
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  );
-                }).toList(),
+          ),
+        ),
+        actions: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              // Cancel Button
+              ElevatedButton(
+                onPressed: widget.onCancel,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorScheme.outline.withOpacity(0.1),
+                  foregroundColor: colorScheme.onSurface.withOpacity(0.7),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text('Cancel'),
+              ),
+              const SizedBox(width: 12),
+              // Add Button
+              ElevatedButton(
+                onPressed: _handleSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text('Add'),
               ),
             ],
-          ],
-        ),
+          ),
+        ],
       ),
-      actions: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            // Cancel Button
-            ElevatedButton(
-              onPressed: widget.onCancel,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.outline.withOpacity(0.1),
-                foregroundColor: colorScheme.onSurface.withOpacity(0.7),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text('Cancel'),
-            ),
-            const SizedBox(width: 12),
-            // Add Button
-            ElevatedButton(
-              onPressed: _handleSave,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary,
-                foregroundColor: colorScheme.onPrimary,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text('Add'),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }
