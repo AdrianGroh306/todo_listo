@@ -101,65 +101,38 @@ class _MyHomePageState extends State<MyHomePage> {
                             ],
                           ),
                         )
-                      : ReorderableListView.builder(
-                          buildDefaultDragHandles: false,
+                      : ListView.builder(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           itemCount: incompleteTodos.length,
                           physics: const AlwaysScrollableScrollPhysics(
                             parent: BouncingScrollPhysics(),
                           ), // Immer scrollbar für bessere UX
-                          scrollDirection: Axis.vertical,
-                          // Längere Delay für Drag-Start (noch länger für bessere UX)
-                          proxyDecorator: (child, index, animation) {
-                            return AnimatedBuilder(
-                              animation: animation,
-                              builder: (BuildContext context, Widget? child) {
-                                final double animValue = Curves.easeInOut.transform(animation.value);
-                                final double elevation = lerpDouble(0, 6, animValue)!;
-                                return Material(
-                                  elevation: elevation,
-                                  color: Colors.transparent,
-                                  shadowColor: Colors.black.withOpacity(0.2),
-                                  child: child,
-                                );
-                              },
-                              child: child,
-                            );
-                          },
-                          onReorder: (oldIndex, newIndex) {
-                            // Debounce rapid reorder calls for better performance
-                            todoState.reorderTodos(oldIndex, newIndex);
-                          },
                           itemBuilder: (context, index) {
                             final todo = incompleteTodos[index];
-                            return ReorderableDelayedDragStartListener(
-                              key: ValueKey(todo['documentId']),
-                              index: index,
-                              child: ToDoTile(
-                                taskName: todo['taskName'],
-                                taskCompleted: todo['taskCompleted'],
-                                isEditing: editingIndex == index,
-                                onEdit: () {
-                                  setState(() {
-                                    editingIndex = editingIndex == index ? null : index;
-                                  });
-                                },
-                                onChanged: (value) {
-                                  todoState.toggleTodoCompletion(todo['documentId']);
-                                },
-                                deleteFunction: (context) {
-                                  todoState.deleteTodo(todo['documentId']);
-                                  setState(() {
-                                    editingIndex = null;
-                                  });
-                                },
-                                onTaskNameChanged: (newName) {
-                                  todoState.updateTodo(todo['documentId'], newName);
-                                  setState(() {
-                                    editingIndex = null;
-                                  });
-                                },
-                              ),
+                            return ToDoTile(
+                              taskName: todo['taskName'],
+                              taskCompleted: todo['taskCompleted'],
+                              isEditing: editingIndex == index,
+                              onEdit: () {
+                                setState(() {
+                                  editingIndex = editingIndex == index ? null : index;
+                                });
+                              },
+                              onChanged: (value) {
+                                todoState.toggleTodoCompletion(todo['documentId']);
+                              },
+                              deleteFunction: (context) {
+                                todoState.deleteTodo(todo['documentId']);
+                                setState(() {
+                                  editingIndex = null;
+                                });
+                              },
+                              onTaskNameChanged: (newName) {
+                                todoState.updateTodo(todo['documentId'], newName);
+                                setState(() {
+                                  editingIndex = null;
+                                });
+                              },
                             );
                           },
                         ),

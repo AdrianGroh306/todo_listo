@@ -337,172 +337,163 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return Align(
-      alignment: bottomInset > 0 
-        ? Alignment(0, -0.3) // Etwas über der Mitte wenn Tastatur offen
-        : Alignment.center, // Zentriert wenn Tastatur zu
-      child: Padding(
-        padding: EdgeInsets.only(
-          top: 20,
-          left: 20,
-          right: 20,
-          bottom: bottomInset > 0 ? bottomInset + 20 : 20, // Abstand über der Tastatur
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.only(
+        top: 20,
+        left: 20,
+        right: 20,
+        bottom: 20 + bottomInset, // Abstand über der Tastatur
+      ),
+      child: Container(
+        width: double.infinity,
+        constraints: BoxConstraints(
+          maxHeight: screenHeight * 0.6, // Maximale Höhe des Dialogs
         ),
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            width: double.infinity,
-            constraints: BoxConstraints(
-              maxHeight: bottomInset > 0 
-                ? screenHeight * 0.35 // Kompakter wenn Tastatur offen
-                : screenHeight * 0.45, // Mehr Platz wenn Tastatur zu
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+              child: Text(
+                'New Item',
+                style: TextStyle(
+                  color: colorScheme.secondary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
                 ),
-              ],
+              ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
-                  child: Text(
-                    'New Item',
-                    style: TextStyle(
-                      color: colorScheme.secondary,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                // Content
-                Flexible(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Input field
-                        TextField(
-                          controller: _controller,
-                          focusNode: _focusNode,
-                          autofocus: true,
-                          decoration: InputDecoration(
-                            hintText: "Enter item...",
-                            hintStyle: TextStyle(
-                              color: colorScheme.onSurface.withOpacity(0.6),
-                            ),
-                            filled: true,
-                            fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                          ),
-                          style: TextStyle(
-                            color: colorScheme.secondary,
-                            fontSize: 16,
-                          ),
-                          onSubmitted: (_) => _handleSave(),
+            // Content
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Input field
+                    TextField(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        hintText: "Enter item...",
+                        hintStyle: TextStyle(
+                          color: colorScheme.onSurface.withOpacity(0.6),
                         ),
-                        
-                        // Suggestion chips
-                        if (_suggestions.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 8,
-                            children: _suggestions.take(3).map((suggestion) {
-                              Color chipColor;
-                              if (_userSuggestions.any((user) => 
-                                  user.toLowerCase() == suggestion.toLowerCase())) {
-                                chipColor = colorScheme.secondary.withOpacity(0.1);
-                              } else if (Provider.of<TodoState>(context, listen: false)
-                                  .getUniqueTaskNames().any((todo) => 
-                                  todo.toLowerCase() == suggestion.toLowerCase())) {
-                                chipColor = colorScheme.tertiary.withOpacity(0.1);
-                              } else {
-                                chipColor = colorScheme.primary.withOpacity(0.1);
-                              }
-                              
-                              return ActionChip(
-                                label: Text(
-                                  suggestion,
-                                  style: TextStyle(
-                                    color: colorScheme.onSurface,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                backgroundColor: chipColor,
-                                side: BorderSide(
-                                  color: colorScheme.outline.withOpacity(0.2),
-                                ),
-                                onPressed: () {
-                                  _saveUserSuggestion(suggestion);
-                                  widget.onSave(suggestion);
-                                },
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-                // Actions - näher am Content
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 16), // Weniger Abstand
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      ElevatedButton(
-                        onPressed: widget.onCancel,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colorScheme.outline.withOpacity(0.1),
-                          foregroundColor: colorScheme.onSurface.withOpacity(0.7),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                        filled: true,
+                        fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
                         ),
-                        child: const Text('Cancel'),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: colorScheme.primary, width: 2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: _handleSave,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colorScheme.primary,
-                          foregroundColor: colorScheme.onPrimary,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text('Add'),
+                      style: TextStyle(
+                        color: colorScheme.secondary,
+                        fontSize: 16,
+                      ),
+                      onSubmitted: (_) => _handleSave(),
+                    ),
+                    
+                    // Suggestion chips
+                    if (_suggestions.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        children: _suggestions.take(3).map((suggestion) {
+                          Color chipColor;
+                          if (_userSuggestions.any((user) => 
+                              user.toLowerCase() == suggestion.toLowerCase())) {
+                            chipColor = colorScheme.secondary.withOpacity(0.1);
+                          } else if (Provider.of<TodoState>(context, listen: false)
+                              .getUniqueTaskNames().any((todo) => 
+                              todo.toLowerCase() == suggestion.toLowerCase())) {
+                            chipColor = colorScheme.tertiary.withOpacity(0.1);
+                          } else {
+                            chipColor = colorScheme.primary.withOpacity(0.1);
+                          }
+                          
+                          return ActionChip(
+                            label: Text(
+                              suggestion,
+                              style: TextStyle(
+                                color: colorScheme.onSurface,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            backgroundColor: chipColor,
+                            side: BorderSide(
+                              color: colorScheme.outline.withOpacity(0.2),
+                            ),
+                            onPressed: () {
+                              _saveUserSuggestion(suggestion);
+                              widget.onSave(suggestion);
+                            },
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          );
+                        }).toList(),
                       ),
                     ],
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+            // Actions - näher am Content
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 16), // Weniger Abstand
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ElevatedButton(
+                    onPressed: widget.onCancel,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.outline.withOpacity(0.1),
+                      foregroundColor: colorScheme.onSurface.withOpacity(0.7),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: _handleSave,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('Add'),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
