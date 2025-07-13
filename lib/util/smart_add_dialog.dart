@@ -4,28 +4,27 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../states/todo_state.dart';
 
-class SmartAddDialog extends StatefulWidget {
+class SmartAddBottomSheet extends StatefulWidget {
   final Function(String) onSave;
   final VoidCallback onCancel;
 
-  const SmartAddDialog({
+  const SmartAddBottomSheet({
     super.key,
     required this.onSave,
     required this.onCancel,
   });
 
   @override
-  State<SmartAddDialog> createState() => _SmartAddDialogState();
+  State<SmartAddBottomSheet> createState() => _SmartAddBottomSheetState();
 }
 
-class _SmartAddDialogState extends State<SmartAddDialog> {
+class _SmartAddBottomSheetState extends State<SmartAddBottomSheet> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   List<String> _suggestions = [];
-  List<String> _userSuggestions = []; // Firebase-gespeicherte Benutzereingaben
+  List<String> _userSuggestions = [];
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   
-  // German shopping-focused suggestions with frequency tracking
   static const List<String> _commonSuggestions = [
     // Lebensmittel & Grundnahrungsmittel
     'Milch',
@@ -79,13 +78,8 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
     _controller.addListener(_onTextChanged);
     _loadUserSuggestions(); // Lade gespeicherte Vorschläge von Firebase
     
-    // Verbesserte Fokus-Behandlung für iOS
+    // Einfachere Fokus-Behandlung da Padding extern gehandhabt wird
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted) {
-          _focusNode.requestFocus();
-        }
-      });
       _showInitialSuggestions(); // Zeige häufige Items beim Start
     });
   }
@@ -98,7 +92,6 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
     super.dispose();
   }
 
-  // Lade gespeicherte Benutzereingaben von Firebase
   Future<void> _loadUserSuggestions() async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
@@ -121,7 +114,6 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
     }
   }
 
-  // Speichere neue Benutzereingabe in Firebase mit Häufigkeits-Tracking
   Future<void> _saveUserSuggestion(String suggestion) async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
@@ -130,25 +122,20 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
       final trimmed = suggestion.trim();
       if (trimmed.isEmpty) return;
       
-      // Prüfe ob schon in User-Suggestions vorhanden (case-insensitive)
       final existingIndex = _userSuggestions.indexWhere(
         (item) => item.toLowerCase() == trimmed.toLowerCase()
       );
       
       if (existingIndex != -1) {
-        // Entferne alte Version und füge aktualisierte Version vorne hinzu
         _userSuggestions.removeAt(existingIndex);
       }
       
-      // Füge an den Anfang hinzu (most recently used)
       _userSuggestions.insert(0, trimmed);
       
-      // Begrenze auf 50 gespeicherte Eingaben
       if (_userSuggestions.length > 50) {
         _userSuggestions = _userSuggestions.take(50).toList();
       }
       
-      // Lade bestehende Häufigkeits-Daten von Firebase
       final userDoc = await _firestore
           .collection('user_suggestions')
           .doc(userId)
@@ -160,11 +147,9 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
         frequencyMap = Map<String, int>.from(data['frequency'] ?? {});
       }
       
-      // Erhöhe Häufigkeitszähler
       final lowerCaseItem = trimmed.toLowerCase();
       frequencyMap[lowerCaseItem] = (frequencyMap[lowerCaseItem] ?? 0) + 1;
       
-      // Speichere in Firebase
       await _firestore
           .collection('user_suggestions')
           .doc(userId)
@@ -179,12 +164,10 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
     }
   }
 
-  // Zeige intelligente Vorschläge basierend auf Firebase-Daten
   void _showInitialSuggestions() async {
     final todoState = Provider.of<TodoState>(context, listen: false);
     final frequentItems = todoState.getMostFrequentItems(limit: 3);
     
-    // Lade gespeicherte Häufigkeits-Daten von Firebase
     final userId = FirebaseAuth.instance.currentUser?.uid;
     Map<String, int> frequencyMap = {};
     
@@ -220,11 +203,11 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
     final recentUserItems = sortedUserSuggestions.take(3).toList();
     
     final initialSuggestions = <String>[
-      ...recentUserItems, // Häufigste + neueste Benutzereingaben zuerst
+      ...recentUserItems,
       ...frequentItems.where((item) => 
         !recentUserItems.any((recent) => recent.toLowerCase() == item.toLowerCase())
       ),
-    ].take(3).toList(); // Nur 3 Chips anzeigen
+    ].take(3).toList();
     
     setState(() {
       _suggestions = initialSuggestions;
@@ -240,7 +223,6 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
       return;
     }
     
-    // Lade gespeicherte Häufigkeits-Daten von Firebase für bessere Sortierung
     final userId = FirebaseAuth.instance.currentUser?.uid;
     Map<String, int> userFrequencyMap = {};
     
@@ -260,7 +242,6 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
       }
     }
     
-    // Benutzerdefinierte Vorschläge mit Häufigkeits-Sortierung
     final userMatches = _userSuggestions
         .where((suggestion) => suggestion.toLowerCase().contains(text))
         .toList();
@@ -269,16 +250,13 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
       final freqA = userFrequencyMap[a.toLowerCase()] ?? 0;
       final freqB = userFrequencyMap[b.toLowerCase()] ?? 0;
       if (freqA != freqB) {
-        return freqB.compareTo(freqA); // Häufigere zuerst
+        return freqB.compareTo(freqA);
       }
-      // Bei gleicher Häufigkeit: kürzlich verwendete zuerst
       return _userSuggestions.indexOf(a).compareTo(_userSuggestions.indexOf(b));
     });
     
-    // Häufigkeits-Daten aus TodoState für bestehende Todos
     final todoFrequencyMap = todoState.getItemFrequency();
     
-    // Bestehende Todos mit Häufigkeits-Sortierung
     final existingTodos = todoState.getUniqueTaskNames()
         .where((name) => name.toLowerCase().contains(text))
         .toList();
@@ -289,12 +267,10 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
       return freqB.compareTo(freqA);
     });
 
-    // Häufige Vorschläge aus der Standard-Liste
     final commonMatches = _commonSuggestions
         .where((suggestion) => suggestion.toLowerCase().contains(text))
         .toList();
     
-    // Sortiere Standard-Vorschläge nach User-Häufigkeit falls vorhanden
     commonMatches.sort((a, b) {
       final freqA = userFrequencyMap[a.toLowerCase()] ?? 0;
       final freqB = userFrequencyMap[b.toLowerCase()] ?? 0;
@@ -314,7 +290,7 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
         !userMatches.any((user) => user.toLowerCase() == item.toLowerCase()) &&
         !existingTodos.any((existing) => existing.toLowerCase() == item.toLowerCase())
       ),
-    ].take(3).toList(); // Nur 3 Chips anzeigen
+    ].take(3).toList();
 
     setState(() {
       _suggestions = allSuggestions;
@@ -324,7 +300,6 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
   void _handleSave() {
     final text = _controller.text.trim();
     if (text.isNotEmpty) {
-      // Speichere die Benutzereingabe für zukünftige Vorschläge
       _saveUserSuggestion(text);
       widget.onSave(text);
     }
@@ -334,111 +309,131 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    final screenHeight = MediaQuery.of(context).size.height;
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: EdgeInsets.only(
-        top: 20,
-        left: 20,
-        right: 20,
-        bottom: 20 + bottomInset, // Abstand über der Tastatur
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
       ),
-      child: Container(
-        width: double.infinity,
-        constraints: BoxConstraints(
-          maxHeight: screenHeight * 0.6, // Maximale Höhe des Dialogs
-        ),
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
+      child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
-              child: Text(
-                'New Item',
-                style: TextStyle(
-                  color: colorScheme.secondary,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                ),
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: colorScheme.onSurface.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            // Content
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+              child: Row(
+                children: [
+                  Text(
+                    'Add New Item',
+                    style: TextStyle(
+                      color: colorScheme.secondary,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: widget.onCancel,
+                    icon: Icon(
+                      Icons.close,
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Input field
                     TextField(
                       controller: _controller,
                       focusNode: _focusNode,
-                      autofocus: true,
+                      autofocus: false,
                       decoration: InputDecoration(
-                        hintText: "Enter item...",
+                        hintText: "What do you need?",
                         hintStyle: TextStyle(
                           color: colorScheme.onSurface.withOpacity(0.6),
                         ),
                         filled: true,
                         fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide.none,
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide(color: colorScheme.primary, width: 2),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
+                          horizontal: 20,
+                          vertical: 16,
                         ),
                       ),
                       style: TextStyle(
                         color: colorScheme.secondary,
-                        fontSize: 16,
+                        fontSize: 18,
                       ),
                       onSubmitted: (_) => _handleSave(),
                     ),
-                    
-                    // Suggestion chips
                     if (_suggestions.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      Text(
+                        'Suggestions',
+                        style: TextStyle(
+                          color: colorScheme.onSurface.withOpacity(0.8),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 8,
-                        children: _suggestions.take(3).map((suggestion) {
+                        runSpacing: 8,
+                        children: _suggestions.take(6).map((suggestion) {
                           Color chipColor;
+                          IconData? chipIcon;
+                          
                           if (_userSuggestions.any((user) => 
                               user.toLowerCase() == suggestion.toLowerCase())) {
-                            chipColor = colorScheme.secondary.withOpacity(0.1);
+                            chipColor = colorScheme.secondary.withOpacity(0.15);
+                            chipIcon = Icons.history;
                           } else if (Provider.of<TodoState>(context, listen: false)
                               .getUniqueTaskNames().any((todo) => 
                               todo.toLowerCase() == suggestion.toLowerCase())) {
-                            chipColor = colorScheme.tertiary.withOpacity(0.1);
+                            chipColor = colorScheme.tertiary.withOpacity(0.15);
+                            chipIcon = Icons.refresh;
                           } else {
-                            chipColor = colorScheme.primary.withOpacity(0.1);
+                            chipColor = colorScheme.primary.withOpacity(0.15);
+                            chipIcon = Icons.lightbulb_outline;
                           }
                           
                           return ActionChip(
+                            avatar: Icon(
+                              chipIcon,
+                              size: 16,
+                              color: colorScheme.onSurface.withOpacity(0.7),
+                            ),
                             label: Text(
                               suggestion,
                               style: TextStyle(
                                 color: colorScheme.onSurface,
-                                fontSize: 13,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -450,47 +445,40 @@ class _SmartAddDialogState extends State<SmartAddDialog> {
                               _saveUserSuggestion(suggestion);
                               widget.onSave(suggestion);
                             },
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           );
                         }).toList(),
                       ),
                     ],
+                    
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
             ),
-            // Actions - näher am Content
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 16), // Weniger Abstand
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  ElevatedButton(
-                    onPressed: widget.onCancel,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.outline.withOpacity(0.1),
-                      foregroundColor: colorScheme.onSurface.withOpacity(0.7),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _handleSave,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Text('Cancel'),
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: _handleSave,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                  child: const Text(
+                    'Add Item',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
-                    child: const Text('Add'),
                   ),
-                ],
+                ),
               ),
             ),
           ],

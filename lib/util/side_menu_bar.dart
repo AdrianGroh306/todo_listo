@@ -1,14 +1,14 @@
 import 'dart:math';
-import 'package:TodoListo/util/creatList_box.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_listo/util/creat_list_box.dart';
 
 import '../states/list_state.dart';
 import '../states/todo_state.dart';
 import '../states/auth_state.dart';
-import 'editList_box.dart';
-import 'myListTile.dart';
+import 'edit_list_box.dart';
+import 'my_list_tile.dart';
 
 class SideMenu extends StatefulWidget {
   final Function(String?) onSelectedListChanged;
@@ -89,7 +89,8 @@ class _SideMenuState extends State<SideMenu> {
                   final item = listState.lists[index];
                   final documentId = item['documentId'];
                   final listName = item['listName'];
-                  final iconData = IconData(item['listIcon'], fontFamily: 'MaterialIcons');
+                  final iconData =
+                      IconData(item['listIcon'], fontFamily: 'MaterialIcons');
                   final listColor = Color(item['listColor']);
                   final isSelected = documentId == listState.selectedListId;
 
@@ -108,39 +109,49 @@ class _SideMenuState extends State<SideMenu> {
                         await listState.deleteList(documentId);
                       } catch (e) {
                         showDialog(
-                          context: context,
-                          builder: (context) {
-                            return const AlertDialog(
-                              content: SizedBox(
-                                height: 100,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "- You cannot delete the last list - ",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(fontSize: 16),
-                                    ),
-                                  ],
+                            context: context,
+                            builder: (context) {
+                              return const AlertDialog(
+                                content: SizedBox(
+                                  height: 100,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        "- You cannot delete the last list - ",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
-                          }
-                        );
+                              );
+                            });
                       }
                     },
                     onEdit: () {
-                      showDialog(
+                      showModalBottomSheet(
                         context: context,
-                        builder: (BuildContext context) {
-                          return EditListBox(
-                            initialListName: listName,
-                            initialIconData: iconData,
-                            initialListColor: listColor,
-                            listId: documentId,
-                            onListInfoUpdated: (updatedListName, updatedIconData, updatedListColor) {
-                              listState.updateList(documentId, updatedListName, updatedIconData, updatedListColor);
-                            },
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) {
+                          return Padding(
+                            padding: MediaQuery.of(context).viewInsets,
+                            child: EditListBottomSheet(
+                              initialListName: listName,
+                              initialIconData: iconData,
+                              initialListColor: listColor,
+                              listId: documentId,
+                              onListInfoUpdated: (updatedListName,
+                                  updatedIconData, updatedListColor) {
+                                listState.updateList(
+                                    documentId,
+                                    updatedListName,
+                                    updatedIconData,
+                                    updatedListColor);
+                                Navigator.of(context).pop();
+                              },
+                            ),
                           );
                         },
                       );
@@ -164,7 +175,10 @@ class _SideMenuState extends State<SideMenu> {
                         foregroundColor: Theme.of(context).colorScheme.primary,
                         backgroundColor: Colors.white,
                         side: BorderSide(
-                          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .outline
+                              .withOpacity(0.2),
                           width: 1,
                         ),
                         shape: RoundedRectangleBorder(
@@ -172,18 +186,31 @@ class _SideMenuState extends State<SideMenu> {
                         ),
                       ),
                       icon: Icon(Icons.add, size: 20),
-                      label: Text('Add List', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                      label: Text('Add List',
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w600)),
                       onPressed: () {
-                        showDialog(
+                        showModalBottomSheet(
                           context: context,
-                          builder: (BuildContext context) {
-                            return CreateListBox(
-                              onListInfoSaved: (listName, iconData, color) {
-                                listState.addList(listName, iconData.codePoint, color.value).then((newListId) {
-                                  listState.setSelectedList(newListId);
-                                  Provider.of<TodoState>(context, listen: false).fetchTodos(newListId);
-                                });
-                              },
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) {
+                            return Padding(
+                              padding: MediaQuery.of(context).viewInsets,
+                              child: CreateListBottomSheet(
+                                onListInfoSaved: (listName, iconData, color) {
+                                  listState
+                                      .addList(listName, iconData.codePoint,
+                                          color.value)
+                                      .then((newListId) {
+                                    listState.setSelectedList(newListId);
+                                    Provider.of<TodoState>(context,
+                                            listen: false)
+                                        .fetchTodos(newListId);
+                                  });
+                                  Navigator.of(context).pop();
+                                },
+                              ),
                             );
                           },
                         );
@@ -192,14 +219,18 @@ class _SideMenuState extends State<SideMenu> {
                   ),
                   IconButton(
                     style: IconButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .secondary
+                          .withOpacity(0.1),
                       foregroundColor: Theme.of(context).colorScheme.secondary,
                       padding: const EdgeInsets.all(12),
                     ),
                     onPressed: () {
                       authState.signOutUser();
                       listState.resetState();
-                      Provider.of<TodoState>(context, listen: false).resetState();
+                      Provider.of<TodoState>(context, listen: false)
+                          .resetState();
                       Navigator.of(context).pushReplacementNamed('/login');
                     },
                     icon: const Icon(Icons.logout),

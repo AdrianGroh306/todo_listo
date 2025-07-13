@@ -40,7 +40,7 @@ class SimpleDialogBox extends StatelessWidget {
               color: colorScheme.onSurface.withOpacity(0.6),
             ),
             filled: true,
-            fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
+            fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
@@ -71,7 +71,7 @@ class SimpleDialogBox extends StatelessWidget {
             ElevatedButton(
               onPressed: onCancel,
               style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.surfaceVariant,
+                backgroundColor: colorScheme.surfaceContainerHighest,
                 foregroundColor: colorScheme.onSurfaceVariant,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 minimumSize: const Size(100, 44),

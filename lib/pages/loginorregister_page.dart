@@ -3,7 +3,7 @@ import 'login_page.dart';
 import 'register_page.dart';
 
 class LoginOrRegisterPage extends StatefulWidget {
-  const LoginOrRegisterPage({Key? key}) : super(key: key);
+  const LoginOrRegisterPage({super.key});
 
   @override
   State<LoginOrRegisterPage> createState() => _LoginOrRegisterPageState();

@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:ui' show lerpDouble;
 import '../states/list_state.dart';
 import '../states/todo_state.dart';
-import '../util/myTodoTile.dart';
+import '../util/my_todo_tile.dart';
 import '../util/smart_add_dialog.dart';
 import '../util/my_app_bar.dart';
-import '../util/sideMenu_bar.dart';
+import '../util/side_menu_bar.dart';
 import 'completed_todos_page.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -180,19 +179,24 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: FloatingActionButton.extended(
                           heroTag: "addButton",
                           onPressed: () {
-                            showDialog(
+                            showModalBottomSheet(
                               context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
                               builder: (context) {
-                                return SmartAddDialog(
-                                  onSave: (taskName) {
-                                    if (taskName.isNotEmpty) {
-                                      todoState.addTodo(taskName, listState.selectedListId!);
-                                    }
-                                    Navigator.of(context).pop();
-                                  },
-                                  onCancel: () {
-                                    Navigator.of(context).pop();
-                                  },
+                                return Padding(
+                                  padding: MediaQuery.of(context).viewInsets,
+                                  child: SmartAddBottomSheet(
+                                    onSave: (taskName) {
+                                      if (taskName.isNotEmpty) {
+                                        todoState.addTodo(taskName, listState.selectedListId!);
+                                      }
+                                      Navigator.of(context).pop();
+                                    },
+                                    onCancel: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
                                 );
                               },
                             );
