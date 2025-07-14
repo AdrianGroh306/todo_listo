@@ -380,79 +380,70 @@ class _SideMenuState extends State<SideMenu> {
                 },
               ),
             ),
-            Stack(
-              children: [
-                Positioned(
-                  bottom: 25,
-                  left: 0,
-                  right: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 140,
-                          height: 48,
-                          child: FloatingActionButton.extended(
-                            heroTag: "addListButton",
-                            elevation: 0,
-                            backgroundColor: Theme.of(context).colorScheme.surface,
-                            foregroundColor: Theme.of(context).colorScheme.secondary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              side: BorderSide(
-                                color: Theme.of(context).colorScheme.secondary,
-                                width: 2,
-                              ),
-                            ),
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (context) {
-                                  return Padding(
-                                    padding: MediaQuery.of(context).viewInsets,
-                                    child: CreateListBottomSheet(
-                                      onListInfoSaved: (listName, iconData, color) async {
-                                        final listState = Provider.of<ListState>(context, listen: false);
-                                        final newListId = await listState
-                                            .addList(listName, iconData.codePoint,
-                                                color.value);
-                                        if (mounted) {
-                                          listState.setSelectedList(newListId);
-                                          Provider.of<TodoState>(context,
-                                                  listen: false)
-                                              .fetchTodos(newListId);
-                                          Navigator.of(context).pop();
-                                        }
-                                      },
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                            icon: Icon(
-                              Icons.add,
-                              color: Theme.of(context).colorScheme.secondary,
-                              size: 20,
-                            ),
-                            label: Text(
-                              'Add List',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Theme.of(context).colorScheme.secondary,
-                              ),
-                            ),
-                          ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 25, left: 16, right: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 140,
+                    height: 48,
+                    child: FloatingActionButton.extended(
+                      heroTag: "addListButton",
+                      elevation: 0,
+                      backgroundColor: Theme.of(context).colorScheme.surface,
+                      foregroundColor: Theme.of(context).colorScheme.secondary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        side: BorderSide(
+                          color: Theme.of(context).colorScheme.secondary,
+                          width: 2,
                         ),
-                      ],
+                      ),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) {
+                            return Padding(
+                              padding: MediaQuery.of(context).viewInsets,
+                              child: CreateListBottomSheet(
+                                onListInfoSaved: (listName, iconData, color) async {
+                                  final listState = Provider.of<ListState>(context, listen: false);
+                                  final newListId = await listState
+                                      .addList(listName, iconData.codePoint,
+                                          color.value);
+                                  if (mounted) {
+                                    listState.setSelectedList(newListId);
+                                    Provider.of<TodoState>(context,
+                                            listen: false)
+                                        .fetchTodos(newListId);
+                                    Navigator.of(context).pop();
+                                  }
+                                },
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      icon: Icon(
+                        Icons.add,
+                        color: Theme.of(context).colorScheme.secondary,
+                        size: 20,
+                      ),
+                      label: Text(
+                        'Add List',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
