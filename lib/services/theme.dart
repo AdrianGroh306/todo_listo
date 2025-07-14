@@ -26,17 +26,28 @@ ThemeData lightTheme = ThemeData(
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      elevation: 1,
+      elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
     ),
   ),
+  floatingActionButtonTheme: const FloatingActionButtonThemeData(
+    elevation: 0,
+    highlightElevation: 0,
+    focusElevation: 0,
+    hoverElevation: 0,
+    disabledElevation: 0,
+  ),
   cardTheme: const CardTheme(
-    elevation: 1,
+    elevation: 0,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(16)),
     ),
+  ),
+  appBarTheme: const AppBarTheme(
+    elevation: 0,
+    scrolledUnderElevation: 0,
   ),
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
@@ -77,17 +88,28 @@ ThemeData darkTheme = ThemeData(
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      elevation: 1,
+      elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
     ),
   ),
+  floatingActionButtonTheme: const FloatingActionButtonThemeData(
+    elevation: 0,
+    highlightElevation: 0,
+    focusElevation: 0,
+    hoverElevation: 0,
+    disabledElevation: 0,
+  ),
   cardTheme: const CardTheme(
-    elevation: 1,
+    elevation: 0,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(16)),
     ),
+  ),
+  appBarTheme: const AppBarTheme(
+    elevation: 0,
+    scrolledUnderElevation: 0,
   ),
   inputDecorationTheme: InputDecorationTheme(
     filled: true,

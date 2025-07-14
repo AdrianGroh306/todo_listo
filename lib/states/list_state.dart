@@ -1,6 +1,7 @@
 // File: lib/states/list_state.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class ListState extends ChangeNotifier {
@@ -89,7 +90,9 @@ class ListState extends ChangeNotifier {
         await fetchSelectedListInfo(_selectedListId!);
       }
     } catch (e) {
-      print('Error fetching or creating default list: $e');
+      if (kDebugMode) {
+        print('Error fetching or creating default list: $e');
+      }
     }
 
     isLoading = false;
@@ -126,7 +129,9 @@ class ListState extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('[Error] Fetching selected list info: $e');
+      if (kDebugMode) {
+        print('[Error] Fetching selected list info: $e');
+      }
     }
   }
 
@@ -155,7 +160,9 @@ class ListState extends ChangeNotifier {
 
       return docRef.id;
     } catch (e) {
-      print('Error adding list: $e');
+      if (kDebugMode) {
+        print('Error adding list: $e');
+      }
       rethrow;
     }
   }
@@ -180,7 +187,9 @@ class ListState extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Error updating list info: $e');
+      if (kDebugMode) {
+        print('Error updating list info: $e');
+      }
     }
   }
 
@@ -213,7 +222,9 @@ class ListState extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      print('Error deleting list: $e');
+      if (kDebugMode) {
+        print('Error deleting list: $e');
+      }
       rethrow;
     }
   }

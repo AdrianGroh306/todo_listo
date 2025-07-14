@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -110,7 +111,9 @@ class _SmartAddBottomSheetState extends State<SmartAddBottomSheet> {
         });
       }
     } catch (e) {
-      print('Fehler beim Laden der Vorschläge: $e');
+      if (kDebugMode) {
+        print('Fehler beim Laden der Vorschläge: $e');
+      }
     }
   }
 
@@ -160,7 +163,9 @@ class _SmartAddBottomSheetState extends State<SmartAddBottomSheet> {
       }, SetOptions(merge: true));
       
     } catch (e) {
-      print('Fehler beim Speichern der Vorschläge: $e');
+      if (kDebugMode) {
+        print('Fehler beim Speichern der Vorschläge: $e');
+      }
     }
   }
 
@@ -183,7 +188,9 @@ class _SmartAddBottomSheetState extends State<SmartAddBottomSheet> {
           frequencyMap = Map<String, int>.from(data['frequency'] ?? {});
         }
       } catch (e) {
-        print('Fehler beim Laden der Häufigkeits-Daten: $e');
+        if (kDebugMode) {
+          print('Fehler beim Laden der Häufigkeits-Daten: $e');
+        }
       }
     }
     
@@ -238,7 +245,9 @@ class _SmartAddBottomSheetState extends State<SmartAddBottomSheet> {
           userFrequencyMap = Map<String, int>.from(data['frequency'] ?? {});
         }
       } catch (e) {
-        print('Fehler beim Laden der Häufigkeits-Daten: $e');
+        if (kDebugMode) {
+          print('Fehler beim Laden der Häufigkeits-Daten: $e');
+        }
       }
     }
     

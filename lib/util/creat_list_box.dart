@@ -104,16 +104,37 @@ class _CreateListBottomSheetState extends State<CreateListBottomSheet> {
             ),
           ),
           actions: [
-            TextButton(
+            ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Done'),
+              style: ElevatedButton.styleFrom(
+                elevation: 0,
+                backgroundColor: selectedColor,
+                foregroundColor: _getContrastColor(selectedColor),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              child: const Text(
+                'Done',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         );
       },
     );
+  }
+
+  Color _getContrastColor(Color backgroundColor) {
+    // Calculate luminance to determine if we need light or dark text
+    final luminance = backgroundColor.computeLuminance();
+    return luminance > 0.5 ? Colors.black : Colors.white;
   }
 
   void _handleSave() {

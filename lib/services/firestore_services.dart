@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -21,7 +22,9 @@ class FirestoreService {
 
       // Your implementation here...
     } catch (e) {
-      print('Error saving list info: $e');
+      if (kDebugMode) {
+        print('Error saving list info: $e');
+      }
     }
   }
 

@@ -1,7 +1,12 @@
-import 'dart:math';
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:todo_listo/util/creat_list_box.dart';
 
 import '../states/list_state.dart';
@@ -23,29 +28,185 @@ class SideMenu extends StatefulWidget {
 }
 
 class _SideMenuState extends State<SideMenu> {
-  late String profilList;
+  File? _selectedImage;
+  Uint8List? _webImage;
+  String? _profileImageBase64;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-    final profilePics = [
-      'images/profil_pics/yellow_form.png',
-      'images/profil_pics/darkblue_form.png',
-      'images/profil_pics/pink_form.png',
-      'images/profil_pics/pinkwhite_form.png',
-      'images/profil_pics/redlong_form.png'
-    ];
-    profilList = profilePics[Random().nextInt(profilePics.length)];
     final listState = Provider.of<ListState>(context, listen: false);
     if (listState.selectedListId == null) {
       listState.fetchOrCreateDefaultList();
     }
+    _loadProfileImage();
+  }
+
+  Future<void> _loadProfileImage() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        if (doc.exists && doc.data()?['profileImageBase64'] != null) {
+          setState(() {
+            _profileImageBase64 = doc.data()!['profileImageBase64'];
+          });
+        }
+      } catch (e) {
+        debugPrint('Error loading profile image: $e');
+      }
+    }
+  }
+
+  Future<void> _saveProfileImage() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      String? base64String;
+      
+      if (kIsWeb && _webImage != null) {
+        base64String = base64Encode(_webImage!);
+      } else if (!kIsWeb && _selectedImage != null) {
+        final bytes = await _selectedImage!.readAsBytes();
+        base64String = base64Encode(bytes);
+      } else {
+        return;
+      }
+
+      // Save Base64 string to Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .set({
+        'profileImageBase64': base64String,
+        'email': user.email,
+      }, SetOptions(merge: true));
+
+      setState(() {
+        _profileImageBase64 = base64String;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Profilbild erfolgreich gespeichert!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error saving profile image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fehler beim Speichern des Profilbildes'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 300,
+        maxHeight: 300,
+        imageQuality: 80,
+      );
+      
+      if (image != null) {
+        if (kIsWeb) {
+          final bytes = await image.readAsBytes();
+          setState(() {
+            _webImage = bytes;
+            _selectedImage = null;
+          });
+        } else {
+          setState(() {
+            _selectedImage = File(image.path);
+            _webImage = null;
+          });
+        }
+        await _saveProfileImage();
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fehler beim Auswählen des Bildes'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  ImageProvider? _getProfileImage() {
+    if (kIsWeb && _webImage != null) {
+      return MemoryImage(_webImage!);
+    } else if (!kIsWeb && _selectedImage != null) {
+      return FileImage(_selectedImage!);
+    } else if (_profileImageBase64 != null) {
+      try {
+        final bytes = base64Decode(_profileImageBase64!);
+        return MemoryImage(bytes);
+      } catch (e) {
+        debugPrint('Error decoding profile image: $e');
+        return null;
+      }
+    }
+    return null;
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Ausloggen'),
+          content: const Text('Möchten Sie sich wirklich ausloggen?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Abbrechen'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                final authState = Provider.of<AuthState>(context, listen: false);
+                final listState = Provider.of<ListState>(context, listen: false);
+                authState.signOutUser();
+                listState.resetState();
+                Provider.of<TodoState>(context, listen: false).resetState();
+                if (mounted) {
+                  Navigator.of(context).pushReplacementNamed('/login');
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Ausloggen'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final listState = Provider.of<ListState>(context);
-    final authState = Provider.of<AuthState>(context, listen: false);
 
     return Drawer(
       backgroundColor: Colors.transparent,
@@ -59,26 +220,84 @@ class _SideMenuState extends State<SideMenu> {
         ),
         child: Column(
           children: <Widget>[
+            // Profile area positioned higher
             Container(
-              height: MediaQuery.of(context).size.height * 0.17,
+              height: MediaQuery.of(context).size.height * 0.10,
               alignment: Alignment.center,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.only(left: 16, right: 8, top: 20),
               child: Row(
                 children: [
                   const SizedBox(width: 10),
-                  CircleAvatar(
-                    backgroundImage: AssetImage(profilList),
-                    radius: 30,
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                          backgroundImage: _getProfileImage(),
+                          child: _getProfileImage() == null 
+                              ? Icon(
+                                  Icons.person,
+                                  size: 30,
+                                  color: Theme.of(context).colorScheme.primary,
+                                )
+                              : null,
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.surface,
+                                width: 2,
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.camera_alt,
+                              size: 12,
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(width: 25),
+                  const SizedBox(width: 15),
                   Expanded(
                     child: Text(
                       FirebaseAuth.instance.currentUser?.email ?? '',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.secondary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
+                  // Logout Button integriert in die Profil-Reihe, aber klein
+                  SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: IconButton(
+                      onPressed: _showLogoutDialog,
+                      style: IconButton.styleFrom(
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .errorContainer
+                            .withOpacity(0.1),
+                        foregroundColor: Theme.of(context).colorScheme.error,
+                        padding: EdgeInsets.zero,
+                        elevation: 0,
+                      ),
+                      icon: const Icon(Icons.logout, size: 14),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                 ],
               ),
             ),
@@ -93,7 +312,6 @@ class _SideMenuState extends State<SideMenu> {
                       IconData(item['listIcon'], fontFamily: 'MaterialIcons');
                   final listColor = Color(item['listColor']);
                   final isSelected = documentId == listState.selectedListId;
-
                   return MyListTile(
                     listName: listName,
                     listColor: listColor,
@@ -108,6 +326,7 @@ class _SideMenuState extends State<SideMenu> {
                       try {
                         await listState.deleteList(documentId);
                       } catch (e) {
+                        if (!mounted) return;
                         showDialog(
                             context: context,
                             builder: (context) {
@@ -130,6 +349,7 @@ class _SideMenuState extends State<SideMenu> {
                       }
                     },
                     onEdit: () {
+                      if (!mounted) return;
                       showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
@@ -160,82 +380,72 @@ class _SideMenuState extends State<SideMenu> {
                 },
               ),
             ),
-            Container(
-              height: 80,
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SizedBox(
-                    width: 120,
-                    height: 50,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
+            Positioned(
+              bottom: 25,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 25, left: 16, right: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 140,
+                      height: 48,
+                      child: FloatingActionButton.extended(
+                        heroTag: "addListButton",
                         elevation: 0,
-                        foregroundColor: Theme.of(context).colorScheme.primary,
-                        backgroundColor: Colors.white,
-                        side: BorderSide(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .outline
-                              .withOpacity(0.2),
-                          width: 1,
-                        ),
+                        backgroundColor: Theme.of(context).colorScheme.surface,
+                        foregroundColor: Theme.of(context).colorScheme.secondary,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(15),
+                          side: BorderSide(
+                            color: Theme.of(context).colorScheme.secondary,
+                            width: 2,
+                          ),
+                        ),
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) {
+                              return Padding(
+                                padding: MediaQuery.of(context).viewInsets,
+                                child: CreateListBottomSheet(
+                                  onListInfoSaved: (listName, iconData, color) async {
+                                    final listState = Provider.of<ListState>(context, listen: false);
+                                    final newListId = await listState
+                                        .addList(listName, iconData.codePoint,
+                                            color.value);
+                                    if (mounted) {
+                                      listState.setSelectedList(newListId);
+                                      Provider.of<TodoState>(context,
+                                              listen: false)
+                                          .fetchTodos(newListId);
+                                      Navigator.of(context).pop();
+                                    }
+                                  },
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        icon: Icon(
+                          Icons.add,
+                          color: Theme.of(context).colorScheme.secondary,
+                          size: 20,
+                        ),
+                        label: Text(
+                          'Add List',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
                         ),
                       ),
-                      icon: Icon(Icons.add, size: 20),
-                      label: Text('Add List',
-                          style: TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w600)),
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) {
-                            return Padding(
-                              padding: MediaQuery.of(context).viewInsets,
-                              child: CreateListBottomSheet(
-                                onListInfoSaved: (listName, iconData, color) {
-                                  listState
-                                      .addList(listName, iconData.codePoint,
-                                          color.value)
-                                      .then((newListId) {
-                                    listState.setSelectedList(newListId);
-                                    Provider.of<TodoState>(context,
-                                            listen: false)
-                                        .fetchTodos(newListId);
-                                  });
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            );
-                          },
-                        );
-                      },
                     ),
-                  ),
-                  IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: Theme.of(context)
-                          .colorScheme
-                          .secondary
-                          .withOpacity(0.1),
-                      foregroundColor: Theme.of(context).colorScheme.secondary,
-                      padding: const EdgeInsets.all(12),
-                    ),
-                    onPressed: () {
-                      authState.signOutUser();
-                      listState.resetState();
-                      Provider.of<TodoState>(context, listen: false)
-                          .resetState();
-                      Navigator.of(context).pushReplacementNamed('/login');
-                    },
-                    icon: const Icon(Icons.logout),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],

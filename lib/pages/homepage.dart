@@ -155,6 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           height: 48,
                           child: FloatingActionButton(
                             heroTag: "viewCompletedButton",
+                            elevation: 0,
                             onPressed: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -178,6 +179,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         height: 48,
                         child: FloatingActionButton.extended(
                           heroTag: "addButton",
+                          elevation: 0,
                           onPressed: () {
                             showModalBottomSheet(
                               context: context,

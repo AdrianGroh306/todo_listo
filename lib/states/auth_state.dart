@@ -1,5 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthState extends ChangeNotifier {
   User? _user;
@@ -18,7 +18,9 @@ class AuthState extends ChangeNotifier {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
     } catch (e) {
-      print('Login error: $e');
+      if (kDebugMode) {
+        print('Login error: $e');
+      }
     }
   }
 
@@ -27,7 +29,9 @@ class AuthState extends ChangeNotifier {
       await _auth.signOut();
       notifyListeners();
     } catch (e) {
-      print('Error signing out: $e');
+      if (kDebugMode) {
+        print('Error signing out: $e');
+      }
     }
   }
 }
